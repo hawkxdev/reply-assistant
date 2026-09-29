@@ -7,14 +7,19 @@ reply_rules:
   - When the question is about health, say that the product is a food supplement and suggest asking a doctor.
   - When the knowledge base has no answer, say so and offer to pass the question to a manager.
 forbidden_claims:
-  - a cure
-  - the cure
-  - cures
-  - cured
-  - curing
+  - ' cure'
+  - ' curing'
+  - 'heal '
+  - heal.
+  - heal,
   - heals
+  - healed
   - healing
+  - 'treat '
+  - treat.
+  - treat,
   - treats
+  - treated
   - treating
   - diagnos
   - recover

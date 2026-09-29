@@ -80,9 +80,9 @@ async def test_other_product_is_rejected(checks: ModuleType, product: str) -> No
 @pytest.mark.parametrize(
     ('reply', 'hint', 'stem', 'field'),
     [
-        ('This powder cures allergies.', HINT, 'cures', 'customer_reply'),
+        ('This powder cures allergies.', HINT, ' cure', 'customer_reply'),
         (REPLY, 'Say it is clinically proven.', 'clinically', 'upsell_hint'),
-        ('THIS POWDER CURES ALLERGIES.', HINT, 'cures', 'customer_reply'),
+        ('THIS POWDER CURES ALLERGIES.', HINT, ' cure', 'customer_reply'),
         ('Faster recovery after a cold.', HINT, 'recover', 'customer_reply'),
     ],
     ids=['reply', 'hint', 'upper case', 'inside a word'],
@@ -108,6 +108,22 @@ async def test_cyrillic_claim_is_rejected_without_regard_to_case(
 
     with pytest.raises(checks.CheckFailed) as caught:
         checks.check_no_forbidden_claim(output(reply=reply, product=None), kb)
+
+    assert caught.value.check == 'no_forbidden_claim'
+
+
+@pytest.mark.parametrize(
+    'reply',
+    ['This powder can cure allergies.', 'This can heal wounds.', 'We treat diabetes.'],
+    ids=['cure', 'heal', 'treat'],
+)
+async def test_example_stems_reject_a_base_form_claim(
+    checks: ModuleType, reply: str
+) -> None:
+    kb = await load('example-en.yaml')
+
+    with pytest.raises(checks.CheckFailed) as caught:
+        checks.check_no_forbidden_claim(output(reply=reply), kb)
 
     assert caught.value.check == 'no_forbidden_claim'
 
