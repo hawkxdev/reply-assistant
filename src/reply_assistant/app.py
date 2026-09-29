@@ -82,7 +82,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        """Load the parts the app owns."""
+        """Manage owned application parts."""
         owned: list[OpenAICompatibleClient] = []
         if parts.kb is None or parts.client is None:
             settings = Settings()

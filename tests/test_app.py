@@ -59,7 +59,7 @@ class StubClient(FakeModelClient):
 
 
 def provider_answer(request: httpx2.Request) -> httpx2.Response:
-    """Answer with one scripted reply."""
+    """Return one scripted reply."""
     return httpx2.Response(200, json=PROVIDER_REPLY)
 
 
