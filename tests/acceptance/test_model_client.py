@@ -133,6 +133,7 @@ async def test_request_goes_to_chat_completions(module: ModuleType) -> None:
     assert len(seen) == 1
     assert seen[0].method == 'POST'
     assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
+    assert seen[0].headers['content-type'] == 'application/json'
     assert seen[0].headers['authorization'] == f'Bearer {KEY}'
 
 
@@ -175,6 +176,7 @@ async def test_json_mode_puts_the_schema_into_the_messages(
     ).complete(messages, schema)
     body = json.loads(seen[0].content)
 
+    assert seen[0].headers['authorization'] == f'Bearer {KEY}'
     assert body['model'] == MODEL
     assert body['response_format'] == {'type': 'json_object'}
     assert body['messages'] == [
