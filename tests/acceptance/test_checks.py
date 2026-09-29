@@ -84,8 +84,21 @@ async def test_other_product_is_rejected(checks: ModuleType, product: str) -> No
         (REPLY, 'Say it is clinically proven.', 'clinically', 'upsell_hint'),
         ('THIS POWDER CURES ALLERGIES.', HINT, ' cure', 'customer_reply'),
         ('Faster recovery after a cold.', HINT, 'recover', 'customer_reply'),
+        ('Cure allergies with the powder.', HINT, ' cure', 'customer_reply'),
+        (REPLY, 'Curing colds is easy.', ' curing', 'upsell_hint'),
+        ('It is the powder we treat', HINT, 'treat ', 'customer_reply'),
+        ('Hello.\nCures allergies.', HINT, ' cure', 'customer_reply'),
     ],
-    ids=['reply', 'hint', 'upper case', 'inside a word'],
+    ids=[
+        'reply',
+        'hint',
+        'upper case',
+        'inside a word',
+        'start of the reply',
+        'start of the hint',
+        'end of the field',
+        'after a line break',
+    ],
 )
 async def test_forbidden_claim_is_rejected(
     checks: ModuleType, reply: str, hint: str, stem: str, field: str
