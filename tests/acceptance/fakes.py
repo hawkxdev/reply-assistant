@@ -18,12 +18,15 @@ class FakeModelClient:
     ) -> Completion:
         """Return the next reply."""
         self.calls.append((messages, schema))
+        call = len(self.calls)
         reply = self.replies.pop(0)
         if isinstance(reply, ProviderError):
             raise reply
         return Completion(
             text=reply,
-            usage=Usage(input_tokens=100, output_tokens=20, provider='fake'),
+            usage=Usage(
+                input_tokens=100 * call, output_tokens=20 * call, provider='fake'
+            ),
         )
 
 
