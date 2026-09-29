@@ -55,7 +55,7 @@ def test_empty_dotenv_value_counts_as_missing(
     (tmp_path / '.env').write_text(f'{PREFIX}PROVIDER_MODEL=\n', encoding='utf-8')
 
     with pytest.raises(ValidationError) as caught:
-        Settings()  # type: ignore[call-arg]
+        Settings()
 
     assert rejected_fields(caught.value) == {('provider_model', 'missing')}
 
@@ -71,7 +71,7 @@ def test_dotenv_extra_variables_are_ignored(tmp_path: Path) -> None:
         encoding='utf-8',
     )
 
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings()
 
     assert settings.provider_api_key.get_secret_value() == 'file-key'
     assert settings.provider_base_url == 'https://file.example/v1'
