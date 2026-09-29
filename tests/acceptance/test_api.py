@@ -5,6 +5,7 @@ import importlib
 import json
 from pathlib import Path
 
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,7 +31,11 @@ VALID = {
 }
 CLAIM = json.dumps({**VALID, 'customer_reply': 'This powder cures allergies.'})
 UPSTREAM = 'upstream detail 5d0e'
-CLOSED_PORT = 'http://127.0.0.1:9/v1'
+DISCLAIMER = 'This product is a food supplement and is not a medicine.'
+PROVIDER_REPLY = {
+    'choices': [{'message': {'content': json.dumps(VALID)}}],
+    'usage': {'prompt_tokens': 120, 'completion_tokens': 40},
+}
 ENV = {
     'REPLY_ASSISTANT_PROVIDER_API_KEY': 'test-key',
     'REPLY_ASSISTANT_PROVIDER_BASE_URL': 'https://llm.example.test/v1',
@@ -58,6 +63,25 @@ def settings_env(monkeypatch: pytest.MonkeyPatch, kb_path: Path) -> None:
     for key, value in ENV.items():
         monkeypatch.setenv(key, value)
     monkeypatch.setenv('REPLY_ASSISTANT_KB_PATH', str(kb_path))
+
+
+def use_fake_transport(
+    monkeypatch: pytest.MonkeyPatch, seen: list[httpx2.Request]
+) -> None:
+    """Route the settings client locally."""
+    module = importlib.import_module('reply_assistant.model_client')
+    build = module.OpenAICompatibleClient.from_settings
+
+    def answer(request: httpx2.Request) -> httpx2.Response:
+        """Answer like a provider."""
+        seen.append(request)
+        return httpx2.Response(200, json=PROVIDER_REPLY)
+
+    def from_settings(settings: object, transport: object = None) -> object:
+        """Build with the local transport."""
+        return build(settings, transport=httpx2.MockTransport(answer))
+
+    monkeypatch.setattr(module.OpenAICompatibleClient, 'from_settings', from_settings)
 
 
 # === Suggest ===
@@ -130,13 +154,16 @@ def test_provider_error_is_a_json_error(kind: str, status: int, code: str) -> No
 
 def test_service_starts_from_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings_env(monkeypatch, KB / 'example-en.yaml')
-    monkeypatch.setenv('REPLY_ASSISTANT_PROVIDER_BASE_URL', CLOSED_PORT)
+    seen: list[httpx2.Request] = []
+    use_fake_transport(monkeypatch, seen)
 
     with api() as client:
         response = client.post('/api/suggest', json={'message': MESSAGE})
 
-    assert response.status_code == 502
-    assert response.json()['code'] == 'provider_error'
+    assert response.status_code == 200
+    assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
+    assert json.loads(seen[0].content)['model'] == 'test-model'
+    assert response.json()['customer_reply'].endswith(DISCLAIMER)
 
 
 def test_invalid_knowledge_base_stops_the_service(
