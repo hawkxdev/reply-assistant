@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.141",
     "pydantic>=2.13",
     "pydantic-settings>=2.15",
+    "pyyaml>=6.0.3",
     "uvicorn>=0.54",
 ]
 
@@ -28,6 +29,7 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.9",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [tool.ruff]

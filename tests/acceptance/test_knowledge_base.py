@@ -7,8 +7,6 @@ from types import ModuleType
 
 import pytest
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 14 is not implemented')
-
 # === Data ===
 
 KB = Path(__file__).parents[2] / 'kb'
