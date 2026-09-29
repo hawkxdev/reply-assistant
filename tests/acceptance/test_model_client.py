@@ -1,0 +1,228 @@
+"""Acceptance for issue 22."""
+
+import importlib
+import json
+from collections.abc import Callable
+from types import ModuleType
+from typing import Any
+
+import httpx2
+import pytest
+from pydantic import SecretStr
+
+pytestmark = pytest.mark.xfail(strict=True, reason='issue 22 is not implemented')
+
+# === Data ===
+
+BASE_URL = 'https://llm.example.test/v1'
+KEY = 'test-key-7f3a'
+MODEL = 'test-model'
+MESSAGES = [
+    {'role': 'system', 'content': 'You help the manager.'},
+    {'role': 'user', 'content': 'Do you ship to Minsk?'},
+]
+SCHEMA = {'type': 'object', 'properties': {}, 'additionalProperties': False}
+CONTENT = '{"customer_reply": "Yes."}'
+REPLY = {
+    'choices': [{'message': {'role': 'assistant', 'content': CONTENT}}],
+    'usage': {'prompt_tokens': 120, 'completion_tokens': 40},
+}
+UPSTREAM_DETAIL = 'upstream detail 91c2'
+
+Handler = Callable[[httpx2.Request], httpx2.Response]
+
+# === Fixtures and helpers ===
+
+
+@pytest.fixture
+def module() -> ModuleType:
+    """Import the model client module."""
+    return importlib.import_module('reply_assistant.model_client')
+
+
+def recorder(
+    response: httpx2.Response, seen: list[httpx2.Request]
+) -> httpx2.MockTransport:
+    """Record requests, answer once."""
+
+    def handle(request: httpx2.Request) -> httpx2.Response:
+        """Keep the request."""
+        seen.append(request)
+        return response
+
+    return httpx2.MockTransport(handle)
+
+
+def failing(error: Exception) -> httpx2.MockTransport:
+    """Raise a transport error."""
+
+    def handle(request: httpx2.Request) -> httpx2.Response:
+        """Raise the error."""
+        raise error
+
+    return httpx2.MockTransport(handle)
+
+
+def client(
+    module: ModuleType, transport: httpx2.MockTransport, url: str = BASE_URL
+) -> Any:
+    """Build the client under test."""
+    return module.OpenAICompatibleClient(
+        base_url=url, api_key=SecretStr(KEY), model=MODEL, transport=transport
+    )
+
+
+# === Request ===
+
+
+@pytest.mark.parametrize('url', [BASE_URL, f'{BASE_URL}/'], ids=['plain', 'slash'])
+async def test_request_goes_to_chat_completions(module: ModuleType, url: str) -> None:
+    seen: list[httpx2.Request] = []
+
+    await client(
+        module, recorder(httpx2.Response(200, json=REPLY), seen), url
+    ).complete(MESSAGES, SCHEMA)
+
+    assert len(seen) == 1
+    assert seen[0].method == 'POST'
+    assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
+    assert seen[0].headers['authorization'] == f'Bearer {KEY}'
+
+
+async def test_request_asks_for_strict_structured_output(module: ModuleType) -> None:
+    seen: list[httpx2.Request] = []
+
+    await client(module, recorder(httpx2.Response(200, json=REPLY), seen)).complete(
+        MESSAGES, SCHEMA
+    )
+    body = json.loads(seen[0].content)
+
+    assert body['model'] == MODEL
+    assert body['messages'] == MESSAGES
+    assert body['response_format'] == {
+        'type': 'json_schema',
+        'json_schema': {'name': 'suggestion', 'strict': True, 'schema': SCHEMA},
+    }
+
+
+async def test_request_waits_long_enough_for_a_model(module: ModuleType) -> None:
+    seen: list[httpx2.Request] = []
+
+    await client(module, recorder(httpx2.Response(200, json=REPLY), seen)).complete(
+        MESSAGES, SCHEMA
+    )
+    read = seen[0].extensions['timeout']['read']
+
+    assert read is not None
+    assert 30 <= read <= 120
+
+
+async def test_client_is_built_from_settings(module: ModuleType) -> None:
+    settings = importlib.import_module('reply_assistant.settings').Settings(
+        provider_api_key=KEY,
+        provider_base_url=BASE_URL,
+        provider_model=MODEL,
+        kb_path='kb/example-en.yaml',
+    )
+    seen: list[httpx2.Request] = []
+    transport = recorder(httpx2.Response(200, json=REPLY), seen)
+
+    await module.OpenAICompatibleClient.from_settings(
+        settings, transport=transport
+    ).complete(MESSAGES, SCHEMA)
+
+    assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
+    assert seen[0].headers['authorization'] == f'Bearer {KEY}'
+    assert json.loads(seen[0].content)['model'] == MODEL
+
+
+# === Response ===
+
+
+async def test_reply_text_and_usage_are_returned(module: ModuleType) -> None:
+    seen: list[httpx2.Request] = []
+
+    completion = await client(
+        module, recorder(httpx2.Response(200, json=REPLY), seen)
+    ).complete(MESSAGES, SCHEMA)
+
+    assert completion.text == CONTENT
+    assert completion.usage.input_tokens == 120
+    assert completion.usage.output_tokens == 40
+    assert completion.usage.provider == 'llm.example.test'
+
+
+# === Errors ===
+
+
+@pytest.mark.parametrize(
+    ('error', 'kind'),
+    [
+        (httpx2.ReadTimeout('slow'), 'timeout'),
+        (httpx2.ConnectTimeout('slow'), 'timeout'),
+        (httpx2.ConnectError('refused'), 'connection'),
+    ],
+    ids=['read timeout', 'connect timeout', 'connection'],
+)
+async def test_transport_failure_is_a_provider_error(
+    module: ModuleType, error: Exception, kind: str
+) -> None:
+    with pytest.raises(module.ProviderError) as caught:
+        await client(module, failing(error)).complete(MESSAGES, SCHEMA)
+
+    assert caught.value.kind == kind
+    assert caught.value.provider == 'llm.example.test'
+
+
+@pytest.mark.parametrize(
+    ('status', 'kind'),
+    [
+        (429, 'rate_limit'),
+        (500, 'server'),
+        (503, 'server'),
+        (400, 'request'),
+        (401, 'request'),
+    ],
+)
+async def test_error_status_is_a_provider_error(
+    module: ModuleType, status: int, kind: str
+) -> None:
+    response = httpx2.Response(status, text=UPSTREAM_DETAIL)
+
+    with pytest.raises(module.ProviderError) as caught:
+        await client(module, recorder(response, [])).complete(MESSAGES, SCHEMA)
+
+    assert caught.value.kind == kind
+    assert UPSTREAM_DETAIL not in str(caught.value)
+
+
+@pytest.mark.parametrize(
+    'response',
+    [
+        httpx2.Response(200, text='not json'),
+        httpx2.Response(200, json={'usage': REPLY['usage']}),
+        httpx2.Response(200, json={**REPLY, 'choices': []}),
+        httpx2.Response(
+            200, json={**REPLY, 'choices': [{'message': {'content': None}}]}
+        ),
+        httpx2.Response(200, json={'choices': REPLY['choices']}),
+    ],
+    ids=['not json', 'no choices', 'empty choices', 'null content', 'no usage'],
+)
+async def test_malformed_reply_is_a_provider_error(
+    module: ModuleType, response: httpx2.Response
+) -> None:
+    with pytest.raises(module.ProviderError) as caught:
+        await client(module, recorder(response, [])).complete(MESSAGES, SCHEMA)
+
+    assert caught.value.kind == 'response'
+
+
+async def test_error_never_shows_the_key(module: ModuleType) -> None:
+    response = httpx2.Response(401, text=f'bad key {KEY}')
+
+    with pytest.raises(module.ProviderError) as caught:
+        await client(module, recorder(response, [])).complete(MESSAGES, SCHEMA)
+
+    assert KEY not in str(caught.value)
+    assert KEY not in repr(caught.value)

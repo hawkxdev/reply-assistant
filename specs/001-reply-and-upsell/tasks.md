@@ -10,7 +10,7 @@ The lead agent fills the **Issue** column when it opens the issue of a task, in 
 | T2 | Knowledge base schema, loader and two example files | R1 to R5 | [#14](https://github.com/hawkxdev/reply-assistant/issues/14) |
 | T3 | Suggestion schema and prompt builder | R6 to R8, R12 | [#16](https://github.com/hawkxdev/reply-assistant/issues/16) |
 | T4 | Checks by code | R9 to R11 | |
-| T5 | Model client interface, OpenAI compatible client, fake client for tests | R14, R15, R27 | |
+| T5 | Model client interface, OpenAI compatible client, fake client for tests | R14, R15, R27 | [#22](https://github.com/hawkxdev/reply-assistant/issues/22) |
 | T6 | Service function with validation, checks and one retry | R13 | |
 | T7 | `POST /api/suggest` with error mapping | R18, R21 | |
 | T8 | Web page | R20, R22 to R26 | |
