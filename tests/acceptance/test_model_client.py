@@ -175,6 +175,7 @@ async def test_json_mode_puts_the_schema_into_the_messages(
     ).complete(messages, schema)
     body = json.loads(seen[0].content)
 
+    assert body['model'] == MODEL
     assert body['response_format'] == {'type': 'json_object'}
     assert body['messages'] == [
         *json_messages(),
