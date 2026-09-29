@@ -53,6 +53,10 @@ No secret is available to the whole repository. The checks that run on every pul
 
 **What is capped.** Every agent job has a time limit and a concurrency group per issue.
 
+## What the author tool decides by itself
+
+The author action names the branch and writes the pull request title, and it does not apply labels. The agent states the correct title in the pull request body. The owner sets the title and the label before the review.
+
 ## What stays with the person
 
 - Writing the specification, the issues and the acceptance tests.
