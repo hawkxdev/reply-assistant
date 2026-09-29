@@ -124,6 +124,8 @@ async def test_rules_and_stems_are_kept(kb_module: ModuleType) -> None:
         'treatable',
         'therap',
         'remed',
+        'effective',
+        'is a treatment',
         'diagnos',
         'recover',
         'clinically',

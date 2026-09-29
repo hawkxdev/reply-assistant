@@ -21,6 +21,8 @@ forbidden_claims:
   - treatable
   - therap
   - remed
+  - effective
+  - is a treatment
   - diagnos
   - recover
   - clinically

@@ -83,6 +83,18 @@ async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
         ('Hello.\nCure your allergies with it.', HINT, ' cure', 'customer_reply'),
         ('This can heal!', HINT, 'heal ', 'customer_reply'),
         ('It makes diabetes treatable.', HINT, 'treatable', 'customer_reply'),
+        (
+            'This powder is an effective treatment for diabetes.',
+            HINT,
+            'effective',
+            'customer_reply',
+        ),
+        (
+            'This powder is a treatment for diabetes.',
+            HINT,
+            'is a treatment',
+            'customer_reply',
+        ),
     ],
     ids=[
         'inside a word',
@@ -91,6 +103,8 @@ async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
         'after a line break',
         'after punctuation',
         'inflected form',
+        'efficacy claim',
+        'treatment claim',
     ],
 )
 async def test_forbidden_claim_is_rejected(
