@@ -7,8 +7,6 @@ from typing import Any
 import pytest
 from pydantic import SecretStr, ValidationError
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 7 is not implemented')
-
 PREFIX = 'REPLY_ASSISTANT_'
 ENVIRONMENT = {
     'REPLY_ASSISTANT_PROVIDER_API_KEY': 'environment-key',
