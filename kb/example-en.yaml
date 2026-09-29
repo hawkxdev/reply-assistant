@@ -10,10 +10,13 @@ forbidden_claims:
   - ' cure'
   - ' curing'
   - ' curable'
+  - curative
   - 'heal '
   - heals
   - healed
   - healing
+  - healable
+  - healer
   - 'treat '
   - treats
   - treated

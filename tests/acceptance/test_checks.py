@@ -83,6 +83,7 @@ async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
         ('Hello.\nCure your allergies with it.', HINT, ' cure', 'customer_reply'),
         ('This can heal!', HINT, 'heal ', 'customer_reply'),
         ('It makes diabetes treatable.', HINT, 'treatable', 'customer_reply'),
+        ('It makes wounds healable.', HINT, 'healable', 'customer_reply'),
         (
             'This powder is an effective treatment for diabetes.',
             HINT,
@@ -103,6 +104,7 @@ async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
         'after a line break',
         'after punctuation',
         'inflected form',
+        'healable',
         'efficacy claim',
         'treatment claim',
     ],
