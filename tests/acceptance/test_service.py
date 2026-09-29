@@ -13,8 +13,6 @@ from reply_assistant.prompt import build_messages
 from reply_assistant.suggestion import SuggestionRequest, output_schema
 from tests.acceptance.fakes import FakeModelClient
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 25 is not implemented')
-
 # === Data ===
 
 KB = Path(__file__).parents[2] / 'kb'
