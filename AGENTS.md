@@ -42,6 +42,8 @@ If an issue cannot be completed without touching one of them, stop and say so in
 
 An acceptance test marked `xfail` for the issue you implement is the one exception: remove the marker for that test and any import that the removal leaves unused. Change nothing else in the file.
 
+This section binds every author except the repository owner. The owner changes these paths through pull requests of the owner's own.
+
 Never weaken, skip or delete a test to make a run green. Never add a dependency unless the issue names it.
 
 ## Code conventions
@@ -79,7 +81,7 @@ No secret value appears in code, tests, fixtures, logs, commit messages, issues 
 Review the pull request against its issue and this file.
 
 - A finding names the file and line, the consequence, and the rule or criterion it rests on.
-- Block on: an unmet acceptance criterion, a changed path from **Boundaries**, a weakened or deleted test, a secret, a domain rule violation, a missing test for new behaviour.
+- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted test, a secret, a domain rule violation, a missing test for new behaviour.
 - Do not block on taste. A preference that no rule supports is a suggestion.
 - Say plainly when the pull request is good. Do not invent findings.
 
