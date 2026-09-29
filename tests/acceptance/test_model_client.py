@@ -30,7 +30,9 @@ REPLY = {
 UPSTREAM_DETAIL = 'upstream detail 91c2'
 JSON_MODE_RULE = (
     'Answer with one JSON object that follows this JSON schema: '
-    '{"type": "object", "properties": {}, "additionalProperties": false}'
+    '{"type": "object", "properties": {"kb_match": {"type": "string", '
+    '"enum": ["found", "none"]}}, "required": ["kb_match"], '
+    '"additionalProperties": false}'
 )
 
 Handler = Callable[[httpx2.Request], httpx2.Response]
@@ -44,9 +46,47 @@ def module() -> ModuleType:
     return importlib.import_module('reply_assistant.model_client')
 
 
-def fresh_schema() -> dict[str, Any]:
-    """Build a new schema literal."""
-    return {'type': 'object', 'properties': {}, 'additionalProperties': False}
+def strict_messages() -> list[dict[str, str]]:
+    """Build the messages of the strict case."""
+    return [
+        {'role': 'system', 'content': 'Knowledge base A.'},
+        {'role': 'user', 'content': 'Is the spoon made of steel?'},
+    ]
+
+
+def strict_schema() -> dict[str, Any]:
+    """Build the schema of the strict case."""
+    return {
+        'type': 'object',
+        'properties': {
+            'upsell_product_id': {
+                'anyOf': [
+                    {'type': 'string', 'enum': ['spoon-5g', 'box-7']},
+                    {'type': 'null'},
+                ]
+            }
+        },
+        'required': ['upsell_product_id'],
+        'additionalProperties': False,
+    }
+
+
+def json_messages() -> list[dict[str, str]]:
+    """Build the messages of the JSON mode case."""
+    return [
+        {'role': 'system', 'content': 'Knowledge base B.'},
+        {'role': 'user', 'content': 'Do you ship to Brest?'},
+    ]
+
+
+def json_schema() -> dict[str, Any]:
+    """Build the schema of the JSON mode case."""
+    return {
+        'type': 'object',
+        'properties': {'kb_match': {'type': 'string', 'enum': ['found', 'none']}},
+        'required': ['kb_match'],
+        'additionalProperties': False,
+    }
 
 
 def recorder(
@@ -98,28 +138,25 @@ async def test_request_goes_to_chat_completions(module: ModuleType) -> None:
 
 async def test_request_asks_for_strict_structured_output(module: ModuleType) -> None:
     seen: list[httpx2.Request] = []
-    sent = fresh_schema()
+    messages, schema = strict_messages(), strict_schema()
 
     await client(module, recorder(httpx2.Response(200, json=REPLY), seen)).complete(
-        MESSAGES, sent
+        messages, schema
     )
     body = json.loads(seen[0].content)
 
     assert body['model'] == MODEL
-    assert body['messages'] == MESSAGES
+    assert body['messages'] == strict_messages()
     assert body['response_format'] == {
         'type': 'json_schema',
         'json_schema': {
             'name': 'suggestion',
             'strict': True,
-            'schema': {
-                'type': 'object',
-                'properties': {},
-                'additionalProperties': False,
-            },
+            'schema': strict_schema(),
         },
     }
-    assert sent == fresh_schema()
+    assert messages == strict_messages()
+    assert schema == strict_schema()
 
 
 async def test_json_mode_puts_the_schema_into_the_messages(
@@ -127,8 +164,7 @@ async def test_json_mode_puts_the_schema_into_the_messages(
 ) -> None:
     seen: list[httpx2.Request] = []
     transport = recorder(httpx2.Response(200, json=REPLY), seen)
-    sent = fresh_schema()
-    messages = [dict(message) for message in MESSAGES]
+    messages, schema = json_messages(), json_schema()
 
     await module.OpenAICompatibleClient(
         base_url=BASE_URL,
@@ -136,16 +172,16 @@ async def test_json_mode_puts_the_schema_into_the_messages(
         model=MODEL,
         transport=transport,
         json_mode=True,
-    ).complete(messages, sent)
+    ).complete(messages, schema)
     body = json.loads(seen[0].content)
 
     assert body['response_format'] == {'type': 'json_object'}
     assert body['messages'] == [
-        *MESSAGES,
+        *json_messages(),
         {'role': 'system', 'content': JSON_MODE_RULE},
     ]
-    assert messages == MESSAGES
-    assert sent == fresh_schema()
+    assert messages == json_messages()
+    assert schema == json_schema()
 
 
 async def test_request_waits_long_enough_for_a_model(module: ModuleType) -> None:
@@ -248,9 +284,17 @@ async def test_error_status_is_a_provider_error(
         httpx2.Response(
             200, json={**REPLY, 'choices': [{'message': {'content': None}}]}
         ),
+        httpx2.Response(200, json={**REPLY, 'choices': [{'message': {'content': 5}}]}),
         httpx2.Response(200, json={'choices': REPLY['choices']}),
     ],
-    ids=['not json', 'no choices', 'empty choices', 'null content', 'no usage'],
+    ids=[
+        'not json',
+        'no choices',
+        'empty choices',
+        'null content',
+        'number content',
+        'no usage',
+    ],
 )
 async def test_malformed_reply_is_a_provider_error(
     module: ModuleType, response: httpx2.Response
