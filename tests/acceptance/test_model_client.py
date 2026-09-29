@@ -231,6 +231,15 @@ async def test_reply_text_and_usage_are_returned(module: ModuleType) -> None:
     assert completion.usage.provider == 'llm.example.test'
 
 
+async def test_zero_tokens_are_a_valid_count(module: ModuleType) -> None:
+    reply = {**REPLY, 'usage': {'prompt_tokens': 0, 'completion_tokens': 0}}
+    transport = recorder(httpx2.Response(200, json=reply), [])
+
+    completion = await client(module, transport).complete(MESSAGES, SCHEMA)
+
+    assert (completion.usage.input_tokens, completion.usage.output_tokens) == (0, 0)
+
+
 # === Errors ===
 
 
@@ -296,11 +305,11 @@ async def test_error_status_is_a_provider_error(
         ),
         httpx2.Response(
             200,
-            json={**REPLY, 'usage': {'prompt_tokens': 1.5, 'completion_tokens': 40}},
+            json={**REPLY, 'usage': {'prompt_tokens': 120, 'completion_tokens': 1.5}},
         ),
         httpx2.Response(
             200,
-            json={**REPLY, 'usage': {'prompt_tokens': True, 'completion_tokens': 40}},
+            json={**REPLY, 'usage': {'prompt_tokens': 120, 'completion_tokens': True}},
         ),
     ],
     ids=[
