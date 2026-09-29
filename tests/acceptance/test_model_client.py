@@ -28,6 +28,7 @@ REPLY = {
     'usage': {'prompt_tokens': 120, 'completion_tokens': 40},
 }
 UPSTREAM_DETAIL = 'upstream detail 91c2'
+JSON_MODE_RULE = 'Answer with one JSON object that follows this JSON schema:'
 
 Handler = Callable[[httpx2.Request], httpx2.Response]
 
@@ -101,6 +102,28 @@ async def test_request_asks_for_strict_structured_output(module: ModuleType) -> 
         'type': 'json_schema',
         'json_schema': {'name': 'suggestion', 'strict': True, 'schema': SCHEMA},
     }
+
+
+async def test_json_mode_puts_the_schema_into_the_messages(
+    module: ModuleType,
+) -> None:
+    seen: list[httpx2.Request] = []
+    transport = recorder(httpx2.Response(200, json=REPLY), seen)
+
+    await module.OpenAICompatibleClient(
+        base_url=BASE_URL,
+        api_key=SecretStr(KEY),
+        model=MODEL,
+        transport=transport,
+        json_mode=True,
+    ).complete(MESSAGES, SCHEMA)
+    body = json.loads(seen[0].content)
+
+    assert body['response_format'] == {'type': 'json_object'}
+    assert body['messages'] == [
+        *MESSAGES,
+        {'role': 'system', 'content': f'{JSON_MODE_RULE} {json.dumps(SCHEMA)}'},
+    ]
 
 
 async def test_request_waits_long_enough_for_a_model(module: ModuleType) -> None:
