@@ -39,6 +39,9 @@ RETRY_RULE = (
 REJECTED = {
     'shape': 'Yes, we ship it.',
     'product_exists': json.dumps({**VALID, 'upsell_product_id': 'glue'}),
+    'no_forbidden_claim': json.dumps(
+        {**VALID, 'customer_reply': 'This powder cures allergies.'}
+    ),
 }
 
 # === Fixtures and helpers ===
@@ -113,6 +116,7 @@ async def test_rejected_answer_is_retried_once(
 
     assert result.checks.rejected == [check]
     assert result.customer_reply.startswith(VALID['customer_reply'])
+    assert result.upsell_product_id == VALID['upsell_product_id']
     assert result.usage.attempts == 2
     assert result.usage.input_tokens == 200
     assert result.usage.output_tokens == 40
