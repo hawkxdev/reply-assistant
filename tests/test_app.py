@@ -4,11 +4,14 @@ import asyncio
 import json
 from pathlib import Path
 
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
 from reply_assistant.app import create_app
 from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
+from reply_assistant.model_client import OpenAICompatibleClient
+from reply_assistant.settings import Settings
 from tests.acceptance.fakes import FakeModelClient
 
 # === Data ===
@@ -30,6 +33,10 @@ REPLY = json.dumps(
         'kb_match': 'found',
     }
 )
+PROVIDER_REPLY = {
+    'choices': [{'message': {'content': REPLY}}],
+    'usage': {'prompt_tokens': 10, 'completion_tokens': 5},
+}
 
 # === Helpers ===
 
@@ -46,6 +53,14 @@ class StubClient(FakeModelClient):
     def from_settings(cls, settings: object, transport: object = None) -> 'StubClient':
         """Ignore the settings given."""
         return cls([REPLY])
+
+    async def aclose(self) -> None:
+        """Accept the shutdown."""
+
+
+def provider_answer(request: httpx2.Request) -> httpx2.Response:
+    """Return one scripted reply."""
+    return httpx2.Response(200, json=PROVIDER_REPLY)
 
 
 # === Settings ===
@@ -94,3 +109,40 @@ def test_settings_are_not_read_when_kb_and_client_are_given(
 
     assert response.status_code == 200
     assert response.json()['kb_match'] == 'found'
+
+
+# === Restart ===
+
+
+async def test_second_lifespan_builds_a_fresh_owned_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for key, value in ENV.items():
+        monkeypatch.setenv(key, value)
+    builds: list[OpenAICompatibleClient] = []
+    build = OpenAICompatibleClient.from_settings
+
+    def from_settings(settings: Settings) -> OpenAICompatibleClient:
+        """Build the local client."""
+        built = build(settings, transport=httpx2.MockTransport(provider_answer))
+        builds.append(built)
+        return built
+
+    monkeypatch.setattr(OpenAICompatibleClient, 'from_settings', from_settings)
+    kb = await load_knowledge_base(KB / 'example-en.yaml')
+    app = create_app(kb=kb)
+    codes = []
+
+    for _ in range(2):
+        async with (
+            app.router.lifespan_context(app),
+            httpx2.AsyncClient(
+                transport=httpx2.ASGITransport(app=app, raise_app_exceptions=False),
+                base_url='http://app.test',
+            ) as web,
+        ):
+            response = await web.post('/api/suggest', json={'message': MESSAGE})
+            codes.append(response.status_code)
+
+    assert codes == [200, 200]
+    assert len(builds) == 2

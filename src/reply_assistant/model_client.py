@@ -92,6 +92,10 @@ class OpenAICompatibleClient:
             transport=transport,
         )
 
+    async def aclose(self) -> None:
+        """Close the HTTP client."""
+        await self._client.aclose()
+
     async def complete(
         self, messages: list[dict[str, str]], schema: dict[str, Any]
     ) -> Completion:

@@ -11,8 +11,6 @@ import pytest
 from reply_assistant.app import create_app
 from reply_assistant.settings import Settings
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 34 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
