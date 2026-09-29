@@ -80,6 +80,7 @@ def write(directory: Path, text: str) -> Path:
             ],
         ),
     ],
+    ids=['en', 'ru'],
 )
 async def test_example_file_loads(
     kb_module: ModuleType, name: str, company: str, language: str, ids: list[str]
@@ -98,7 +99,27 @@ async def test_product_fields_are_kept_verbatim(kb_module: ModuleType) -> None:
     assert powder.name == 'Zeolite Powder'
     assert powder.form == 'powder, 200 g jar'
     assert powder.price == '18.00 USD'
+    assert powder.description == (
+        'Finely milled natural zeolite for daily use with water.'
+    )
     assert powder.goes_with == ['measuring-spoon', 'zeolite-capsules-90']
+
+
+async def test_rules_and_stems_are_kept(kb_module: ModuleType) -> None:
+    kb = await kb_module.load_knowledge_base(KB / 'example-en.yaml')
+
+    assert kb.reply_rules[0] == (
+        'Answer in two to four sentences, in a polite and plain tone.'
+    )
+    assert kb.forbidden_claims == [
+        'cure',
+        'heal',
+        'treat',
+        'diagnos',
+        'recover',
+        'clinically',
+        'instead of medicine',
+    ]
 
 
 async def test_disclaimer_is_optional(kb_module: ModuleType) -> None:
@@ -117,8 +138,6 @@ async def test_goes_with_is_empty_when_absent(
     kb = await kb_module.load_knowledge_base(write(tmp_path, VALID))
 
     assert kb.products[1].goes_with == []
-    assert kb.forbidden_claims == ['cure']
-    assert kb.reply_rules == ['Answer briefly.']
 
 
 # === Invalid files ===
@@ -132,6 +151,7 @@ async def test_goes_with_is_empty_when_absent(
         ('    name: Box\n', "    name: ''\n", 'products.0.name'),
         ('    price: 2.00 USD\n', '    price: 2\n', 'products.0.price'),
         ('language: en\n', 'language: en\ncolour: red\n', 'colour'),
+        ('    form: roll\n', '    form: roll\n    colour: red\n', 'products.1.colour'),
         ('  - id: tape\n', '  - id: box\n', 'products.1.id'),
         ('      - tape\n', '      - glue\n', 'products.0.goes_with'),
     ],
@@ -141,6 +161,7 @@ async def test_goes_with_is_empty_when_absent(
         'empty name',
         'number as price',
         'unknown key',
+        'unknown product key',
         'duplicate id',
         'unknown related product',
     ],
