@@ -35,9 +35,27 @@ NOTICES = [
     'Mock of a CRM dialog window. Nothing is sent anywhere.',
     'Макет окна диалога CRM. Ничего никуда не отправляется.',
 ]
-TRADEMARKS = ['amocrm', 'kommo', 'bitrix', 'битрикс']
+TRADEMARKS = [
+    'amocrm',
+    'kommo',
+    'bitrix',
+    'битрикс',
+    'salesforce',
+    'hubspot',
+    'pipedrive',
+    'zoho',
+    'megaplan',
+    'мегаплан',
+    'retailcrm',
+]
 OUTSIDE = re.compile(r'(?:https?|wss?):|[\'"(=]\s*//[a-z0-9]', re.IGNORECASE)
 LINK = re.compile(r'(?:src|href)\s*=\s*["\']?([^"\'\s>]*)', re.IGNORECASE)
+TAG = re.compile(r'<[a-z][^>]*>', re.IGNORECASE)
+LOAD = re.compile(
+    r'\s(?:srcset|imagesrcset|data|poster|action|formaction|background|ping)'
+    r'\s*=\s*["\']?([^"\'\s>]*)',
+    re.IGNORECASE,
+)
 CSS_URL = re.compile(r'url\(\s*["\']?([^"\')\s]*)', re.IGNORECASE)
 PHONE = '+000 00 000-00-00'
 
@@ -103,7 +121,8 @@ def test_page_holds_no_outside_address() -> None:
 
 def test_page_links_no_other_file() -> None:
     text = get_page().text
-    links = LINK.findall(text) + CSS_URL.findall(text)
+    loads = [link for tag in TAG.findall(text) for link in LOAD.findall(tag)]
+    links = LINK.findall(text) + CSS_URL.findall(text) + loads
 
     assert [link for link in links if not link.startswith(('#', 'data:'))] == []
     assert '@import' not in text
