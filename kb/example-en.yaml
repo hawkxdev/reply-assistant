@@ -9,6 +9,7 @@ reply_rules:
 forbidden_claims:
   - ' cure'
   - ' curing'
+  - ' curable'
   - 'heal '
   - heals
   - healed
@@ -17,6 +18,9 @@ forbidden_claims:
   - treats
   - treated
   - treating
+  - treatable
+  - therap
+  - remed
   - diagnos
   - recover
   - clinically

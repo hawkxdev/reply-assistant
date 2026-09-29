@@ -112,6 +112,7 @@ async def test_rules_and_stems_are_kept(kb_module: ModuleType) -> None:
     assert kb.forbidden_claims == [
         ' cure',
         ' curing',
+        ' curable',
         'heal ',
         'heals',
         'healed',
@@ -120,6 +121,9 @@ async def test_rules_and_stems_are_kept(kb_module: ModuleType) -> None:
         'treats',
         'treated',
         'treating',
+        'treatable',
+        'therap',
+        'remed',
         'diagnos',
         'recover',
         'clinically',
