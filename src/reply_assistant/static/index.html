@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="pageTitle">Reply Assistant</title>
+<style>
+:root {
+  --bg: #f3f5f7;
+  --card: #ffffff;
+  --line: #e4e8ec;
+  --ink: #24313f;
+  --muted: #7b8794;
+  --accent: #2563eb;
+  --accent-soft: #e3edff;
+}
+* { box-sizing: border-box; }
+html { height: 100%; }
+body {
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+[hidden] { display: none; }
+
+#top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px 0;
+}
+#top h1 { margin: 0; font-size: 16px; }
+#mock-notice {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+  line-height: 1.4;
+}
+#mock-notice span { display: block; }
+
+main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  gap: 14px;
+  padding: 12px 18px 16px;
+}
+
+.column {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.column h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+#deal .deal-name { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+.field {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid #f0f3f5;
+}
+.field .label { color: var(--muted); }
+.field .value { font-weight: 600; text-align: right; }
+
+#chat-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 2px 10px;
+  border-bottom: 1px solid var(--line);
+}
+#chat-header .name { font-size: 15px; font-weight: 600; }
+#chat-header .role { color: var(--muted); font-size: 12px; }
+
+#messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 2px;
+}
+.message { max-width: 80%; display: flex; flex-direction: column; }
+.message.incoming { align-self: flex-start; align-items: flex-start; }
+.message.outgoing { align-self: flex-end; align-items: flex-end; }
+.message .author { font-size: 11px; color: var(--muted); margin: 0 4px 3px; }
+.message .bubble {
+  padding: 8px 12px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.message.incoming .bubble {
+  background: #f1f4f8;
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+}
+.message.outgoing .bubble {
+  background: var(--accent-soft);
+  border: 1px solid #cfdffb;
+  border-bottom-right-radius: 4px;
+}
+
+.writer { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+.writer .caption {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.writer .row { display: flex; gap: 8px; align-items: stretch; }
+.writer input, .writer textarea {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #d5dce2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  color: inherit;
+  background: #fbfcfd;
+  resize: none;
+}
+.writer input:focus, .writer textarea:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:hover { background: #1c50c8; }
+button:active { transform: translateY(1px); }
+button.ghost {
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+button.ghost:hover { background: var(--accent-soft); }
+
+#assistant-state { margin: 4px 0 12px; color: var(--muted); }
+#assistant-state.loading { animation: pulse 1.4s ease-in-out infinite; }
+#assistant-state.error { color: var(--ink); font-weight: 600; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+
+#assistant-result { overflow-y: auto; min-height: 0; }
+#assistant-result section { border-top: 1px solid var(--line); padding: 10px 0 12px; }
+#assistant-result section:first-child { border-top: none; padding-top: 2px; }
+#assistant-result h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+#reply {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f7f9fc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+#hint { margin: 0 0 8px; }
+#hint .product-id {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12px;
+}
+.kv { display: flex; justify-content: space-between; gap: 10px; margin: 0; }
+.kv .label { color: var(--muted); }
+.kv .value { font-weight: 600; }
+ul.plain { list-style: none; margin: 0; padding: 0; }
+#checks li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 10px;
+  padding: 4px 0;
+}
+#checks .status { font-weight: 600; color: var(--accent); }
+#checks .note {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+}
+#usage li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+#usage .label { color: var(--muted); }
+#usage .value { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header id="top">
+  <h1 data-i18n="appTitle">Reply Assistant</h1>
+  <p id="mock-notice">
+    <span>Mock of a CRM dialog window. Nothing is sent anywhere.</span>
+    <span>Макет окна диалога CRM. Ничего никуда не отправляется.</span>
+  </p>
+</header>
+
+<main>
+  <section id="deal" class="column">
+    <h2 data-i18n="dealHeading">Deal</h2>
+    <p class="deal-name" data-i18n="dealName">Zeolite for a daily course</p>
+    <div class="field">
+      <span class="label" data-i18n="stageLabel">Stage</span>
+      <span class="value" data-i18n="stageValue">Negotiation</span>
+    </div>
+    <div class="field">
+      <span class="label" data-i18n="budgetLabel">Budget</span>
+      <span class="value" data-i18n="budgetValue">24.00 USD</span>
+    </div>
+    <div class="field">
+      <span class="label" data-i18n="contactLabel">Contact</span>
+      <span class="value" data-i18n="contactValue">Anna Petrova</span>
+    </div>
+    <div class="field">
+      <span class="label" data-i18n="phoneLabel">Phone</span>
+      <span class="value">+000 00 000-00-00</span>
+    </div>
+  </section>
+
+  <section id="chat" class="column">
+    <header id="chat-header">
+      <span class="name" data-i18n="contactValue">Anna Petrova</span>
+      <span class="role" data-i18n="chatRole">Customer</span>
+    </header>
+    <div id="messages" aria-live="polite"></div>
+    <div class="writer">
+      <label class="caption" for="customer-input" data-i18n="customerCaption">The customer writes</label>
+      <div class="row">
+        <input id="customer-input" autocomplete="off"
+               placeholder="New message from the customer"
+               data-i18n-placeholder="customerPlaceholder">
+        <button id="add-customer" type="button" data-i18n="customerButton">Receive</button>
+      </div>
+    </div>
+    <div class="writer">
+      <label class="caption" for="chat-input" data-i18n="managerCaption">Reply to the customer</label>
+      <div class="row">
+        <textarea id="chat-input" rows="2"
+                  placeholder="Write a reply to the customer"
+                  data-i18n-placeholder="managerPlaceholder"></textarea>
+        <button id="add-manager" type="button" data-i18n="managerButton">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="assistant" class="column">
+    <h2 data-i18n="assistantHeading">Assistant</h2>
+    <p id="assistant-state" data-i18n="waiting">Waiting for a customer message.</p>
+    <div id="assistant-result" hidden>
+      <section>
+        <h3 data-i18n="replyHeading">Suggested reply</h3>
+        <p id="reply"></p>
+        <button id="insert-reply" type="button" class="ghost" data-i18n="insertReply">Insert into the chat</button>
+      </section>
+      <section>
+        <h3 data-i18n="hintHeading">Upsell hint</h3>
+        <p id="hint"></p>
+        <p class="kv">
+          <span class="label" data-i18n="kbMatchLabel">Knowledge base match</span>
+          <span class="value" id="kb-match"></span>
+        </p>
+      </section>
+      <section>
+        <h3 data-i18n="checksHeading">Checks</h3>
+        <ul id="checks" class="plain"></ul>
+      </section>
+      <section>
+        <h3 data-i18n="usageHeading">Usage</h3>
+        <ul id="usage" class="plain"></ul>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const I18N = {
+  en: {
+    pageTitle: 'Reply Assistant',
+    appTitle: 'Reply Assistant',
+    dealHeading: 'Deal',
+    dealName: 'Zeolite for a daily course',
+    stageLabel: 'Stage',
+    stageValue: 'Negotiation',
+    budgetLabel: 'Budget',
+    budgetValue: '24.00 USD',
+    contactLabel: 'Contact',
+    contactValue: 'Anna Petrova',
+    phoneLabel: 'Phone',
+    chatRole: 'Customer',
+    customerCaption: 'The customer writes',
+    customerPlaceholder: 'New message from the customer',
+    customerButton: 'Receive',
+    managerCaption: 'Reply to the customer',
+    managerPlaceholder: 'Write a reply to the customer',
+    managerButton: 'Add',
+    you: 'You',
+    assistantHeading: 'Assistant',
+    waiting: 'Waiting for a customer message.',
+    loading: 'The assistant is thinking…',
+    errorWord: 'Error',
+    replyHeading: 'Suggested reply',
+    insertReply: 'Insert into the chat',
+    hintHeading: 'Upsell hint',
+    kbMatchLabel: 'Knowledge base match',
+    checksHeading: 'Checks',
+    checkShape: 'Shape',
+    checkProduct: 'Product exists',
+    checkClaim: 'No forbidden claim',
+    checkDisclaimer: 'Disclaimer appended',
+    passed: 'passed',
+    rejectedEarlier: 'rejected an earlier answer',
+    yes: 'yes',
+    no: 'no',
+    usageHeading: 'Usage',
+    inputTokens: 'Input tokens',
+    outputTokens: 'Output tokens',
+    provider: 'Provider',
+    attempts: 'Attempts',
+    matchFound: 'found',
+    matchPartial: 'partial',
+    matchNone: 'none',
+    firstIncoming: 'Hello! Do you have the zeolite powder in stock?',
+    firstOutgoing: 'Hello! Yes, it is in the warehouse and ready to ship.',
+  },
+  ru: {
+    pageTitle: 'Помощник ответов',
+    appTitle: 'Помощник ответов',
+    dealHeading: 'Сделка',
+    dealName: 'Цеолит для ежедневного курса',
+    stageLabel: 'Этап',
+    stageValue: 'Переговоры',
+    budgetLabel: 'Бюджет',
+    budgetValue: '24.00 USD',
+    contactLabel: 'Контакт',
+    contactValue: 'Анна Петрова',
+    phoneLabel: 'Телефон',
+    chatRole: 'Клиент',
+    customerCaption: 'Пишет клиент',
+    customerPlaceholder: 'Новое сообщение от клиента',
+    customerButton: 'Принять',
+    managerCaption: 'Ответ клиенту',
+    managerPlaceholder: 'Напишите ответ клиенту',
+    managerButton: 'Добавить',
+    you: 'Вы',
+    assistantHeading: 'Ассистент',
+    waiting: 'Ждём сообщение от клиента.',
+    loading: 'Ассистент думает…',
+    errorWord: 'Ошибка',
+    replyHeading: 'Черновик ответа',
+    insertReply: 'Вставить в чат',
+    hintHeading: 'Подсказка для допродажи',
+    kbMatchLabel: 'Совпадение с базой знаний',
+    checksHeading: 'Проверки',
+    checkShape: 'Форма',
+    checkProduct: 'Товар существует',
+    checkClaim: 'Нет запрещённых обещаний',
+    checkDisclaimer: 'Дисклеймер добавлен',
+    passed: 'пройдена',
+    rejectedEarlier: 'отклонила более ранний ответ',
+    yes: 'да',
+    no: 'нет',
+    usageHeading: 'Использование',
+    inputTokens: 'Входные токены',
+    outputTokens: 'Выходные токены',
+    provider: 'Провайдер',
+    attempts: 'Попытки',
+    matchFound: 'найдено',
+    matchPartial: 'частично',
+    matchNone: 'нет',
+    firstIncoming: 'Здравствуйте! Цеолитовый порошок есть в наличии?',
+    firstOutgoing: 'Здравствуйте! Да, он есть на складе и готов к отправке.',
+  },
+};
+
+const attr = document.documentElement.getAttribute('lang');
+const own = Object.prototype.hasOwnProperty;
+const lang = own.call(I18N, attr) ? attr : 'en';
+const L = I18N[lang];
+
+for (const node of document.querySelectorAll('[data-i18n]')) {
+  const key = node.getAttribute('data-i18n');
+  if (own.call(L, key)) node.textContent = L[key];
+}
+for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
+  const key = node.getAttribute('data-i18n-placeholder');
+  if (own.call(L, key)) node.setAttribute('placeholder', L[key]);
+}
+
+const messages = document.getElementById('messages');
+const customerInput = document.getElementById('customer-input');
+const chatInput = document.getElementById('chat-input');
+const state = document.getElementById('assistant-state');
+const result = document.getElementById('assistant-result');
+const reply = document.getElementById('reply');
+const hint = document.getElementById('hint');
+const kbMatch = document.getElementById('kb-match');
+const checksList = document.getElementById('checks');
+const usageList = document.getElementById('usage');
+let lastReply = '';
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+function addMessage(author, text, direction) {
+  const wrap = el('div', 'message ' + direction);
+  wrap.append(el('div', 'author', author), el('div', 'bubble', text));
+  messages.append(wrap);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function setState(text, mode) {
+  state.textContent = text;
+  state.className = mode;
+  state.hidden = false;
+  result.hidden = true;
+}
+
+function showChecks(report) {
+  const names = [
+    ['shape', 'checkShape'],
+    ['product_exists', 'checkProduct'],
+    ['no_forbidden_claim', 'checkClaim'],
+  ];
+  checksList.replaceChildren();
+  for (const pair of names) {
+    const row = el('li');
+    row.append(el('span', 'name', L[pair[1]]));
+    row.append(el('span', 'status', L.passed));
+    if (report.rejected.includes(pair[0])) {
+      row.append(el('span', 'note', L.rejectedEarlier));
+    }
+    checksList.append(row);
+  }
+  const disclaimer = el('li');
+  disclaimer.append(el('span', 'name', L.checkDisclaimer));
+  disclaimer.append(el('span', 'status', report.disclaimer_appended ? L.yes : L.no));
+  checksList.append(disclaimer);
+}
+
+function showUsage(report) {
+  const rows = [
+    [L.inputTokens, String(report.input_tokens)],
+    [L.outputTokens, String(report.output_tokens)],
+    [L.provider, report.provider],
+    [L.attempts, String(report.attempts)],
+  ];
+  usageList.replaceChildren();
+  for (const row of rows) {
+    const line = el('li');
+    line.append(el('span', 'label', row[0]), el('span', 'value', row[1]));
+    usageList.append(line);
+  }
+}
+
+function showSuggestion(suggestion) {
+  lastReply = suggestion.customer_reply;
+  reply.textContent = suggestion.customer_reply;
+  hint.replaceChildren();
+  if (suggestion.upsell_product_id) {
+    hint.append(el('span', 'product-id', suggestion.upsell_product_id), ' ');
+  }
+  hint.append(suggestion.upsell_hint);
+  const words = { found: L.matchFound, partial: L.matchPartial, none: L.matchNone };
+  kbMatch.textContent = own.call(words, suggestion.kb_match)
+    ? words[suggestion.kb_match]
+    : suggestion.kb_match;
+  showChecks(suggestion.checks);
+  showUsage(suggestion.usage);
+  state.hidden = true;
+  state.className = '';
+  result.hidden = false;
+}
+
+async function askAssistant(text) {
+  setState(L.loading, 'loading');
+  try {
+    const response = await fetch('/api/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setState(L.errorWord + ': ' + payload.message, 'error');
+      return;
+    }
+    showSuggestion(payload);
+  } catch (error) {
+    setState(L.errorWord + ': ' + error.message, 'error');
+  }
+}
+
+function receiveCustomerMessage() {
+  const text = customerInput.value.trim();
+  if (!text) return;
+  customerInput.value = '';
+  addMessage(L.contactValue, text, 'incoming');
+  askAssistant(text);
+}
+
+function addManagerMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  addMessage(L.you, text, 'outgoing');
+}
+
+document.getElementById('add-customer').addEventListener('click', receiveCustomerMessage);
+document.getElementById('add-manager').addEventListener('click', addManagerMessage);
+document.getElementById('insert-reply').addEventListener('click', () => {
+  chatInput.value = lastReply;
+  chatInput.focus();
+});
+customerInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    receiveCustomerMessage();
+  }
+});
+chatInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    addManagerMessage();
+  }
+});
+
+addMessage(L.contactValue, L.firstIncoming, 'incoming');
+addMessage(L.you, L.firstOutgoing, 'outgoing');
+</script>
+</body>
+</html>
