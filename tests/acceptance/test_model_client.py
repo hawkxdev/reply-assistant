@@ -42,12 +42,12 @@ Handler = Callable[[httpx2.Request], httpx2.Response]
 
 @pytest.fixture
 def module() -> ModuleType:
-    """Import the model client module."""
+    """Import the client module."""
     return importlib.import_module('reply_assistant.model_client')
 
 
 def strict_messages() -> list[dict[str, str]]:
-    """Build the messages of the strict case."""
+    """Strict case messages."""
     return [
         {'role': 'system', 'content': 'Knowledge base A.'},
         {'role': 'user', 'content': 'Is the spoon made of steel?'},
@@ -55,7 +55,7 @@ def strict_messages() -> list[dict[str, str]]:
 
 
 def strict_schema() -> dict[str, Any]:
-    """Build the schema of the strict case."""
+    """Strict case schema."""
     return {
         'type': 'object',
         'properties': {
@@ -72,7 +72,7 @@ def strict_schema() -> dict[str, Any]:
 
 
 def json_messages() -> list[dict[str, str]]:
-    """Build the messages of the JSON mode case."""
+    """JSON mode messages."""
     return [
         {'role': 'system', 'content': 'Knowledge base B.'},
         {'role': 'user', 'content': 'Do you ship to Brest?'},
@@ -80,7 +80,7 @@ def json_messages() -> list[dict[str, str]]:
 
 
 def json_schema() -> dict[str, Any]:
-    """Build the schema of the JSON mode case."""
+    """JSON mode schema."""
     return {
         'type': 'object',
         'properties': {'kb_match': {'type': 'string', 'enum': ['found', 'none']}},
@@ -115,7 +115,7 @@ def failing(error: Exception) -> httpx2.MockTransport:
 def client(
     module: ModuleType, transport: httpx2.MockTransport, url: str = BASE_URL
 ) -> Any:
-    """Build the client under test."""
+    """Build the tested client."""
     return module.OpenAICompatibleClient(
         base_url=url, api_key=SecretStr(KEY), model=MODEL, transport=transport
     )
@@ -286,6 +286,14 @@ async def test_error_status_is_a_provider_error(
         ),
         httpx2.Response(200, json={**REPLY, 'choices': [{'message': {'content': 5}}]}),
         httpx2.Response(200, json={'choices': REPLY['choices']}),
+        httpx2.Response(
+            200,
+            json={**REPLY, 'usage': {'prompt_tokens': '120', 'completion_tokens': 40}},
+        ),
+        httpx2.Response(
+            200,
+            json={**REPLY, 'usage': {'prompt_tokens': 120, 'completion_tokens': -1}},
+        ),
     ],
     ids=[
         'not json',
@@ -294,6 +302,8 @@ async def test_error_status_is_a_provider_error(
         'null content',
         'number content',
         'no usage',
+        'text tokens',
+        'negative tokens',
     ],
 )
 async def test_malformed_reply_is_a_provider_error(
