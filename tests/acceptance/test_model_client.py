@@ -10,8 +10,6 @@ import httpx2
 import pytest
 from pydantic import SecretStr
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 22 is not implemented')
-
 # === Data ===
 
 BASE_URL = 'https://llm.example.test/v1'
