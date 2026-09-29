@@ -11,8 +11,6 @@ from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
 from reply_assistant.model_client import Completion
 from tests.acceptance.fakes import FakeModelClient
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 35 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
