@@ -47,6 +47,9 @@ class StubClient(FakeModelClient):
         """Ignore the settings given."""
         return cls([REPLY])
 
+    async def aclose(self) -> None:
+        """Accept the shutdown."""
+
 
 # === Settings ===
 

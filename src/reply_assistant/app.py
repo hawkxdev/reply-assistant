@@ -82,14 +82,21 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        """Load the missing parts."""
+        """Load the parts the app owns."""
+        owned: list[OpenAICompatibleClient] = []
         if parts.kb is None or parts.client is None:
             settings = Settings()
             if parts.kb is None:
                 parts.kb = await load_knowledge_base(settings.kb_path)
             if parts.client is None:
-                parts.client = OpenAICompatibleClient.from_settings(settings)
-        yield
+                built = OpenAICompatibleClient.from_settings(settings)
+                parts.client = built
+                owned.append(built)
+        try:
+            yield
+        finally:
+            for client in owned:
+                await client.aclose()
 
     app = FastAPI(title='Reply Assistant', version=__version__, lifespan=lifespan)
 
