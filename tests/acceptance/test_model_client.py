@@ -28,7 +28,10 @@ REPLY = {
     'usage': {'prompt_tokens': 120, 'completion_tokens': 40},
 }
 UPSTREAM_DETAIL = 'upstream detail 91c2'
-JSON_MODE_RULE = 'Answer with one JSON object that follows this JSON schema:'
+JSON_MODE_RULE = (
+    'Answer with one JSON object that follows this JSON schema: '
+    '{"type": "object", "properties": {}, "additionalProperties": false}'
+)
 
 Handler = Callable[[httpx2.Request], httpx2.Response]
 
@@ -39,6 +42,11 @@ Handler = Callable[[httpx2.Request], httpx2.Response]
 def module() -> ModuleType:
     """Import the model client module."""
     return importlib.import_module('reply_assistant.model_client')
+
+
+def fresh_schema() -> dict[str, Any]:
+    """Build a new schema literal."""
+    return {'type': 'object', 'properties': {}, 'additionalProperties': False}
 
 
 def recorder(
@@ -90,9 +98,10 @@ async def test_request_goes_to_chat_completions(module: ModuleType) -> None:
 
 async def test_request_asks_for_strict_structured_output(module: ModuleType) -> None:
     seen: list[httpx2.Request] = []
+    sent = fresh_schema()
 
     await client(module, recorder(httpx2.Response(200, json=REPLY), seen)).complete(
-        MESSAGES, SCHEMA
+        MESSAGES, sent
     )
     body = json.loads(seen[0].content)
 
@@ -100,8 +109,17 @@ async def test_request_asks_for_strict_structured_output(module: ModuleType) -> 
     assert body['messages'] == MESSAGES
     assert body['response_format'] == {
         'type': 'json_schema',
-        'json_schema': {'name': 'suggestion', 'strict': True, 'schema': SCHEMA},
+        'json_schema': {
+            'name': 'suggestion',
+            'strict': True,
+            'schema': {
+                'type': 'object',
+                'properties': {},
+                'additionalProperties': False,
+            },
+        },
     }
+    assert sent == fresh_schema()
 
 
 async def test_json_mode_puts_the_schema_into_the_messages(
@@ -109,6 +127,8 @@ async def test_json_mode_puts_the_schema_into_the_messages(
 ) -> None:
     seen: list[httpx2.Request] = []
     transport = recorder(httpx2.Response(200, json=REPLY), seen)
+    sent = fresh_schema()
+    messages = [dict(message) for message in MESSAGES]
 
     await module.OpenAICompatibleClient(
         base_url=BASE_URL,
@@ -116,14 +136,16 @@ async def test_json_mode_puts_the_schema_into_the_messages(
         model=MODEL,
         transport=transport,
         json_mode=True,
-    ).complete(MESSAGES, SCHEMA)
+    ).complete(messages, sent)
     body = json.loads(seen[0].content)
 
     assert body['response_format'] == {'type': 'json_object'}
     assert body['messages'] == [
         *MESSAGES,
-        {'role': 'system', 'content': f'{JSON_MODE_RULE} {json.dumps(SCHEMA)}'},
+        {'role': 'system', 'content': JSON_MODE_RULE},
     ]
+    assert messages == MESSAGES
+    assert sent == fresh_schema()
 
 
 async def test_request_waits_long_enough_for_a_model(module: ModuleType) -> None:
