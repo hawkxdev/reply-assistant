@@ -1,0 +1,13 @@
+# Paths that change only with the owner's review
+
+/.github/            @hawkxdev
+/AGENTS.md           @hawkxdev
+/CLAUDE.md           @hawkxdev
+/.claude/            @hawkxdev
+/.agents/            @hawkxdev
+/tests/acceptance/   @hawkxdev
+/specs/              @hawkxdev
+/docs/adr/           @hawkxdev
+/docs/how-this-repo-is-built.md @hawkxdev
+/LICENSE             @hawkxdev
+/SECURITY.md         @hawkxdev

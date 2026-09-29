@@ -1,0 +1,44 @@
+name: Task
+description: A unit of work with acceptance criteria that a command or an observation can verify
+title: 'feat: '
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What must become true and why.
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      description: Each criterion is verified by a command or an observation.
+      placeholder: |
+        - [ ] ...
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Specification
+      description: Section of the specification this task implements.
+    validations:
+      required: true
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: Files in scope
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+    validations:
+      required: true
+  - type: input
+    id: acceptance-test
+    attributes:
+      label: Acceptance test
+      description: Path of the owner authored test that is marked xfail until this task is done.

@@ -1,0 +1,65 @@
+[project]
+name = "reply-assistant"
+version = "0.1.0"
+description = "Drafts a customer reply and an upsell hint from a short knowledge base"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Sergey Sokolkin" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141",
+    "pydantic>=2.13",
+    "pydantic-settings>=2.15",
+    "uvicorn>=0.54",
+]
+
+[project.scripts]
+reply-assistant = "reply_assistant.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.9.3,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "ASYNC", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--strict-markers"
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["reply_assistant"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_also = ["if __name__ == .__main__.:"]

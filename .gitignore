@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# Local notes that are not part of the repository
+private/
+docs/Summaries/
+
+# Editors and system files
+.DS_Store
+.idea/
+.vscode/

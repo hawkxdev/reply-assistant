@@ -1,0 +1,42 @@
+name: Author agent
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: author-agent-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  author:
+    name: Author
+    if: >-
+      github.event.comment.user.login == github.repository_owner &&
+      github.event.comment.author_association == 'OWNER' &&
+      (startsWith(github.event.comment.body, '/oc') ||
+      startsWith(github.event.comment.body, '/opencode'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: author-agent
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --locked
+      - uses: anomalyco/opencode/github@51ef4be1d3c122f18fefb510dca8d778571f4f18 # v1.18.33
+        env:
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+        with:
+          model: ${{ vars.AUTHOR_MODEL }}
+          share: false
