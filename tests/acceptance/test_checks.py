@@ -16,7 +16,8 @@ REPLY = 'Yes, we ship the powder to Minsk.'
 HINT = 'Offer the spoon that measures one serving.'
 SAFE_HEALTH_REPLY = (
     'For questions about your health, please ask your doctor. '
-    'We accept secure payment by card. This is a food supplement, not a treatment.'
+    'We accept secure payment by card. This is a food supplement, not a treatment. '
+    'The spoon is effective for portioning 5 g servings.'
 )
 
 # === Fixtures and helpers ===
@@ -87,7 +88,7 @@ async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
         (
             'This powder is an effective treatment for diabetes.',
             HINT,
-            'effective',
+            'effective treatment',
             'customer_reply',
         ),
         (
