@@ -100,8 +100,13 @@ async def test_disclaimer_that_is_not_text_is_rejected(tmp_path: Path) -> None:
             '    goes_with: 2\n',
             'products.0.goes_with',
         ),
+        (
+            '    goes_with:\n      - tape\n',
+            '    goes_with: null\n',
+            'products.0.goes_with',
+        ),
     ],
-    ids=['product is text', 'goes_with is a number'],
+    ids=['product is text', 'goes_with is a number', 'goes_with is null'],
 )
 async def test_value_of_wrong_shape_is_rejected(
     tmp_path: Path, old: str, new: str, field: str

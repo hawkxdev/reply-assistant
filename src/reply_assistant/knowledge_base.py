@@ -99,9 +99,8 @@ def _product(entry: Any, index: int, known_ids: set[str]) -> Product:
         raise KnowledgeBaseError(f'{base}.id repeats the id {product_id}', f'{base}.id')
     known_ids.add(product_id)
     goes_with: list[str] = []
-    raw = entry.get('goes_with')
-    if raw is not None:
-        goes_with = _text_list(raw, f'{base}.goes_with')
+    if 'goes_with' in entry:
+        goes_with = _text_list(entry['goes_with'], f'{base}.goes_with')
     return Product(
         id=product_id,
         name=_text(_required(entry, 'name', f'{base}.name'), f'{base}.name'),
