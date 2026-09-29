@@ -1,4 +1,4 @@
-"""Acceptance tests for issue 7."""
+"""Acceptance for issue 7."""
 
 import importlib
 from pathlib import Path
@@ -6,6 +6,8 @@ from typing import Any
 
 import pytest
 from pydantic import SecretStr, ValidationError
+
+# === Data ===
 
 PREFIX = 'REPLY_ASSISTANT_'
 ENVIRONMENT = {
@@ -23,6 +25,8 @@ DOTENV = {
 FIELDS = ['provider_api_key', 'provider_base_url', 'provider_model', 'kb_path']
 ENV_EXAMPLE = Path(__file__).parents[2] / '.env.example'
 
+# === Fixtures and helpers ===
+
 
 @pytest.fixture
 def settings_class() -> Any:
@@ -39,27 +43,30 @@ def empty_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
 
 def fill_environment(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Set every variable in the environment."""
+    """Fill the environment."""
     for name, value in ENVIRONMENT.items():
         monkeypatch.setenv(name, value)
 
 
 def write_dotenv(directory: Path) -> None:
-    """Write every variable to a dotenv file."""
+    """Write the dotenv file."""
     lines = [f'{name}={value}' for name, value in DOTENV.items()]
     (directory / '.env').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
 def env_example_entries() -> dict[str, str]:
-    """Read the variables of the example file."""
+    """Read example file variables."""
     lines = ENV_EXAMPLE.read_text(encoding='utf-8').splitlines()
     pairs = [line.split('=', 1) for line in lines if '=' in line and line[0] != '#']
     return {name.strip(): value.strip() for name, value in pairs}
 
 
 def rejected_fields(error: ValidationError) -> set[tuple[str, str]]:
-    """Collect the rejected fields with the error types."""
+    """Rejected fields with types."""
     return {(str(item['loc'][0]), item['type']) for item in error.errors()}
+
+
+# === Tests ===
 
 
 def test_settings_are_read_from_prefixed_environment(

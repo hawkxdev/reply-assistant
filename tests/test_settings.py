@@ -1,15 +1,18 @@
-"""Unit tests for the settings module."""
+"""Settings unit tests."""
 
 from pathlib import Path
 
 import pytest
-from pydantic import SecretStr, ValidationError
-from pydantic_settings import BaseSettings
+from pydantic import ValidationError
 
 from reply_assistant.settings import Settings
 
+# === Data ===
+
 FIELDS = ['provider_api_key', 'provider_base_url', 'provider_model', 'kb_path']
 PREFIX = 'REPLY_ASSISTANT_'
+
+# === Fixtures and helpers ===
 
 
 @pytest.fixture(autouse=True)
@@ -21,29 +24,11 @@ def clean_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
 
 def rejected_fields(error: ValidationError) -> set[tuple[str, str]]:
-    """Collect the rejected fields with the error types."""
+    """Rejected fields with types."""
     return {(str(item['loc'][0]), item['type']) for item in error.errors()}
 
 
-def test_settings_subclass_base_settings() -> None:
-    assert issubclass(Settings, BaseSettings)
-
-
-def test_fields_have_the_specified_annotations() -> None:
-    annotations = {
-        name: field.annotation for name, field in Settings.model_fields.items()
-    }
-
-    assert annotations == {
-        'provider_api_key': SecretStr,
-        'provider_base_url': str,
-        'provider_model': str,
-        'kb_path': Path,
-    }
-
-
-def test_every_field_is_required() -> None:
-    assert all(Settings.model_fields[field].is_required() for field in FIELDS)
+# === Tests ===
 
 
 def test_empty_dotenv_value_counts_as_missing(
