@@ -110,9 +110,15 @@ async def test_rules_and_stems_are_kept(kb_module: ModuleType) -> None:
         'Answer in two to four sentences, in a polite and plain tone.'
     )
     assert kb.forbidden_claims == [
-        'cure',
-        'heal',
-        'treat',
+        'a cure',
+        'the cure',
+        'cures',
+        'cured',
+        'curing',
+        'heals',
+        'healing',
+        'treats',
+        'treating',
         'diagnos',
         'recover',
         'clinically',
