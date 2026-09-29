@@ -1,0 +1,49 @@
+company: Clayfield Minerals
+language: en
+disclaimer: This product is a food supplement and is not a medicine.
+reply_rules:
+  - Answer in two to four sentences, in a polite and plain tone.
+  - Name products, forms and prices exactly as they are written here.
+  - When the question is about health, say that the product is a food supplement and suggest asking a doctor.
+  - When the knowledge base has no answer, say so and offer to pass the question to a manager.
+forbidden_claims:
+  - cure
+  - heal
+  - treat
+  - diagnos
+  - recover
+  - clinically
+  - instead of medicine
+products:
+  - id: zeolite-powder-200
+    name: Zeolite Powder
+    form: powder, 200 g jar
+    price: 18.00 USD
+    description: Finely milled natural zeolite for daily use with water.
+    goes_with:
+      - measuring-spoon
+      - zeolite-capsules-90
+  - id: zeolite-capsules-90
+    name: Zeolite Capsules
+    form: capsules, 90 pieces
+    price: 24.00 USD
+    description: The same zeolite in capsules for people who dislike the taste of powder.
+    goes_with:
+      - travel-pill-box
+  - id: clay-face-mask-100
+    name: Mineral Clay Face Mask
+    form: paste, 100 ml tube
+    price: 15.00 USD
+    description: A cosmetic clay mask for weekly skin care.
+    goes_with:
+      - zeolite-powder-200
+  - id: measuring-spoon
+    name: Measuring Spoon
+    form: steel spoon, 5 g
+    price: 4.00 USD
+    description: A spoon that measures one serving of powder.
+  - id: travel-pill-box
+    name: Travel Pill Box
+    form: plastic box, 7 sections
+    price: 6.00 USD
+    description: A box that holds capsules for one week.
