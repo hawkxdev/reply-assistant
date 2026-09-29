@@ -294,6 +294,14 @@ async def test_error_status_is_a_provider_error(
             200,
             json={**REPLY, 'usage': {'prompt_tokens': 120, 'completion_tokens': -1}},
         ),
+        httpx2.Response(
+            200,
+            json={**REPLY, 'usage': {'prompt_tokens': 1.5, 'completion_tokens': 40}},
+        ),
+        httpx2.Response(
+            200,
+            json={**REPLY, 'usage': {'prompt_tokens': True, 'completion_tokens': 40}},
+        ),
     ],
     ids=[
         'not json',
@@ -304,6 +312,8 @@ async def test_error_status_is_a_provider_error(
         'no usage',
         'text tokens',
         'negative tokens',
+        'fraction tokens',
+        'boolean tokens',
     ],
 )
 async def test_malformed_reply_is_a_provider_error(
