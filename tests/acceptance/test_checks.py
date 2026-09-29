@@ -64,7 +64,7 @@ async def test_known_or_no_product_passes(
 async def test_product_outside_the_base_is_rejected(checks: ModuleType) -> None:
     kb = await load('example-en.yaml')
 
-    with pytest.raises(checks.CheckFailed) as caught:
+    with pytest.raises(checks.CheckError) as caught:
         checks.check_product_exists(output(product='MEASURING-SPOON'), kb)
 
     assert caught.value.check == 'product_exists'
@@ -98,7 +98,7 @@ async def test_forbidden_claim_is_rejected(
 ) -> None:
     kb = await load('example-en.yaml')
 
-    with pytest.raises(checks.CheckFailed) as caught:
+    with pytest.raises(checks.CheckError) as caught:
         checks.check_no_forbidden_claim(output(reply=reply, hint=hint), kb)
 
     assert caught.value.check == 'no_forbidden_claim'
@@ -112,7 +112,7 @@ async def test_cyrillic_claim_is_rejected_without_regard_to_case(
     kb = await load('example-ru.yaml')
     reply = 'Этот кофе ЛЕЧИТ бессонницу.'
 
-    with pytest.raises(checks.CheckFailed) as caught:
+    with pytest.raises(checks.CheckError) as caught:
         checks.check_no_forbidden_claim(output(reply=reply, product=None), kb)
 
     assert caught.value.check == 'no_forbidden_claim'
