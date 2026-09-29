@@ -2,7 +2,7 @@
 
 A small service for a sales or support manager. It takes a customer message, reads a short knowledge base and returns two blocks: a polite reply for the customer and an upsell hint for the manager.
 
-The repository has a second purpose. Every change after the bootstrap commit goes through a pipeline where agents write and review the code on GitHub, and a person decides what is merged. The pipeline, its limits and its instructions are part of the repository.
+The repository has a second purpose. Every change after the bootstrap commit goes through a pipeline where agents write and review the code on GitHub. A lead agent in the owner's session prepares each task and merges the result. The owner decides what is built and accepts the finished work. The pipeline, its limits and its instructions are part of the repository.
 
 ## Status
 
@@ -12,20 +12,23 @@ Bootstrap. The service starts and answers `GET /health`. Features arrive through
 
 ```mermaid
 flowchart LR
-    S[Spec and issue<br/>person] --> A[Branch and pull request<br/>author agent]
+    S[Specification<br/>owner] --> I[Issue and acceptance test<br/>lead agent]
+    I --> A[Branch and pull request<br/>author agent]
     A --> C[Checks<br/>lint, types, tests]
     C --> R[Review<br/>reviewer agent, other vendor]
-    R --> M[Merge<br/>person]
-    M --> L[Release<br/>bot, approved by person]
+    R --> M[Merge<br/>lead agent]
+    M --> P[Acceptance<br/>owner]
 ```
 
 | Step | Who | How it starts |
 |---|---|---|
-| Issue with acceptance criteria | Person | Issue template |
-| Implementation | Author agent | The owner comments `/oc` on the issue |
+| Specification | Owner | |
+| Issue and acceptance test | Lead agent in the owner's session | Issue template |
+| Implementation | Author agent | The lead agent comments `/oc` on the issue |
 | Checks | GitHub Actions | Every pull request |
-| Review | Reviewer agent from a different vendor | The owner comments `@codex review` |
-| Merge | Person | After green checks |
+| Review | Reviewer agent from a different vendor | The pull request is opened |
+| Merge | Lead agent | Green checks and closed review threads |
+| Acceptance | Owner | The finished work is accepted or sent back |
 
 What agents may and may not do is described in [How this repository is built](docs/how-this-repo-is-built.md). The reasons behind the design are in [`docs/adr`](docs/adr).
 
@@ -61,7 +64,7 @@ uv run pytest --cov
 | Path | Content |
 |---|---|
 | `src/reply_assistant` | Service code |
-| `tests` | Tests; `tests/acceptance` is written by the owner |
+| `tests` | Tests; `tests/acceptance` is written by the lead agent before the code |
 | `specs` | Specification, plan and tasks |
 | `docs/adr` | Decision records |
 | `AGENTS.md` | Instructions every agent reads |
