@@ -39,9 +39,6 @@ RETRY_RULE = (
 REJECTED = {
     'shape': 'Yes, we ship it.',
     'product_exists': json.dumps({**VALID, 'upsell_product_id': 'glue'}),
-    'no_forbidden_claim': json.dumps(
-        {**VALID, 'customer_reply': 'This powder cures allergies.'}
-    ),
 }
 
 # === Fixtures and helpers ===
@@ -106,7 +103,7 @@ async def test_reply_without_disclaimer_is_unchanged(service: ModuleType) -> Non
 # === Retry ===
 
 
-@pytest.mark.parametrize('check', ['shape', 'product_exists'])
+@pytest.mark.parametrize('check', list(REJECTED))
 async def test_rejected_answer_is_retried_once(
     service: ModuleType, kb: KnowledgeBase, check: str
 ) -> None:
@@ -134,13 +131,13 @@ async def test_rejected_answer_is_retried_once(
 async def test_second_rejection_is_an_error_with_the_check(
     service: ModuleType, kb: KnowledgeBase
 ) -> None:
-    fake = FakeModelClient([REJECTED['no_forbidden_claim']] * 2)
+    fake = FakeModelClient([REJECTED['shape'], REJECTED['product_exists']])
 
     with pytest.raises(service.SuggestionRejectedError) as caught:
         await service.suggest(request(), kb, fake)
 
-    assert caught.value.check == 'no_forbidden_claim'
-    assert 'no_forbidden_claim' in str(caught.value)
+    assert caught.value.check == 'product_exists'
+    assert 'product_exists' in str(caught.value)
     assert len(fake.calls) == 2
 
 
