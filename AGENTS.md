@@ -43,7 +43,7 @@ If an issue cannot be completed without touching one of them, stop and say so in
 
 An acceptance test marked `xfail` for the issue you implement is the one exception: remove the marker for that test and any import that the removal leaves unused. Change nothing else in the file.
 
-This section binds every author except the repository owner. The owner changes these paths through pull requests of the owner's own.
+This section binds every author except the repository owner. The owner changes these paths through pull requests of the owner's own. A pull request opened from the owner's account is the owner's, including one prepared by the lead agent and labelled `agent-authored` (see `docs/adr/0004-lead-agent.md`).
 
 Never weaken, skip or delete a test to make a run green. Never add a dependency unless the issue names it.
 
