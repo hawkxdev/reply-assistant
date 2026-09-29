@@ -17,8 +17,6 @@ from reply_assistant.knowledge_base import (
 from reply_assistant.model_client import ProviderError
 from tests.acceptance.fakes import FakeModelClient
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 26 is not implemented')
-
 # === Data ===
 
 KB = Path(__file__).parents[2] / 'kb'
