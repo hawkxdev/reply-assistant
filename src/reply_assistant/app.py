@@ -9,6 +9,7 @@ from reply_assistant import __version__
 class Health(BaseModel):
     """Service health report."""
 
+    name: str
     status: str
     version: str
 
@@ -20,6 +21,6 @@ def create_app() -> FastAPI:
     @app.get('/health')
     async def health() -> Health:
         """Report service health."""
-        return Health(status='ok', version=__version__)
+        return Health(name='reply-assistant', status='ok', version=__version__)
 
     return app
