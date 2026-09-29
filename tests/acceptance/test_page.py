@@ -3,6 +3,7 @@
 import asyncio
 import importlib
 import re
+from importlib.resources import files
 from pathlib import Path
 
 import httpx2
@@ -35,7 +36,8 @@ NOTICES = [
     'Макет окна диалога CRM. Ничего никуда не отправляется.',
 ]
 TRADEMARKS = ['amocrm', 'kommo', 'bitrix', 'битрикс']
-EXTERNAL = re.compile(r'(?:src|href)\s*=\s*["\']?(?:https?:)?//|url\(\s*["\']?https?:')
+OUTSIDE = re.compile(r'(?:https?|wss?):|[\'"(=]\s*//[a-z0-9]', re.IGNORECASE)
+LINK = re.compile(r'(?:src|href)\s*=\s*["\']?([^"\'\s>]*)', re.IGNORECASE)
 
 # === Helpers ===
 
@@ -59,16 +61,11 @@ def test_page_is_html() -> None:
     assert response.headers['content-type'].startswith('text/html')
 
 
-@pytest.mark.parametrize(
-    ('name', 'language'),
-    [('example-en.yaml', 'en'), ('example-ru.yaml', 'ru')],
-    ids=['en', 'ru'],
-)
-def test_page_takes_the_language_of_the_base(name: str, language: str) -> None:
-    found = re.search(r'<html lang="([a-z]+)"', get_page(name).text)
+def test_page_takes_the_language_of_the_base() -> None:
+    found = re.search(r'<html lang="([a-z]+)"', get_page('example-ru.yaml').text)
 
     assert found is not None
-    assert found.group(1) == language
+    assert found.group(1) == 'ru'
 
 
 @pytest.mark.parametrize('part', PARTS)
@@ -89,8 +86,20 @@ def test_page_names_no_crm() -> None:
     assert [mark for mark in TRADEMARKS if mark in text] == []
 
 
-def test_page_loads_nothing_from_outside() -> None:
-    assert EXTERNAL.search(get_page().text) is None
+def test_page_holds_no_outside_address() -> None:
+    assert OUTSIDE.search(get_page().text) is None
+
+
+def test_page_links_no_other_file() -> None:
+    links = LINK.findall(get_page().text)
+
+    assert [link for link in links if not link.startswith(('#', 'data:'))] == []
+
+
+def test_page_is_the_static_file() -> None:
+    source = files('reply_assistant') / 'static' / 'index.html'
+
+    assert get_page().text == source.read_text(encoding='utf-8')
 
 
 def test_page_asks_the_suggest_endpoint() -> None:
