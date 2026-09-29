@@ -38,6 +38,8 @@ NOTICES = [
 TRADEMARKS = ['amocrm', 'kommo', 'bitrix', 'битрикс']
 OUTSIDE = re.compile(r'(?:https?|wss?):|[\'"(=]\s*//[a-z0-9]', re.IGNORECASE)
 LINK = re.compile(r'(?:src|href)\s*=\s*["\']?([^"\'\s>]*)', re.IGNORECASE)
+CSS_URL = re.compile(r'url\(\s*["\']?([^"\')\s]*)', re.IGNORECASE)
+PHONE = '+000 00 000-00-00'
 
 # === Helpers ===
 
@@ -61,16 +63,25 @@ def test_page_is_html() -> None:
     assert response.headers['content-type'].startswith('text/html')
 
 
-def test_page_takes_the_language_of_the_base() -> None:
-    found = re.search(r'<html lang="([a-z]+)"', get_page('example-ru.yaml').text)
+@pytest.mark.parametrize(
+    ('name', 'language'),
+    [('example-en.yaml', 'en'), ('example-ru.yaml', 'ru')],
+    ids=['en', 'ru'],
+)
+def test_page_takes_the_language_of_the_base(name: str, language: str) -> None:
+    found = re.search(r'<html lang="([a-z]+)"', get_page(name).text)
 
     assert found is not None
-    assert found.group(1) == 'ru'
+    assert found.group(1) == language
 
 
 @pytest.mark.parametrize('part', PARTS)
 def test_page_has_the_part(part: str) -> None:
     assert f'id="{part}"' in get_page().text
+
+
+def test_deal_card_shows_the_invented_phone() -> None:
+    assert PHONE in get_page().text
 
 
 def test_page_states_it_is_a_mock_in_both_languages() -> None:
@@ -91,9 +102,11 @@ def test_page_holds_no_outside_address() -> None:
 
 
 def test_page_links_no_other_file() -> None:
-    links = LINK.findall(get_page().text)
+    text = get_page().text
+    links = LINK.findall(text) + CSS_URL.findall(text)
 
     assert [link for link in links if not link.startswith(('#', 'data:'))] == []
+    assert '@import' not in text
 
 
 def test_page_is_the_static_file() -> None:
