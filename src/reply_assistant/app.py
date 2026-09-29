@@ -1,6 +1,6 @@
 """HTTP application factory."""
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from importlib.resources import files
@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from reply_assistant import __version__
 from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
@@ -42,10 +43,15 @@ class ErrorBody(BaseModel):
     message: str
 
 
-def _error(status: int, code: str, message: str) -> JSONResponse:
+def _error(
+    status: int,
+    code: str,
+    message: str,
+    headers: Mapping[str, str] | None = None,
+) -> JSONResponse:
     """Build one error answer."""
     body = ErrorBody(code=code, message=message)
-    return JSONResponse(status_code=status, content=body.model_dump())
+    return JSONResponse(status_code=status, content=body.model_dump(), headers=headers)
 
 
 # === Page ===
@@ -123,6 +129,29 @@ def create_app(
         if error.kind == 'timeout':
             return _error(504, 'provider_timeout', 'the model provider timed out')
         return _error(502, 'provider_error', 'the model provider failed')
+
+    @app.exception_handler(StarletteHTTPException)
+    async def framework_failed(
+        request: Request, error: StarletteHTTPException
+    ) -> JSONResponse:
+        """Answer a framework error."""
+        if error.status_code == 404:
+            return _error(404, 'not_found', 'the path does not exist', error.headers)
+        if error.status_code == 405:
+            return _error(
+                405, 'method_not_allowed', 'the method is not allowed', error.headers
+            )
+        return _error(
+            error.status_code,
+            'http_error',
+            'the request was not accepted',
+            error.headers,
+        )
+
+    @app.exception_handler(Exception)
+    async def unexpected_failed(request: Request, error: Exception) -> JSONResponse:
+        """Answer an unexpected failure."""
+        return _error(500, 'internal_error', 'an unexpected error occurred')
 
     @app.get('/')
     async def page() -> HTMLResponse:
