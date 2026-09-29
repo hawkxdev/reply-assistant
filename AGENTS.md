@@ -14,9 +14,10 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy .
 uv run pytest --cov
+uv run python scripts/check_conventions.py
 ```
 
-All five must pass before a pull request is opened. Report the real output. A check that was not run is reported as not run.
+All six must pass before a pull request is opened. Report the real output. A check that was not run is reported as not run.
 
 ## How to work on an issue
 
@@ -50,13 +51,16 @@ Never weaken, skip or delete a test to make a run green. Never add a dependency 
 
 - Python 3.12, type hints everywhere, `mypy --strict` clean.
 - Single quotes. Line length 88.
-- Every module, class and function has a one line docstring of a few words. Test functions have none: the name describes the behaviour.
-- Docstrings contain no dashes and no apostrophes.
-- No inline comments. A comment is allowed only to explain a workaround.
+- Every module, class and function has a docstring. Test functions have none: the name describes the behaviour.
+- A docstring is one line of three or four words. More words only when fewer lose the purpose, a second line only when it cannot be avoided, an example only when the format is not clear from the signature.
+- Docstrings contain no dash of any kind and no apostrophe.
+- A comment is one of three kinds: a section separator `# === Name ===`, a pipeline step `# Step 1: ...`, a workaround `# Workaround ...`. A file with several logical zones has section separators. A type or lint pragma names its code.
 - No dead code, no commented out code, no unused imports.
 - Fail fast: raise a specific exception on invalid input, never return a silent default.
 - All input and output is asynchronous.
 - Values that vary between deployments come from settings, never from literals in code.
+
+`scripts/check_conventions.py` checks the presence of docstrings, their characters and the kinds of comments. Review checks the length of docstrings and the section separators.
 
 ## Domain rules
 
@@ -69,8 +73,18 @@ Never weaken, skip or delete a test to make a run green. Never add a dependency 
 ## Tests
 
 - Tests run without a network and without a key. The model client is passed in as a dependency and replaced by a fake.
-- Coverage stays at or above the threshold in `pyproject.toml`.
+- Coverage stays at or above the threshold in `pyproject.toml`. Coverage is not a goal: a test that exists only for coverage is removed.
 - Warnings are errors.
+
+A test is kept only if it can fail:
+
+- It fails on a defect that no other test catches. For each new test the pull request body names that defect: break the code, watch this test fail, restore the code.
+- It asserts. An assertion on a constant is not an assertion.
+- Expected values are literals, never computed by the code under test.
+- It tests this code, not the language, the standard library or a dependency. A test that a declared annotation, default or base class is what it says proves the declaration, not behaviour.
+- It runs. No skipped tests. `xfail` exists only in `tests/acceptance`, until the issue that removes it.
+
+`scripts/check_conventions.py` checks skipped tests, the place of `xfail`, tests without an assertion and assertions on a constant. Review checks the rest.
 
 ## Secrets
 
@@ -81,7 +95,7 @@ No secret value appears in code, tests, fixtures, logs, commit messages, issues 
 Review the pull request against its issue and this file.
 
 - A finding names the file and line, the consequence, and the rule or criterion it rests on.
-- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted test, a secret, a domain rule violation, a missing test for new behaviour.
+- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted test, a test that cannot fail on a defect no other test catches, a missing named defect for a new test, a secret, a domain rule violation, a missing test for new behaviour.
 - Do not block on taste. A preference that no rule supports is a suggestion.
 - Say plainly when the pull request is good. Do not invent findings.
 

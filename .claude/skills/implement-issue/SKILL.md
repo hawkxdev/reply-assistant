@@ -14,11 +14,12 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 1. Read the issue: goal, acceptance criteria, files in scope, files out of scope. Read the part of `specs/001-reply-and-upsell/spec.md` the issue links to.
 2. Stop and comment on the issue when a criterion cannot be verified by a command or an observation, or when the work needs a path from **Boundaries** in `AGENTS.md`.
 3. Work in a branch created from `main`. When the tool does not name it, use `feat/issue-<number>` or `fix/issue-<number>`.
-4. For each criterion write a test that fails for the right reason. Run it and read the failure.
+4. The acceptance tests of the issue already cover its criteria. Write a new test only for behaviour they do not cover, and let it fail for the right reason before the code exists. A test that fails only together with an acceptance test is a duplicate: do not add it.
 5. Write the smallest code that makes the test pass.
 6. Run every command from **Commands** in `AGENTS.md`. Fix what fails. Do not change a test to make it pass.
-7. Open the pull request. The title follows Conventional Commits; when the tool writes the title itself, put the correct title on the first line of the body. The body has four parts: **What changed**, **How verified** with the real output of the commands, **Out of scope** with findings that were not fixed, and `Closes #<number>`.
-8. Add the label `agent-authored` when the tool allows it.
+7. For each new test break the code it guards, run the tests, confirm that this test fails, and restore the code. Note the defect for the pull request body.
+8. Open the pull request. The title follows Conventional Commits; when the tool writes the title itself, put the correct title on the first line of the body. The body has four parts: **What changed**, **How verified** with the real output of the commands and, for each new test, the defect that makes it fail, **Out of scope** with findings that were not fixed, and `Closes #<number>`.
+9. Add the label `agent-authored` when the tool allows it.
 
 ## Stop conditions
 

@@ -1,4 +1,4 @@
-"""Acceptance test for issue 3."""
+"""Acceptance for issue 3."""
 
 from fastapi.testclient import TestClient
 
