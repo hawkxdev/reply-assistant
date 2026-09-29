@@ -75,13 +75,11 @@ def client(
 # === Request ===
 
 
-@pytest.mark.parametrize('url', [BASE_URL, f'{BASE_URL}/'], ids=['plain', 'slash'])
-async def test_request_goes_to_chat_completions(module: ModuleType, url: str) -> None:
+async def test_request_goes_to_chat_completions(module: ModuleType) -> None:
     seen: list[httpx2.Request] = []
+    transport = recorder(httpx2.Response(200, json=REPLY), seen)
 
-    await client(
-        module, recorder(httpx2.Response(200, json=REPLY), seen), url
-    ).complete(MESSAGES, SCHEMA)
+    await client(module, transport, f'{BASE_URL}/').complete(MESSAGES, SCHEMA)
 
     assert len(seen) == 1
     assert seen[0].method == 'POST'
@@ -131,7 +129,7 @@ async def test_client_is_built_from_settings(module: ModuleType) -> None:
         settings, transport=transport
     ).complete(MESSAGES, SCHEMA)
 
-    assert seen[0].url.host == 'llm.example.test'
+    assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
     assert seen[0].headers['authorization'] == f'Bearer {KEY}'
     assert json.loads(seen[0].content)['model'] == MODEL
 
