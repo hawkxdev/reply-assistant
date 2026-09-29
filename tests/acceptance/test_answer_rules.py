@@ -7,8 +7,6 @@ import pytest
 from reply_assistant.knowledge_base import load_knowledge_base
 from reply_assistant.prompt import build_messages
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 36 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
