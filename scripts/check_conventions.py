@@ -20,9 +20,11 @@ ALLOWED_COMMENT = re.compile(
     r'|type: ignore\[[a-z-]+(, ?[a-z-]+)*\]|noqa: [A-Z]+\d+(, ?[A-Z]+\d+)*)'
 )
 SKIPPING = {('pytest', 'skip'), ('pytest', 'importorskip'), ('mark', 'skip')}
-SKIPPING |= {('mark', 'skipif')}
+SKIPPING |= {('mark', 'skipif'), ('unittest', 'skip'), ('unittest', 'skipIf')}
+SKIPPING |= {('unittest', 'skipUnless'), ('unittest', 'SkipTest')}
 EXPECTED_FAILURE = {('pytest', 'xfail'), ('mark', 'xfail')}
 ASSERTING_CALLS = {('pytest', 'raises'), ('pytest', 'warns')}
+VARIABLE_NODES = (ast.Name, ast.Attribute, ast.Call, ast.Subscript, ast.Await)
 
 DocumentedNode = ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef
 
@@ -72,14 +74,13 @@ def is_test_function(
 
 
 def is_constant_assertion(node: ast.Assert) -> bool:
-    """Whether assert checks only constants."""
-    test = node.test
-    if isinstance(test, ast.Constant):
-        return True
-    if isinstance(test, ast.Compare):
-        parts = [test.left, *test.comparators]
-        return all(isinstance(part, ast.Constant) for part in parts)
-    return False
+    """Whether assert reads nothing."""
+    return not any(isinstance(child, VARIABLE_NODES) for child in ast.walk(node.test))
+
+
+def is_asserting_call(node: ast.AST) -> TypeGuard[ast.Call]:
+    """Whether node calls raises or warns."""
+    return isinstance(node, ast.Call) and attribute_pair(node.func) in ASSERTING_CALLS
 
 
 def asserts_something(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -87,10 +88,11 @@ def asserts_something(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     for child in ast.walk(node):
         if isinstance(child, ast.Assert):
             return True
-        if (
-            isinstance(child, ast.Call)
-            and attribute_pair(child.func) in ASSERTING_CALLS
+        if isinstance(child, ast.With | ast.AsyncWith) and any(
+            is_asserting_call(item.context_expr) for item in child.items
         ):
+            return True
+        if is_asserting_call(child) and len(child.args) > 1:
             return True
     return False
 

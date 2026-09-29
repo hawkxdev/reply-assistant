@@ -114,6 +114,8 @@ def test_function_named_test_outside_tests_needs_docstring() -> None:
     [
         '@pytest.mark.skip(reason="later")',
         '@pytest.mark.skipif(True, reason="later")',
+        '@unittest.skip("later")',
+        '@unittest.skipIf(True, "later")',
     ],
 )
 def test_skip_marker_is_found(statement: str) -> None:
@@ -126,7 +128,12 @@ def test_skip_marker_is_found(statement: str) -> None:
 
 
 @pytest.mark.parametrize(
-    'statement', ['pytest.skip("later")', 'pytest.importorskip("yaml")']
+    'statement',
+    [
+        'pytest.skip("later")',
+        'pytest.importorskip("yaml")',
+        'raise unittest.SkipTest("later")',
+    ],
 )
 def test_skip_call_is_found(statement: str) -> None:
     source = (
@@ -169,7 +176,35 @@ def test_raises_counts_as_assertion() -> None:
     assert findings('tests/test_box.py', source) == []
 
 
-@pytest.mark.parametrize('assertion', ['assert True', 'assert 1 == 1'])
+def test_raises_with_callable_counts_as_assertion() -> None:
+    source = '''
+        """Box tests."""
+
+
+        def test_box() -> None:
+            pytest.raises(BoxError, box)
+    '''
+
+    assert findings('tests/test_box.py', source) == []
+
+
+def test_unused_raises_is_not_an_assertion() -> None:
+    source = '''
+        """Box tests."""
+
+
+        def test_box() -> None:
+            pytest.raises(BoxError, match='empty')
+            box()
+    '''
+
+    assert findings('tests/test_box.py', source) == [(4, 'C203')]
+
+
+@pytest.mark.parametrize(
+    'assertion',
+    ['assert True', 'assert 1 == 1', 'assert not False', 'assert True and True'],
+)
 def test_assertion_on_constant_is_found(assertion: str) -> None:
     source = (
         f'"""Box tests."""\n\n\ndef test_box() -> None:\n    box()\n    {assertion}\n'
