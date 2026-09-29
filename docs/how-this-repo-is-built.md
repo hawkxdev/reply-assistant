@@ -7,7 +7,7 @@ Code in this repository is written and reviewed by agents that run on GitHub. A 
 | Step | Actor | Started by | Result |
 |---|---|---|---|
 | Specification | Owner | | `specs/001-reply-and-upsell` |
-| Issue | Lead agent | Issue template | A contract with acceptance criteria |
+| Issue | Lead agent | Issue template | A contract with acceptance criteria, linked from the **Issue** column of `tasks.md` |
 | Acceptance test | Lead agent | | A test in `tests/acceptance`, marked `xfail` until the issue is done |
 | Implementation | Author agent | The lead agent comments `/oc` on the issue | A branch and a pull request labelled `agent-authored` |
 | Checks | GitHub Actions | The pull request | Lint, format, types, tests with coverage, conventions of tests and docstrings, title format, dependency review |
