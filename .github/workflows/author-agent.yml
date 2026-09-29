@@ -34,7 +34,7 @@ jobs:
           enable-cache: true
       - name: Install
         run: uv sync --locked
-      - uses: anomalyco/opencode/github@51ef4be1d3c122f18fefb510dca8d778571f4f18 # v1.18.33
+      - uses: anomalyco/opencode/github@cd9a14a6b688d4021bee381dfd39d2cef9c0f862 # v2.0.18
         env:
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
         with:
