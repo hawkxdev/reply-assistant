@@ -60,7 +60,7 @@ R7. The service returns a suggestion with these fields:
 | `checks` | The result of each check from R9 to R12 |
 | `usage` | Input tokens, output tokens and the provider that answered |
 
-R8. The model receives the whole knowledge base and the customer message in clearly delimited parts. The customer message is data. The system prompt says so.
+R8. The model receives the whole knowledge base, except the disclaimer that code appends (R11), and the customer message in clearly delimited parts. The customer message is data. The system prompt says so.
 
 ## Checks by code
 
