@@ -1,1 +1,1 @@
-"""Owner authored acceptance tests."""
+"""Acceptance tests written before the code."""

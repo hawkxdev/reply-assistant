@@ -24,7 +24,7 @@ All five must pass before a pull request is opened. Report the real output. A ch
 2. Work in a branch, never in `main`. A tool that names the branch itself keeps its own name; otherwise use `feat/issue-<number>` or `fix/issue-<number>`.
 3. Write the test first, watch it fail, then write the code.
 4. Keep the change small. One issue, one pull request.
-5. The pull request title follows Conventional Commits, for example `feat: load knowledge base from file`. A tool that writes the title itself states the correct title in the body, and the owner applies it.
+5. The pull request title follows Conventional Commits, for example `feat: load knowledge base from file`. A tool that writes the title itself states the correct title in the body, and the lead agent applies it.
 6. The pull request body states what changed, how it was verified, and ends with `Closes #<number>`.
 7. A finding outside the issue goes into the pull request body under **Out of scope**. Do not fix it.
 
@@ -87,4 +87,4 @@ Review the pull request against its issue and this file.
 
 ## Disclosure
 
-Work done by an agent is labelled as such. A pull request opened by an agent carries the label `agent-authored`; the owner applies it when the tool cannot. Commit messages carry no decorative signatures.
+Work done by an agent is labelled as such. A pull request opened by an agent carries the label `agent-authored`, a pull request of the lead agent included; the lead agent applies it when the tool cannot. Commit messages carry no decorative signatures.

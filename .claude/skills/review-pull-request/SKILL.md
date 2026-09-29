@@ -25,4 +25,4 @@ The reviewer checks the work of another agent. It does not fix the code and does
 - A blocking finding: request changes and name each one.
 - Not enough evidence: say what could not be verified and why.
 
-The verdict is advice. A person merges.
+The verdict is advice. The lead agent merges.
