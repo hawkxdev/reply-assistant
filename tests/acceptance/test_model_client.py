@@ -248,9 +248,17 @@ async def test_zero_tokens_are_a_valid_count(module: ModuleType) -> None:
     [
         (httpx2.ReadTimeout('slow'), 'timeout'),
         (httpx2.ConnectTimeout('slow'), 'timeout'),
+        (httpx2.WriteTimeout('slow'), 'timeout'),
+        (httpx2.PoolTimeout('slow'), 'timeout'),
         (httpx2.ConnectError('refused'), 'connection'),
     ],
-    ids=['read timeout', 'connect timeout', 'connection'],
+    ids=[
+        'read timeout',
+        'connect timeout',
+        'write timeout',
+        'pool timeout',
+        'connection',
+    ],
 )
 async def test_transport_failure_is_a_provider_error(
     module: ModuleType, error: Exception, kind: str
@@ -288,6 +296,7 @@ async def test_error_status_is_a_provider_error(
     'response',
     [
         httpx2.Response(200, text='not json'),
+        httpx2.Response(200, json=[]),
         httpx2.Response(200, json={'usage': REPLY['usage']}),
         httpx2.Response(200, json={**REPLY, 'choices': []}),
         httpx2.Response(
@@ -314,6 +323,7 @@ async def test_error_status_is_a_provider_error(
     ],
     ids=[
         'not json',
+        'not an object',
         'no choices',
         'empty choices',
         'null content',
