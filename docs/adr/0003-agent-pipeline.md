@@ -1,5 +1,7 @@
 # 0003. Agents write and review, a person merges
 
+Amended by [0004](0004-lead-agent.md): a lead agent that acts for the owner writes the acceptance tests and merges.
+
 ## Context
 
 The repository is public. An agent that runs here reads text and holds a credential. Public repositories are probed by automated attackers, and agent actions have had vulnerabilities that leaked secrets through issue text.
