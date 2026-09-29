@@ -13,8 +13,6 @@ from fastapi.testclient import TestClient
 from reply_assistant.knowledge_base import load_knowledge_base
 from tests.acceptance.fakes import FakeModelClient
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 27 is not implemented')
-
 # === Data ===
 
 KB = Path(__file__).parents[2] / 'kb'
