@@ -97,6 +97,8 @@ def create_app(
         finally:
             for client in owned:
                 await client.aclose()
+            if owned:
+                parts.client = None
 
     app = FastAPI(title='Reply Assistant', version=__version__, lifespan=lifespan)
 
