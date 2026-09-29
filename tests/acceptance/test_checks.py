@@ -7,8 +7,6 @@ from typing import Any
 
 import pytest
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 19 is not implemented')
-
 # === Data ===
 
 KB = Path(__file__).parents[2] / 'kb'
