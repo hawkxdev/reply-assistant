@@ -304,6 +304,8 @@ async def test_error_status_is_a_provider_error(
         ),
         httpx2.Response(200, json={**REPLY, 'choices': [{'message': {'content': 5}}]}),
         httpx2.Response(200, json={'choices': REPLY['choices']}),
+        httpx2.Response(200, json={**REPLY, 'usage': {'completion_tokens': 40}}),
+        httpx2.Response(200, json={**REPLY, 'usage': {'prompt_tokens': 120}}),
         httpx2.Response(
             200,
             json={**REPLY, 'usage': {'prompt_tokens': '120', 'completion_tokens': 40}},
@@ -329,6 +331,8 @@ async def test_error_status_is_a_provider_error(
         'null content',
         'number content',
         'no usage',
+        'no prompt count',
+        'no completion count',
         'text tokens',
         'negative tokens',
         'fraction tokens',
