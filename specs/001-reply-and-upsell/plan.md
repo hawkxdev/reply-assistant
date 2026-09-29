@@ -35,13 +35,14 @@ Each module is understood and tested without reading the others. `service` is th
 | The knowledge base goes into the request whole | [ADR 0001](../../docs/adr/0001-knowledge-base-in-the-request.md) |
 | One direct model call, structured output, checks by code | [ADR 0002](../../docs/adr/0002-direct-call-and-checks-by-code.md) |
 | Agents write and review, a person merges | [ADR 0003](../../docs/adr/0003-agent-pipeline.md) |
+| A lead agent acts for the owner | [ADR 0004](../../docs/adr/0004-lead-agent.md) |
 
 ## Testing
 
 - `checks`, `prompt`, `knowledge_base` and `crm_event` are pure and tested directly.
 - `service` is tested with a fake model client that returns prepared outputs, including invalid ones.
 - `app` is tested through the HTTP client with the fake model client injected.
-- Acceptance tests in `tests/acceptance` are written by the owner before the task is handed to the author agent.
+- Acceptance tests in `tests/acceptance` are written by the lead agent before the task is handed to the author agent.
 - A live evaluation of a fixed set of messages runs only when started by hand.
 
 ## Order

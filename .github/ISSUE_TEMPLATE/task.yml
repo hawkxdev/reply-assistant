@@ -41,4 +41,4 @@ body:
     id: acceptance-test
     attributes:
       label: Acceptance test
-      description: Path of the owner authored test that is marked xfail until this task is done.
+      description: Path of the acceptance test that is marked xfail until this task is done.

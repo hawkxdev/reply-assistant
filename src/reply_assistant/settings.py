@@ -1,4 +1,4 @@
-"""Service settings read from the environment."""
+"""Settings from the environment."""
 
 from pathlib import Path
 
@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Deployment settings of the service."""
+    """Service deployment settings."""
 
     model_config = SettingsConfigDict(
         env_file='.env',
