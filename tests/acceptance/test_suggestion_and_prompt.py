@@ -11,8 +11,6 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 16 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
