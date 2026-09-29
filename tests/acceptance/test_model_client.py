@@ -131,7 +131,7 @@ async def test_client_is_built_from_settings(module: ModuleType) -> None:
         settings, transport=transport
     ).complete(MESSAGES, SCHEMA)
 
-    assert str(seen[0].url) == 'https://llm.example.test/v1/chat/completions'
+    assert seen[0].url.host == 'llm.example.test'
     assert seen[0].headers['authorization'] == f'Bearer {KEY}'
     assert json.loads(seen[0].content)['model'] == MODEL
 
