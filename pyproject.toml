@@ -8,6 +8,7 @@ authors = [{ name = "Sergey Sokolkin" }]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.141",
+    "httpx2>=2.13.1",
     "pydantic>=2.13",
     "pydantic-settings>=2.15",
     "pyyaml>=6.0.3",
@@ -23,7 +24,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "httpx2>=2.13.1",
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
