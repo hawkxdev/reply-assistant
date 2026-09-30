@@ -227,7 +227,7 @@ async def test_valid_form_reaches_the_existing_checked_service(
 
     monkeypatch.setattr(app_module, 'suggest', checked)
     monkeypatch.setattr(service_module, 'suggest', checked)
-    caplog.set_level(logging.INFO, logger='reply_assistant.app')
+    caplog.set_level(logging.DEBUG, logger='reply_assistant.app')
 
     response = await post(kb, model, BODY, FORM + '; charset=utf-8')
 
@@ -275,7 +275,8 @@ async def test_body_limit_stops_consuming_the_stream(kb: KnowledgeBase) -> None:
 
     async def chunks() -> AsyncIterator[bytes]:
         """Expose an excessive stream."""
-        yield b'x' * 65537
+        yield b'x' * 32768
+        yield b'x' * 32769
         raise AssertionError('the oversized body was consumed further')
 
     async with httpx2.AsyncClient(
@@ -307,7 +308,7 @@ async def test_processing_failure_keeps_the_ack_and_hides_details(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     model = ScriptedClient(outcomes)
-    caplog.set_level(logging.INFO, logger='reply_assistant.app')
+    caplog.set_level(logging.DEBUG, logger='reply_assistant.app')
 
     response = await post(kb, model, BODY)
 
