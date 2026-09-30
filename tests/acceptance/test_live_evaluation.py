@@ -3,6 +3,7 @@
 import importlib
 import importlib.util
 import json
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 from types import ModuleType
@@ -180,6 +181,11 @@ async def test_public_cases_use_checked_service_in_fixed_order(
         (1, {'kb_match': 'found'}, ['kb_match']),
         (1, {'upsell_product_id': 'measuring-spoon'}, ['upsell_product_id']),
         (2, {'kb_match': 'found'}, ['kb_match']),
+        (
+            2,
+            {'customer_reply': 'Zeolite Powder eliminates spring allergies.'},
+            ['missing:doctor'],
+        ),
     ],
     ids=[
         'price match',
@@ -190,6 +196,7 @@ async def test_public_cases_use_checked_service_in_fixed_order(
         'delivery match',
         'delivery upsell',
         'health match',
+        'health guidance',
     ],
 )
 async def test_case_expectation_failure_is_reported(
@@ -225,11 +232,13 @@ async def test_failed_case_is_safe_and_remaining_cases_run(
     kb: KnowledgeBase,
     evaluation: ModuleType,
     capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
     outcomes: list[dict[str, Any] | Exception],
     error: str,
     calls: int,
 ) -> None:
     model = ScriptedClient([*outcomes, *ANSWERS[1:]])
+    caplog.set_level(logging.DEBUG)
 
     report = await evaluation.evaluate(kb, model)
     data = report.model_dump(mode='json')
@@ -249,6 +258,7 @@ async def test_failed_case_is_safe_and_remaining_cases_run(
     assert HIDDEN not in json.dumps(data)
     assert captured.out == ''
     assert captured.err == ''
+    assert HIDDEN not in caplog.text
 
 
 # === Output cap ===
@@ -403,7 +413,9 @@ async def test_alternative_supported_outputs_pass(
 ) -> None:
     answers = [dict(answer) for answer in ANSWERS]
     answers[0]['upsell_product_id'] = 'zeolite-capsules-90'
+    answers[0]['upsell_hint'] = 'Offer the Zeolite Capsules for travel.'
     answers[2]['kb_match'] = 'none'
+    answers[2]['customer_reply'] = 'This is a food supplement. Ask a Doctor.'
 
     report = await evaluation.evaluate(kb, ScriptedClient(answers))
 
@@ -458,7 +470,10 @@ async def test_command_builds_the_configured_fallback(
 
 
 async def test_command_hides_setup_failure_details(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     cli = cli_module()
 
@@ -467,6 +482,7 @@ async def test_command_hides_setup_failure_details(
         raise ValueError(HIDDEN)
 
     monkeypatch.setattr(cli, 'Settings', fail)
+    caplog.set_level(logging.DEBUG)
 
     code = await cli.run(tmp_path)
     captured = capsys.readouterr()
@@ -474,3 +490,4 @@ async def test_command_hides_setup_failure_details(
     assert code == 1
     assert captured.out == 'Live evaluation failed.\n'
     assert captured.err == ''
+    assert HIDDEN not in caplog.text
