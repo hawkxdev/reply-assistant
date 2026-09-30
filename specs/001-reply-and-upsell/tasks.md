@@ -16,6 +16,6 @@ The lead agent fills the **Issue** column when it opens the issue of a task, in 
 | T8 | Web page | R20, R22 to R26 | [#27](https://github.com/hawkxdev/reply-assistant/issues/27) |
 | T9 | Fallback to the secondary provider | R16 | [#46](https://github.com/hawkxdev/reply-assistant/issues/46) |
 | T10 | CRM event adapter and webhook endpoint | R19 | [#48](https://github.com/hawkxdev/reply-assistant/issues/48) |
-| T11 | Live evaluation workflow started by hand | Acceptance 2 | |
+| T11 | Live evaluation workflow started by hand | Acceptance 2 | [#51](https://github.com/hawkxdev/reply-assistant/issues/51) |
 
 T1 to T8 produce a service that can be shown. T9 to T11 follow.
