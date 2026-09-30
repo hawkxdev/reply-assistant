@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from reply_assistant import __version__
 from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
 from reply_assistant.model_client import (
+    FallbackClient,
     ModelClient,
     OpenAICompatibleClient,
     ProviderError,
@@ -89,13 +90,17 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         """Manage owned application parts."""
-        owned: list[OpenAICompatibleClient] = []
+        owned: list[OpenAICompatibleClient | FallbackClient] = []
         if parts.kb is None or parts.client is None:
             settings = Settings()
             if parts.kb is None:
                 parts.kb = await load_knowledge_base(settings.kb_path)
             if parts.client is None:
-                built = OpenAICompatibleClient.from_settings(settings)
+                built: OpenAICompatibleClient | FallbackClient
+                if settings.fallback_provider_base_url is None:
+                    built = OpenAICompatibleClient.from_settings(settings)
+                else:
+                    built = FallbackClient.from_settings(settings)
                 parts.client = built
                 owned.append(built)
         try:

@@ -41,3 +41,14 @@ def test_page_fails_before_the_application_started() -> None:
 
     with pytest.raises(RuntimeError):
         client.get('/')
+
+
+def test_page_names_the_switch_in_both_languages() -> None:
+    kb = asyncio.run(load_knowledge_base(KB / 'example-en.yaml'))
+
+    with TestClient(create_app(kb=kb, client=FakeModelClient([]))) as client:
+        response = client.get('/')
+
+    assert response.status_code == 200
+    assert 'Provider fallback' in response.text
+    assert 'Переключение провайдера' in response.text
