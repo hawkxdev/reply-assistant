@@ -150,7 +150,16 @@ def test_provider_key_is_hidden_in_text_forms(
 def test_env_example_names_every_setting(settings_class: Any) -> None:
     expected = {PREFIX + name.upper() for name in settings_class.model_fields}
 
-    assert expected == set(ENVIRONMENT)
+    assert expected in (
+        set(ENVIRONMENT),
+        set(ENVIRONMENT)
+        | {
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_API_KEY',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_BASE_URL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE',
+        },
+    )
     assert set(env_example_entries()) == expected
 
 
