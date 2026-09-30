@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from pydantic import SecretStr, ValidationError, model_validator
+from pydantic import Field, SecretStr, ValidationError, model_validator
 from pydantic_core import InitErrorDetails, PydanticCustomError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     fallback_provider_base_url: str | None = None
     fallback_provider_model: str | None = None
     fallback_provider_json_mode: bool = True
+    provider_max_output_tokens: int | None = Field(default=None, gt=0)
 
     @model_validator(mode='before')
     @classmethod
