@@ -1,0 +1,1581 @@
+{
+  "document_kind": "quality_facts",
+  "schema_version": 1,
+  "sources_sha256": "fea0bca4a20561d0ab7a76421f72ff484aebf096e701b944049ab926afc3b98a",
+  "review_status": "agent_prepared",
+  "confirmation_ref": null,
+  "products": [
+    {
+      "source_id": "public-en",
+      "product_id": "zeolite-powder-200",
+      "profile_id": "F01",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "zeolite-powder-200:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Zeolite Powder",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/name",
+              "start": 0,
+              "end": 14,
+              "quote": "Zeolite Powder"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "powder, 200 g jar",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 0,
+              "end": 17,
+              "quote": "powder, 200 g jar"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "Finely milled natural zeolite for daily use with water.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/description",
+              "start": 0,
+              "end": 55,
+              "quote": "Finely milled natural zeolite for daily use with water."
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "18.00",
+          "unit": "USD",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/0/price",
+              "start": 0,
+              "end": 5,
+              "quote": "18.00"
+            },
+            {
+              "pointer": "/products/0/price",
+              "start": 6,
+              "end": 9,
+              "quote": "USD"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "powder",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 0,
+              "end": 6,
+              "quote": "powder"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:container:0",
+          "predicate": "container",
+          "value_type": "text",
+          "value": "jar",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 14,
+              "end": 17,
+              "quote": "jar"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "200",
+          "unit": "g",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 8,
+              "end": 11,
+              "quote": "200"
+            },
+            {
+              "pointer": "/products/0/form",
+              "start": 12,
+              "end": 13,
+              "quote": "g"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:goes_with:0",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "measuring-spoon",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/goes_with/0",
+              "start": 0,
+              "end": 15,
+              "quote": "measuring-spoon"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-powder-200:goes_with:1",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "zeolite-capsules-90",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/goes_with/1",
+              "start": 0,
+              "end": 19,
+              "quote": "zeolite-capsules-90"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "unresolved",
+          "reason": "A quantity exists but its relation to object mass is not established."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "supported",
+          "reason": "The complete directed relation is listed in the pinned record."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-en",
+      "product_id": "zeolite-capsules-90",
+      "profile_id": "F02",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "zeolite-capsules-90:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Zeolite Capsules",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/name",
+              "start": 0,
+              "end": 16,
+              "quote": "Zeolite Capsules"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "capsules, 90 pieces",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 0,
+              "end": 19,
+              "quote": "capsules, 90 pieces"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "The same zeolite in capsules for people who dislike the taste of powder.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/description",
+              "start": 0,
+              "end": 72,
+              "quote": "The same zeolite in capsules for people who dislike the taste of powder."
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "24.00",
+          "unit": "USD",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/1/price",
+              "start": 0,
+              "end": 5,
+              "quote": "24.00"
+            },
+            {
+              "pointer": "/products/1/price",
+              "start": 6,
+              "end": 9,
+              "quote": "USD"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "capsules",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 0,
+              "end": 8,
+              "quote": "capsules"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "90",
+          "unit": "piece",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 10,
+              "end": 12,
+              "quote": "90"
+            },
+            {
+              "pointer": "/products/1/form",
+              "start": 13,
+              "end": 19,
+              "quote": "pieces"
+            }
+          ]
+        },
+        {
+          "id": "zeolite-capsules-90:goes_with:0",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "travel-pill-box",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/goes_with/0",
+              "start": 0,
+              "end": 15,
+              "quote": "travel-pill-box"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "absent",
+          "reason": "The pinned source contains no object mass; its quantities have other explicit roles."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "supported",
+          "reason": "The complete directed relation is listed in the pinned record."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-en",
+      "product_id": "clay-face-mask-100",
+      "profile_id": "F03",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "clay-face-mask-100:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Mineral Clay Face Mask",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/name",
+              "start": 0,
+              "end": 22,
+              "quote": "Mineral Clay Face Mask"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "paste, 100 ml tube",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 0,
+              "end": 18,
+              "quote": "paste, 100 ml tube"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "A cosmetic clay mask for weekly skin care.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/description",
+              "start": 0,
+              "end": 42,
+              "quote": "A cosmetic clay mask for weekly skin care."
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "15.00",
+          "unit": "USD",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/2/price",
+              "start": 0,
+              "end": 5,
+              "quote": "15.00"
+            },
+            {
+              "pointer": "/products/2/price",
+              "start": 6,
+              "end": 9,
+              "quote": "USD"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "paste",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 0,
+              "end": 5,
+              "quote": "paste"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:container:0",
+          "predicate": "container",
+          "value_type": "text",
+          "value": "tube",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 14,
+              "end": 18,
+              "quote": "tube"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "100",
+          "unit": "ml",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 7,
+              "end": 10,
+              "quote": "100"
+            },
+            {
+              "pointer": "/products/2/form",
+              "start": 11,
+              "end": 13,
+              "quote": "ml"
+            }
+          ]
+        },
+        {
+          "id": "clay-face-mask-100:goes_with:0",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "zeolite-powder-200",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/goes_with/0",
+              "start": 0,
+              "end": 18,
+              "quote": "zeolite-powder-200"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "absent",
+          "reason": "The pinned source contains no object mass; its quantities have other explicit roles."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "supported",
+          "reason": "The complete directed relation is listed in the pinned record."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-en",
+      "product_id": "measuring-spoon",
+      "profile_id": "F04",
+      "quantity_role": "unresolved",
+      "facts": [
+        {
+          "id": "measuring-spoon:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Measuring Spoon",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/name",
+              "start": 0,
+              "end": 15,
+              "quote": "Measuring Spoon"
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "steel spoon, 5 g",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 0,
+              "end": 16,
+              "quote": "steel spoon, 5 g"
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "A spoon that measures one serving of powder.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/description",
+              "start": 0,
+              "end": 44,
+              "quote": "A spoon that measures one serving of powder."
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "4.00",
+          "unit": "USD",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/3/price",
+              "start": 0,
+              "end": 4,
+              "quote": "4.00"
+            },
+            {
+              "pointer": "/products/3/price",
+              "start": 5,
+              "end": 8,
+              "quote": "USD"
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "spoon",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 6,
+              "end": 11,
+              "quote": "spoon"
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:material:0",
+          "predicate": "material",
+          "value_type": "text",
+          "value": "steel",
+          "unit": null,
+          "derivation": "profile_component",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 0,
+              "end": 5,
+              "quote": "steel"
+            }
+          ]
+        },
+        {
+          "id": "measuring-spoon:form_quantity:0",
+          "predicate": "form_quantity",
+          "value_type": "integer",
+          "value": "5",
+          "unit": "g",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 13,
+              "end": 14,
+              "quote": "5"
+            },
+            {
+              "pointer": "/products/3/form",
+              "start": 15,
+              "end": 16,
+              "quote": "g"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "unresolved",
+          "reason": "A quantity exists but its relation to object mass is not established."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "unresolved",
+          "reason": "The source does not bind the form quantity to one serving."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "absent",
+          "reason": "The complete directed relation is empty; an omitted optional list means no listed edges."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-en",
+      "product_id": "travel-pill-box",
+      "profile_id": "F05",
+      "quantity_role": "section_count",
+      "facts": [
+        {
+          "id": "travel-pill-box:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Travel Pill Box",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/4/name",
+              "start": 0,
+              "end": 15,
+              "quote": "Travel Pill Box"
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "plastic box, 7 sections",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/4/form",
+              "start": 0,
+              "end": 23,
+              "quote": "plastic box, 7 sections"
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "A box that holds capsules for one week.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/4/description",
+              "start": 0,
+              "end": 39,
+              "quote": "A box that holds capsules for one week."
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "6.00",
+          "unit": "USD",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/4/price",
+              "start": 0,
+              "end": 4,
+              "quote": "6.00"
+            },
+            {
+              "pointer": "/products/4/price",
+              "start": 5,
+              "end": 8,
+              "quote": "USD"
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "box",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/4/form",
+              "start": 8,
+              "end": 11,
+              "quote": "box"
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:material:0",
+          "predicate": "material",
+          "value_type": "text",
+          "value": "plastic",
+          "unit": null,
+          "derivation": "profile_component",
+          "evidence": [
+            {
+              "pointer": "/products/4/form",
+              "start": 0,
+              "end": 7,
+              "quote": "plastic"
+            }
+          ]
+        },
+        {
+          "id": "travel-pill-box:section_count:0",
+          "predicate": "section_count",
+          "value_type": "integer",
+          "value": "7",
+          "unit": "section",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/4/form",
+              "start": 13,
+              "end": 14,
+              "quote": "7"
+            },
+            {
+              "pointer": "/products/4/form",
+              "start": 15,
+              "end": 23,
+              "quote": "sections"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "absent",
+          "reason": "The pinned source contains no object mass; its quantities have other explicit roles."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "absent",
+          "reason": "The complete directed relation is empty; an omitted optional list means no listed edges."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-ru",
+      "product_id": "brazil-santos-250",
+      "profile_id": "F06",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "brazil-santos-250:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Бразилия Сантос",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/name",
+              "start": 0,
+              "end": 15,
+              "quote": "Бразилия Сантос"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "зерно, пачка 250 г",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 0,
+              "end": 18,
+              "quote": "зерно, пачка 250 г"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "Кофе средней обжарки с нотами ореха и шоколада.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/description",
+              "start": 0,
+              "end": 47,
+              "quote": "Кофе средней обжарки с нотами ореха и шоколада."
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "690",
+          "unit": "RUB",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/0/price",
+              "start": 0,
+              "end": 3,
+              "quote": "690"
+            },
+            {
+              "pointer": "/products/0/price",
+              "start": 4,
+              "end": 7,
+              "quote": "RUB"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "зерно",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 0,
+              "end": 5,
+              "quote": "зерно"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:container:0",
+          "predicate": "container",
+          "value_type": "text",
+          "value": "пачка",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 7,
+              "end": 12,
+              "quote": "пачка"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "250",
+          "unit": "g",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/0/form",
+              "start": 13,
+              "end": 16,
+              "quote": "250"
+            },
+            {
+              "pointer": "/products/0/form",
+              "start": 17,
+              "end": 18,
+              "quote": "г"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:goes_with:0",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "paper-filters-100",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/goes_with/0",
+              "start": 0,
+              "end": 17,
+              "quote": "paper-filters-100"
+            }
+          ]
+        },
+        {
+          "id": "brazil-santos-250:goes_with:1",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "hand-grinder",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/0/goes_with/1",
+              "start": 0,
+              "end": 12,
+              "quote": "hand-grinder"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "unresolved",
+          "reason": "A quantity exists but its relation to object mass is not established."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "supported",
+          "reason": "The complete directed relation is listed in the pinned record."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-ru",
+      "product_id": "ethiopia-sidamo-250",
+      "profile_id": "F06",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "ethiopia-sidamo-250:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Эфиопия Сидамо",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/name",
+              "start": 0,
+              "end": 14,
+              "quote": "Эфиопия Сидамо"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "зерно, пачка 250 г",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 0,
+              "end": 18,
+              "quote": "зерно, пачка 250 г"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "Кофе светлой обжарки с ягодной кислинкой, подходит для фильтра.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/description",
+              "start": 0,
+              "end": 63,
+              "quote": "Кофе светлой обжарки с ягодной кислинкой, подходит для фильтра."
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "890",
+          "unit": "RUB",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/1/price",
+              "start": 0,
+              "end": 3,
+              "quote": "890"
+            },
+            {
+              "pointer": "/products/1/price",
+              "start": 4,
+              "end": 7,
+              "quote": "RUB"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "зерно",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 0,
+              "end": 5,
+              "quote": "зерно"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:container:0",
+          "predicate": "container",
+          "value_type": "text",
+          "value": "пачка",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 7,
+              "end": 12,
+              "quote": "пачка"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "250",
+          "unit": "g",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/1/form",
+              "start": 13,
+              "end": 16,
+              "quote": "250"
+            },
+            {
+              "pointer": "/products/1/form",
+              "start": 17,
+              "end": 18,
+              "quote": "г"
+            }
+          ]
+        },
+        {
+          "id": "ethiopia-sidamo-250:goes_with:0",
+          "predicate": "goes_with",
+          "value_type": "reference",
+          "value": "paper-filters-100",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/1/goes_with/0",
+              "start": 0,
+              "end": 17,
+              "quote": "paper-filters-100"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "unresolved",
+          "reason": "A quantity exists but its relation to object mass is not established."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "supported",
+          "reason": "The complete directed relation is listed in the pinned record."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-ru",
+      "product_id": "paper-filters-100",
+      "profile_id": "F07",
+      "quantity_role": "package_quantity",
+      "facts": [
+        {
+          "id": "paper-filters-100:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Бумажные фильтры",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/name",
+              "start": 0,
+              "end": 16,
+              "quote": "Бумажные фильтры"
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "упаковка 100 штук",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 0,
+              "end": 17,
+              "quote": "упаковка 100 штук"
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "Фильтры для воронки размера 02.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/description",
+              "start": 0,
+              "end": 31,
+              "quote": "Фильтры для воронки размера 02."
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "350",
+          "unit": "RUB",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/2/price",
+              "start": 0,
+              "end": 3,
+              "quote": "350"
+            },
+            {
+              "pointer": "/products/2/price",
+              "start": 4,
+              "end": 7,
+              "quote": "RUB"
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "фильтры",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/name",
+              "start": 9,
+              "end": 16,
+              "quote": "фильтры"
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:package_quantity:0",
+          "predicate": "package_quantity",
+          "value_type": "integer",
+          "value": "100",
+          "unit": "piece",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/2/form",
+              "start": 9,
+              "end": 12,
+              "quote": "100"
+            },
+            {
+              "pointer": "/products/2/form",
+              "start": 13,
+              "end": 17,
+              "quote": "штук"
+            }
+          ]
+        },
+        {
+          "id": "paper-filters-100:filter_size:0",
+          "predicate": "filter_size",
+          "value_type": "text",
+          "value": "02",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/2/description",
+              "start": 28,
+              "end": 30,
+              "quote": "02"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "absent",
+          "reason": "The pinned source contains no object mass; its quantities have other explicit roles."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "absent",
+          "reason": "The complete directed relation is empty; an omitted optional list means no listed edges."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    },
+    {
+      "source_id": "public-ru",
+      "product_id": "hand-grinder",
+      "profile_id": "F08",
+      "quantity_role": "batch_capacity",
+      "facts": [
+        {
+          "id": "hand-grinder:name:0",
+          "predicate": "name",
+          "value_type": "text",
+          "value": "Ручная кофемолка",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/name",
+              "start": 0,
+              "end": 16,
+              "quote": "Ручная кофемолка"
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:form:0",
+          "predicate": "form",
+          "value_type": "text",
+          "value": "стальные жернова, 30 г за раз",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 0,
+              "end": 29,
+              "quote": "стальные жернова, 30 г за раз"
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:description:0",
+          "predicate": "description",
+          "value_type": "text",
+          "value": "Кофемолка с настройкой помола от турки до фильтра.",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/description",
+              "start": 0,
+              "end": 50,
+              "quote": "Кофемолка с настройкой помола от турки до фильтра."
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:price:0",
+          "predicate": "price",
+          "value_type": "decimal",
+          "value": "3900",
+          "unit": "RUB",
+          "derivation": "decimal",
+          "evidence": [
+            {
+              "pointer": "/products/3/price",
+              "start": 0,
+              "end": 4,
+              "quote": "3900"
+            },
+            {
+              "pointer": "/products/3/price",
+              "start": 5,
+              "end": 8,
+              "quote": "RUB"
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:form_kind:0",
+          "predicate": "form_kind",
+          "value_type": "text",
+          "value": "жернова",
+          "unit": null,
+          "derivation": "literal",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 9,
+              "end": 16,
+              "quote": "жернова"
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:material:0",
+          "predicate": "material",
+          "value_type": "text",
+          "value": "сталь",
+          "unit": null,
+          "derivation": "profile_component",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 0,
+              "end": 8,
+              "quote": "стальные"
+            }
+          ]
+        },
+        {
+          "id": "hand-grinder:batch_capacity:0",
+          "predicate": "batch_capacity",
+          "value_type": "integer",
+          "value": "30",
+          "unit": "g",
+          "derivation": "unit_alias",
+          "evidence": [
+            {
+              "pointer": "/products/3/form",
+              "start": 18,
+              "end": 20,
+              "quote": "30"
+            },
+            {
+              "pointer": "/products/3/form",
+              "start": 21,
+              "end": 22,
+              "quote": "г"
+            }
+          ]
+        }
+      ],
+      "predicate_support": [
+        {
+          "predicate": "object_mass",
+          "status": "absent",
+          "reason": "The pinned source contains no object mass; its quantities have other explicit roles."
+        },
+        {
+          "predicate": "portion_mass",
+          "status": "absent",
+          "reason": "No portion mass is stated in the pinned record."
+        },
+        {
+          "predicate": "goes_with",
+          "status": "absent",
+          "reason": "The complete directed relation is empty; an omitted optional list means no listed edges."
+        },
+        {
+          "predicate": "delivery",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "stock",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        },
+        {
+          "predicate": "treatment_result",
+          "status": "absent",
+          "reason": "No supporting statement exists in the complete pinned public catalogue."
+        }
+      ]
+    }
+  ]
+}

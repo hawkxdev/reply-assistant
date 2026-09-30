@@ -1,0 +1,56 @@
+{
+  "document_kind": "quality_corpus",
+  "schema_version": 1,
+  "partition": "examples",
+  "sources_sha256": "fea0bca4a20561d0ab7a76421f72ff484aebf096e701b944049ab926afc3b98a",
+  "facts_sha256": "d325a024c64137c954efd4492190f43661c24b5c3d00a0da2f72e2eab431b75d",
+  "questions_sha256": "ca65e3f47f509434cf9ba5b0648141ce13ab9bbf19e60b1c65d28da155f282a4",
+  "cases": [
+    {
+      "id": "example-case-price",
+      "group_id": "example-group-price",
+      "question_id": "example-question-price",
+      "question_sha256": "5b39eaf75c6b31a73e3ecb2624c86ebe5e6c6b65782c0fbb0b47846dbe99a990",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder costs 18.00 USD.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Format example only; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    }
+  ]
+}

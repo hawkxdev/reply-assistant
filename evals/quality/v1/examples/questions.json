@@ -1,0 +1,28 @@
+{
+  "document_kind": "quality_questions",
+  "schema_version": 1,
+  "sources_sha256": "fea0bca4a20561d0ab7a76421f72ff484aebf096e701b944049ab926afc3b98a",
+  "questions": [
+    {
+      "id": "example-question-price",
+      "source_id": "public-en",
+      "message": "What is the price of Zeolite Powder?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-powder-200",
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The requested product and price are present in the pinned catalogue."
+    }
+  ]
+}

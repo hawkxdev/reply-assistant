@@ -1,0 +1,1189 @@
+{
+  "$defs": {
+    "Answer": {
+      "additionalProperties": false,
+      "description": "Keep the recorded answer.",
+      "properties": {
+        "customer_reply": {
+          "title": "Customer Reply",
+          "type": "string"
+        },
+        "upsell_hint": {
+          "title": "Upsell Hint",
+          "type": "string"
+        },
+        "upsell_product_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Upsell Product Id"
+        },
+        "kb_match": {
+          "enum": [
+            "found",
+            "partial",
+            "none"
+          ],
+          "title": "Kb Match",
+          "type": "string"
+        }
+      },
+      "required": [
+        "customer_reply",
+        "upsell_hint",
+        "upsell_product_id",
+        "kb_match"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Case": {
+      "additionalProperties": false,
+      "description": "Collect one evaluation record.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "group_id": {
+          "minLength": 1,
+          "title": "Group Id",
+          "type": "string"
+        },
+        "question_id": {
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "question_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Question Sha256",
+          "type": "string"
+        },
+        "categories": {
+          "items": {
+            "enum": [
+              "price_currency",
+              "form_quantity",
+              "product_relations",
+              "unsupported_facts",
+              "completeness_hint"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Categories",
+          "type": "array"
+        },
+        "observation": {
+          "$ref": "#/$defs/Observation"
+        },
+        "question_origin": {
+          "$ref": "#/$defs/Origin"
+        },
+        "answer_origin": {
+          "$ref": "#/$defs/Origin"
+        },
+        "label": {
+          "$ref": "#/$defs/Label"
+        }
+      },
+      "required": [
+        "id",
+        "group_id",
+        "question_id",
+        "question_sha256",
+        "categories",
+        "observation",
+        "question_origin",
+        "answer_origin",
+        "label"
+      ],
+      "title": "Case",
+      "type": "object"
+    },
+    "Corpus": {
+      "additionalProperties": false,
+      "description": "Describe an isolated partition.",
+      "properties": {
+        "document_kind": {
+          "const": "quality_corpus",
+          "title": "Document Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "partition": {
+          "enum": [
+            "development",
+            "holdout",
+            "examples"
+          ],
+          "title": "Partition",
+          "type": "string"
+        },
+        "sources_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sources Sha256",
+          "type": "string"
+        },
+        "facts_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Facts Sha256",
+          "type": "string"
+        },
+        "questions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Questions Sha256",
+          "type": "string"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/Case"
+          },
+          "minItems": 1,
+          "title": "Cases",
+          "type": "array"
+        }
+      },
+      "required": [
+        "document_kind",
+        "schema_version",
+        "partition",
+        "sources_sha256",
+        "facts_sha256",
+        "questions_sha256",
+        "cases"
+      ],
+      "title": "Corpus",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "description": "Locate a source fragment.",
+      "properties": {
+        "pointer": {
+          "minLength": 1,
+          "title": "Pointer",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pointer",
+        "start",
+        "end",
+        "quote"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "description": "Describe one grounded value.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "predicate": {
+          "enum": [
+            "name",
+            "form",
+            "description",
+            "price",
+            "material",
+            "form_kind",
+            "container",
+            "package_quantity",
+            "portion_mass",
+            "form_quantity",
+            "batch_capacity",
+            "section_count",
+            "filter_size",
+            "goes_with",
+            "object_mass",
+            "delivery",
+            "stock",
+            "treatment_result"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "value_type": {
+          "enum": [
+            "text",
+            "decimal",
+            "integer",
+            "reference"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "enum": [
+                "USD",
+                "RUB",
+                "g",
+                "ml",
+                "piece",
+                "section"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unit"
+        },
+        "derivation": {
+          "enum": [
+            "literal",
+            "decimal",
+            "unit_alias",
+            "profile_component"
+          ],
+          "title": "Derivation",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "predicate",
+        "value_type",
+        "value",
+        "unit",
+        "derivation",
+        "evidence"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "Facts": {
+      "additionalProperties": false,
+      "description": "Describe catalogue annotations.",
+      "properties": {
+        "document_kind": {
+          "const": "quality_facts",
+          "title": "Document Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "sources_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sources Sha256",
+          "type": "string"
+        },
+        "review_status": {
+          "enum": [
+            "agent_prepared",
+            "human_confirmed"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "confirmation_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Confirmation Ref"
+        },
+        "products": {
+          "items": {
+            "$ref": "#/$defs/ProductFacts"
+          },
+          "minItems": 1,
+          "title": "Products",
+          "type": "array"
+        }
+      },
+      "required": [
+        "document_kind",
+        "schema_version",
+        "sources_sha256",
+        "review_status",
+        "confirmation_ref",
+        "products"
+      ],
+      "title": "Facts",
+      "type": "object"
+    },
+    "Generation": {
+      "additionalProperties": false,
+      "description": "Preserve known generation metadata.",
+      "properties": {
+        "provider": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Provider"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Output Tokens"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Temperature"
+        },
+        "input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Tokens"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Output Tokens"
+        },
+        "attempts": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Attempts"
+        },
+        "run_reference": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Run Reference"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "max_output_tokens",
+        "temperature",
+        "input_tokens",
+        "output_tokens",
+        "attempts",
+        "run_reference"
+      ],
+      "title": "Generation",
+      "type": "object"
+    },
+    "Label": {
+      "additionalProperties": false,
+      "description": "Separate truth from proposals.",
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "confirmed",
+            "disputed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "proposed_verdict": {
+          "anyOf": [
+            {
+              "enum": [
+                "correct",
+                "incorrect",
+                "unresolved"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Proposed Verdict"
+        },
+        "verdict": {
+          "anyOf": [
+            {
+              "enum": [
+                "correct",
+                "incorrect",
+                "unresolved"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Verdict"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reviewed_by": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reviewed By"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reviewed At"
+        },
+        "confirmation_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Confirmation Ref"
+        }
+      },
+      "required": [
+        "status",
+        "proposed_verdict",
+        "verdict",
+        "rationale",
+        "evidence",
+        "reviewed_by",
+        "reviewed_at",
+        "confirmation_ref"
+      ],
+      "title": "Label",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "description": "Keep the recording outcome.",
+      "properties": {
+        "outcome": {
+          "enum": [
+            "answer",
+            "provider_error",
+            "suggestion_rejected"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "enum": [
+                "model_output",
+                "final_suggestion"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stage"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Answer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Code"
+        }
+      },
+      "required": [
+        "outcome",
+        "stage",
+        "answer",
+        "error_code"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "Origin": {
+      "additionalProperties": false,
+      "description": "Declare one content origin.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent_authored",
+            "human_authored",
+            "recorded",
+            "derived"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sha256"
+        },
+        "parent_case_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Case Id"
+        },
+        "record_pointer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Record Pointer"
+        },
+        "generation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Generation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "reference",
+        "sha256",
+        "parent_case_id",
+        "record_pointer",
+        "generation"
+      ],
+      "title": "Origin",
+      "type": "object"
+    },
+    "ProductFacts": {
+      "additionalProperties": false,
+      "description": "Collect one product profile.",
+      "properties": {
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "product_id": {
+          "minLength": 1,
+          "title": "Product Id",
+          "type": "string"
+        },
+        "profile_id": {
+          "enum": [
+            "F01",
+            "F02",
+            "F03",
+            "F04",
+            "F05",
+            "F06",
+            "F07",
+            "F08"
+          ],
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "quantity_role": {
+          "enum": [
+            "package_quantity",
+            "portion_mass",
+            "batch_capacity",
+            "section_count",
+            "unresolved"
+          ],
+          "title": "Quantity Role",
+          "type": "string"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/Fact"
+          },
+          "minItems": 1,
+          "title": "Facts",
+          "type": "array"
+        },
+        "predicate_support": {
+          "items": {
+            "$ref": "#/$defs/Support"
+          },
+          "minItems": 1,
+          "title": "Predicate Support",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_id",
+        "product_id",
+        "profile_id",
+        "quantity_role",
+        "facts",
+        "predicate_support"
+      ],
+      "title": "ProductFacts",
+      "type": "object"
+    },
+    "Question": {
+      "additionalProperties": false,
+      "description": "Describe the question contract.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "en",
+            "ru"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "place": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Place"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "enum": [
+                "delivery",
+                "stock",
+                "treatment_result"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Topic"
+        },
+        "required_claims": {
+          "items": {
+            "$ref": "#/$defs/RequiredClaim"
+          },
+          "title": "Required Claims",
+          "type": "array"
+        },
+        "required_actions": {
+          "items": {
+            "$ref": "#/$defs/RequiredAction"
+          },
+          "title": "Required Actions",
+          "type": "array"
+        },
+        "allowed_kb_matches": {
+          "items": {
+            "enum": [
+              "found",
+              "partial",
+              "none"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Kb Matches",
+          "type": "array"
+        },
+        "basis": {
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source_id",
+        "message",
+        "language",
+        "place",
+        "topic",
+        "required_claims",
+        "required_actions",
+        "allowed_kb_matches",
+        "basis"
+      ],
+      "title": "Question",
+      "type": "object"
+    },
+    "Questions": {
+      "additionalProperties": false,
+      "description": "Collect question contracts.",
+      "properties": {
+        "document_kind": {
+          "const": "quality_questions",
+          "title": "Document Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "sources_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sources Sha256",
+          "type": "string"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "document_kind",
+        "schema_version",
+        "sources_sha256",
+        "questions"
+      ],
+      "title": "Questions",
+      "type": "object"
+    },
+    "RequiredAction": {
+      "additionalProperties": false,
+      "description": "Describe a required action.",
+      "properties": {
+        "field": {
+          "enum": [
+            "customer_reply",
+            "upsell_hint"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "handoff",
+            "doctor"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "kind"
+      ],
+      "title": "RequiredAction",
+      "type": "object"
+    },
+    "RequiredClaim": {
+      "additionalProperties": false,
+      "description": "Describe one question obligation.",
+      "properties": {
+        "field": {
+          "enum": [
+            "customer_reply",
+            "upsell_hint"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "product_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Product Id"
+        },
+        "predicate": {
+          "enum": [
+            "name",
+            "form",
+            "description",
+            "price",
+            "material",
+            "form_kind",
+            "container",
+            "package_quantity",
+            "portion_mass",
+            "form_quantity",
+            "batch_capacity",
+            "section_count",
+            "filter_size",
+            "goes_with",
+            "object_mass",
+            "delivery",
+            "stock",
+            "treatment_result"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "stance": {
+          "enum": [
+            "affirmed",
+            "unknown"
+          ],
+          "title": "Stance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "product_id",
+        "predicate",
+        "stance"
+      ],
+      "title": "RequiredClaim",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Identify one public source.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "enum": [
+            "kb/example-en.yaml",
+            "kb/example-ru.yaml"
+          ],
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "en",
+            "ru"
+          ],
+          "title": "Language",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "language"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Sources": {
+      "additionalProperties": false,
+      "description": "Describe the source collection.",
+      "properties": {
+        "document_kind": {
+          "const": "quality_sources",
+          "title": "Document Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "rules_id": {
+          "const": "factual-assessment-v1",
+          "title": "Rules Id",
+          "type": "string"
+        },
+        "rules_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Rules Sha256",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "document_kind",
+        "schema_version",
+        "rules_id",
+        "rules_sha256",
+        "sources"
+      ],
+      "title": "Sources",
+      "type": "object"
+    },
+    "Support": {
+      "additionalProperties": false,
+      "description": "Describe a predicate boundary.",
+      "properties": {
+        "predicate": {
+          "enum": [
+            "name",
+            "form",
+            "description",
+            "price",
+            "material",
+            "form_kind",
+            "container",
+            "package_quantity",
+            "portion_mass",
+            "form_quantity",
+            "batch_capacity",
+            "section_count",
+            "filter_size",
+            "goes_with",
+            "object_mass",
+            "delivery",
+            "stock",
+            "treatment_result"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "supported",
+            "absent",
+            "unresolved"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "predicate",
+        "status",
+        "reason"
+      ],
+      "title": "Support",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "quality_corpus": "#/$defs/Corpus",
+      "quality_facts": "#/$defs/Facts",
+      "quality_questions": "#/$defs/Questions",
+      "quality_sources": "#/$defs/Sources"
+    },
+    "propertyName": "document_kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Sources"
+    },
+    {
+      "$ref": "#/$defs/Facts"
+    },
+    {
+      "$ref": "#/$defs/Questions"
+    },
+    {
+      "$ref": "#/$defs/Corpus"
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
