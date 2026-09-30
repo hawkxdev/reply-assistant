@@ -54,19 +54,26 @@ class SwitchingProviderClient:
 
 
 class AlwaysSwitchingClient:
-    """Client that switched before every reply."""
+    """Return successive provider switches."""
 
     def __init__(self, replies: list[str]) -> None:
         """Keep the scripted replies."""
         self.replies = list(replies)
+        self.switches = 0
 
     async def complete(
         self, messages: list[dict[str, str]], schema: dict[str, Any]
     ) -> Completion:
         """Return one switched completion."""
+        self.switches += 1
         return Completion(
             text=self.replies.pop(0),
-            usage=Usage(1, 1, 'second.test', fallback_from='first.test'),
+            usage=Usage(
+                1,
+                1,
+                f'second-{self.switches}.test',
+                fallback_from=f'first-{self.switches}.test',
+            ),
         )
 
 
@@ -106,8 +113,8 @@ async def test_usage_keeps_every_switch_in_order() -> None:
     result = await suggest(SuggestionRequest(message=MESSAGE), kb, client)
 
     assert result.usage.model_dump()['fallbacks'] == [
-        {'primary': 'first.test', 'secondary': 'second.test'},
-        {'primary': 'first.test', 'secondary': 'second.test'},
+        {'primary': 'first-1.test', 'secondary': 'second-1.test'},
+        {'primary': 'first-2.test', 'secondary': 'second-2.test'},
     ]
 
 

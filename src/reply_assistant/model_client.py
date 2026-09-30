@@ -198,7 +198,7 @@ _RECOVERABLE = frozenset({'timeout', 'connection', 'rate_limit', 'server'})
 
 
 class FallbackClient:
-    """Primary client with a secondary."""
+    """Client with provider fallback."""
 
     def __init__(
         self, primary: ClosableModelClient, secondary: ClosableModelClient
@@ -214,7 +214,7 @@ class FallbackClient:
         primary_transport: httpx2.AsyncBaseTransport | None = None,
         secondary_transport: httpx2.AsyncBaseTransport | None = None,
     ) -> Self:
-        """Build both clients from settings."""
+        """Build both configured clients."""
         if (
             settings.fallback_provider_api_key is None
             or settings.fallback_provider_base_url is None

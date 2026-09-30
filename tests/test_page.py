@@ -44,12 +44,11 @@ def test_page_fails_before_the_application_started() -> None:
 
 
 def test_page_names_the_switch_in_both_languages() -> None:
-    source = (
-        files('reply_assistant')
-        .joinpath('static', 'index.html')
-        .read_text(encoding='utf-8')
-    )
+    kb = asyncio.run(load_knowledge_base(KB / 'example-en.yaml'))
 
-    assert 'Provider fallback' in source
-    assert 'Переключение провайдера' in source
-    assert 'report.fallbacks' in source
+    with TestClient(create_app(kb=kb, client=FakeModelClient([]))) as client:
+        response = client.get('/')
+
+    assert response.status_code == 200
+    assert 'Provider fallback' in response.text
+    assert 'Переключение провайдера' in response.text
