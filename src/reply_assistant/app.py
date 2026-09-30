@@ -81,13 +81,13 @@ CRM_BODY_LIMIT = 65536
 
 
 def _is_crm_form(media_type: str) -> bool:
-    """Match the CRM form media type."""
+    """Match the CRM form."""
     base = media_type.partition(';')[0].strip().lower()
     return base == CRM_FORM_TYPE
 
 
 async def _limited_body(request: Request) -> bytes:
-    """Read the body within the size bound."""
+    """Read the bounded body."""
     chunks: list[bytes] = []
     received = 0
     async for chunk in request.stream():
@@ -101,7 +101,7 @@ async def _limited_body(request: Request) -> bytes:
 async def process_crm_message(
     message: str, kb: KnowledgeBase, client: ModelClient
 ) -> None:
-    """Suggest for one acknowledged event."""
+    """Suggest for the event."""
     try:
         await suggest(SuggestionRequest(message=message), kb, client)
     except ProviderError:
@@ -109,7 +109,7 @@ async def process_crm_message(
     except SuggestionRejectedError:
         logger.warning('CRM suggestion failed: suggestion_rejected')
     except Exception:
-        logger.warning('CRM suggestion failed: internal_error')
+        logger.error('CRM suggestion failed: internal_error')
     else:
         logger.info('CRM suggestion ready')
 
@@ -181,7 +181,7 @@ def create_app(
 
     @app.exception_handler(CRMEventError)
     async def invalid_crm_event(request: Request, error: CRMEventError) -> JSONResponse:
-        """Answer an invalid CRM event."""
+        """Answer an invalid event."""
         return _error(422, 'invalid_crm_event', 'the CRM message event is invalid')
 
     @app.exception_handler(StarletteHTTPException)
@@ -230,7 +230,7 @@ def create_app(
     async def crm_message(
         request: Request, background: BackgroundTasks
     ) -> JSONResponse:
-        """Acknowledge one CRM message event."""
+        """Acknowledge one CRM event."""
         if parts.kb is None or parts.client is None:
             raise RuntimeError('the application did not start')
         if not _is_crm_form(request.headers.get('content-type', '')):

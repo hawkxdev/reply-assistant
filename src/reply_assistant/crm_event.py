@@ -1,4 +1,4 @@
-"""Parsing of CRM message events."""
+"""Parse CRM message events."""
 
 from urllib.parse import parse_qsl
 
@@ -41,7 +41,7 @@ def _valid_percent_escapes(form: str) -> bool:
 
 
 def parse_crm_event(body: bytes) -> str:
-    """Extract the incoming customer text."""
+    """Extract the customer text."""
     try:
         form = body.decode('utf-8')
     except UnicodeDecodeError as error:

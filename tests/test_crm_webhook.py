@@ -2,12 +2,16 @@
 
 import asyncio
 import json
+import logging
 from pathlib import Path
+from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
-from reply_assistant.app import create_app
+from reply_assistant.app import create_app, process_crm_message
 from reply_assistant.knowledge_base import load_knowledge_base
+from reply_assistant.model_client import Completion
 from tests.acceptance.fakes import FakeModelClient
 
 # === Data ===
@@ -57,3 +61,32 @@ def test_body_of_the_exact_limit_is_parsed_not_rejected() -> None:
 
     assert response.status_code == 422
     assert response.json()['code'] == 'invalid_crm_event'
+
+
+# === Processing ===
+
+
+class ExplodingClient:
+    """Fail every completion unexpectedly."""
+
+    async def complete(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> Completion:
+        """Raise one unexpected failure."""
+        raise ValueError('boom')
+
+
+def test_unexpected_failure_is_logged_at_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    kb = asyncio.run(load_knowledge_base(KB / 'example-en.yaml'))
+    caplog.set_level(logging.DEBUG, logger='reply_assistant.app')
+
+    asyncio.run(process_crm_message('Price?', kb, ExplodingClient()))
+
+    levels = [
+        record.levelname
+        for record in caplog.records
+        if record.getMessage() == 'CRM suggestion failed: internal_error'
+    ]
+    assert levels == ['ERROR']
