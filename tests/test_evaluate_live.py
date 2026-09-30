@@ -11,7 +11,11 @@ import pytest
 
 from reply_assistant.evaluation import EvaluationCaseResult, EvaluationReport
 
+# === Data ===
+
 ROOT = Path(__file__).parents[1]
+
+# === Helpers ===
 
 
 def cli_module() -> ModuleType:
@@ -24,6 +28,9 @@ def cli_module() -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+# === Tests ===
 
 
 def test_main_exits_with_the_returned_success_code(
@@ -72,7 +79,7 @@ def test_documented_command_fails_closed_without_a_key(tmp_path: Path) -> None:
     assert completed.stderr == ''
 
 
-def test_markdown_states_the_verdict_of_each_case() -> None:
+def test_markdown_states_the_verdict_of_each_case(tmp_path: Path) -> None:
     cli = cli_module()
     report = EvaluationReport(
         passed=False,
@@ -96,7 +103,8 @@ def test_markdown_states_the_verdict_of_each_case() -> None:
         ],
     )
 
-    summary = cli._markdown(report)
+    cli._write_reports(tmp_path, report)
+    summary = (tmp_path / 'summary.md').read_text(encoding='utf-8')
 
     assert '- price: passed' in summary
     assert '- delivery: failed' in summary

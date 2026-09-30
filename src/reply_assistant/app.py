@@ -1,17 +1,19 @@
 """HTTP application factory."""
 
+import logging
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from importlib.resources import files
 
-from fastapi import FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from reply_assistant import __version__
+from reply_assistant.crm_event import CRMEventError, parse_crm_event
 from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
 from reply_assistant.model_client import (
     FallbackClient,
@@ -68,6 +70,48 @@ PAGE_ROOT = '<html lang="en">'
 def render_page(language: str) -> HTMLResponse:
     """Render the page in one language."""
     return HTMLResponse(PAGE.replace(PAGE_ROOT, f'<html lang="{language}">'))
+
+
+# === Webhook ===
+
+logger = logging.getLogger(__name__)
+
+CRM_FORM_TYPE = 'application/x-www-form-urlencoded'
+CRM_BODY_LIMIT = 65536
+
+
+def _is_crm_form(media_type: str) -> bool:
+    """Match the CRM form."""
+    base = media_type.partition(';')[0].strip().lower()
+    return base == CRM_FORM_TYPE
+
+
+async def _limited_body(request: Request) -> bytes:
+    """Read the bounded body."""
+    chunks: list[bytes] = []
+    received = 0
+    async for chunk in request.stream():
+        received += len(chunk)
+        if received > CRM_BODY_LIMIT:
+            raise StarletteHTTPException(413)
+        chunks.append(chunk)
+    return b''.join(chunks)
+
+
+async def process_crm_message(
+    message: str, kb: KnowledgeBase, client: ModelClient
+) -> None:
+    """Suggest for the event."""
+    try:
+        await suggest(SuggestionRequest(message=message), kb, client)
+    except ProviderError:
+        logger.warning('CRM suggestion failed: provider_error')
+    except SuggestionRejectedError:
+        logger.warning('CRM suggestion failed: suggestion_rejected')
+    except Exception:
+        logger.error('CRM suggestion failed: internal_error')
+    else:
+        logger.info('CRM suggestion ready')
 
 
 # === Factory ===
@@ -135,6 +179,11 @@ def create_app(
             return _error(504, 'provider_timeout', 'the model provider timed out')
         return _error(502, 'provider_error', 'the model provider failed')
 
+    @app.exception_handler(CRMEventError)
+    async def invalid_crm_event(request: Request, error: CRMEventError) -> JSONResponse:
+        """Answer an invalid event."""
+        return _error(422, 'invalid_crm_event', 'the CRM message event is invalid')
+
     @app.exception_handler(StarletteHTTPException)
     async def framework_failed(
         request: Request, error: StarletteHTTPException
@@ -176,5 +225,21 @@ def create_app(
         if parts.kb is None or parts.client is None:
             raise RuntimeError('the application did not start')
         return await suggest(request, parts.kb, parts.client)
+
+    @app.post('/webhooks/crm/messages')
+    async def crm_message(
+        request: Request, background: BackgroundTasks
+    ) -> JSONResponse:
+        """Acknowledge one CRM event."""
+        if parts.kb is None or parts.client is None:
+            raise RuntimeError('the application did not start')
+        if not _is_crm_form(request.headers.get('content-type', '')):
+            raise StarletteHTTPException(415)
+        body = await _limited_body(request)
+        message = parse_crm_event(body)
+        background.add_task(process_crm_message, message, parts.kb, parts.client)
+        return JSONResponse(
+            status_code=202, content={'accepted': True}, background=background
+        )
 
     return app
