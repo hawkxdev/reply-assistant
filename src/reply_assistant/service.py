@@ -1,8 +1,8 @@
 """Suggestion service function."""
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_serializer
 
 from reply_assistant.checks import (
     CheckError,
@@ -31,6 +31,13 @@ class CheckReport(BaseModel):
     disclaimer_appended: bool
 
 
+class FallbackSwitch(BaseModel):
+    """One provider switch."""
+
+    primary: str
+    secondary: str
+
+
 class UsageReport(BaseModel):
     """Tokens of one suggestion."""
 
@@ -38,6 +45,23 @@ class UsageReport(BaseModel):
     output_tokens: int
     provider: str
     attempts: int
+    fallbacks: list[FallbackSwitch] = Field(default_factory=list)
+
+    @model_serializer
+    def reported(self) -> dict[str, Any]:
+        """Omit empty switch lists."""
+        data: dict[str, Any] = {
+            'input_tokens': self.input_tokens,
+            'output_tokens': self.output_tokens,
+            'provider': self.provider,
+            'attempts': self.attempts,
+        }
+        if self.fallbacks:
+            data['fallbacks'] = [
+                {'primary': switch.primary, 'secondary': switch.secondary}
+                for switch in self.fallbacks
+            ]
+        return data
 
 
 class Suggestion(BaseModel):
@@ -88,6 +112,7 @@ async def suggest(
     schema = output_schema(kb)
     messages = base
     rejected: list[str] = []
+    fallbacks: list[FallbackSwitch] = []
     input_tokens = 0
     output_tokens = 0
     provider = ''
@@ -98,6 +123,13 @@ async def suggest(
         input_tokens += completion.usage.input_tokens
         output_tokens += completion.usage.output_tokens
         provider = completion.usage.provider
+        if completion.usage.fallback_from is not None:
+            fallbacks.append(
+                FallbackSwitch(
+                    primary=completion.usage.fallback_from,
+                    secondary=completion.usage.provider,
+                )
+            )
         try:
             output = _checked(completion.text, kb)
         except (ModelOutputError, CheckError) as error:
@@ -125,5 +157,6 @@ async def suggest(
                     output_tokens=output_tokens,
                     provider=provider,
                     attempts=attempts,
+                    fallbacks=fallbacks,
                 ),
             )

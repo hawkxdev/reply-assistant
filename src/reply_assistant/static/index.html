@@ -362,6 +362,7 @@ const I18N = {
     outputTokens: 'Output tokens',
     provider: 'Provider',
     attempts: 'Attempts',
+    providerFallback: 'Provider fallback',
     matchFound: 'found',
     matchPartial: 'partial',
     matchNone: 'none',
@@ -410,6 +411,7 @@ const I18N = {
     outputTokens: 'Выходные токены',
     provider: 'Провайдер',
     attempts: 'Попытки',
+    providerFallback: 'Переключение провайдера',
     matchFound: 'найдено',
     matchPartial: 'частично',
     matchNone: 'нет',
@@ -494,6 +496,12 @@ function showUsage(report) {
     [L.provider, report.provider],
     [L.attempts, String(report.attempts)],
   ];
+  if (report.fallbacks && report.fallbacks.length) {
+    const switches = report.fallbacks
+      .map((item) => item.primary + ' \u2192 ' + item.secondary)
+      .join(', ');
+    rows.push([L.providerFallback, switches]);
+  }
   usageList.replaceChildren();
   for (const row of rows) {
     const line = el('li');

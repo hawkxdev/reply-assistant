@@ -41,3 +41,15 @@ def test_page_fails_before_the_application_started() -> None:
 
     with pytest.raises(RuntimeError):
         client.get('/')
+
+
+def test_page_names_the_switch_in_both_languages() -> None:
+    source = (
+        files('reply_assistant')
+        .joinpath('static', 'index.html')
+        .read_text(encoding='utf-8')
+    )
+
+    assert 'Provider fallback' in source
+    assert 'Переключение провайдера' in source
+    assert 'report.fallbacks' in source

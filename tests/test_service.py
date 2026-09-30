@@ -53,6 +53,23 @@ class SwitchingProviderClient:
         )
 
 
+class AlwaysSwitchingClient:
+    """Client that switched before every reply."""
+
+    def __init__(self, replies: list[str]) -> None:
+        """Keep the scripted replies."""
+        self.replies = list(replies)
+
+    async def complete(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> Completion:
+        """Return one switched completion."""
+        return Completion(
+            text=self.replies.pop(0),
+            usage=Usage(1, 1, 'second.test', fallback_from='first.test'),
+        )
+
+
 # === Tests ===
 
 
@@ -80,6 +97,18 @@ async def test_usage_names_the_provider_of_the_last_completion() -> None:
 
     assert client.calls == 2
     assert result.usage.provider == 'provider-2'
+
+
+async def test_usage_keeps_every_switch_in_order() -> None:
+    kb = await load_knowledge_base(KB_FILE)
+    client = AlwaysSwitchingClient([DOUBLE_FAILURE, json.dumps(VALID)])
+
+    result = await suggest(SuggestionRequest(message=MESSAGE), kb, client)
+
+    assert result.usage.model_dump()['fallbacks'] == [
+        {'primary': 'first.test', 'secondary': 'second.test'},
+        {'primary': 'first.test', 'secondary': 'second.test'},
+    ]
 
 
 _conforms: ModelClient = SwitchingProviderClient([])

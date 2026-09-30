@@ -1,7 +1,8 @@
 """Client of a model provider."""
 
 import json
-from dataclasses import dataclass
+import logging
+from dataclasses import dataclass, replace
 from typing import Any, Protocol, Self
 
 import httpx2
@@ -19,6 +20,7 @@ class Usage:
     input_tokens: int
     output_tokens: int
     provider: str
+    fallback_from: str | None = None
 
 
 @dataclass(frozen=True)
@@ -52,6 +54,14 @@ class ModelClient(Protocol):
         self, messages: list[dict[str, str]], schema: dict[str, Any]
     ) -> Completion:
         """Return one completion."""
+        ...
+
+
+class ClosableModelClient(ModelClient, Protocol):
+    """Model client that closes."""
+
+    async def aclose(self) -> None:
+        """Close the client."""
         ...
 
 
@@ -179,3 +189,69 @@ class OpenAICompatibleClient:
     def _error(self, kind: str, message: str) -> ProviderError:
         """Build a provider error."""
         return ProviderError(self._provider, kind, f'{self._provider} {message}')
+
+
+# === Fallback ===
+
+_LOGGER = logging.getLogger(__name__)
+_RECOVERABLE = frozenset({'timeout', 'connection', 'rate_limit', 'server'})
+
+
+class FallbackClient:
+    """Primary client with a secondary."""
+
+    def __init__(
+        self, primary: ClosableModelClient, secondary: ClosableModelClient
+    ) -> None:
+        """Keep both component clients."""
+        self._primary = primary
+        self._secondary = secondary
+
+    @classmethod
+    def from_settings(
+        cls,
+        settings: Settings,
+        primary_transport: httpx2.AsyncBaseTransport | None = None,
+        secondary_transport: httpx2.AsyncBaseTransport | None = None,
+    ) -> Self:
+        """Build both clients from settings."""
+        if (
+            settings.fallback_provider_api_key is None
+            or settings.fallback_provider_base_url is None
+            or settings.fallback_provider_model is None
+        ):
+            raise ValueError('fallback provider is not configured')
+        primary = OpenAICompatibleClient.from_settings(
+            settings, transport=primary_transport
+        )
+        secondary = OpenAICompatibleClient(
+            base_url=settings.fallback_provider_base_url,
+            api_key=settings.fallback_provider_api_key,
+            model=settings.fallback_provider_model,
+            transport=secondary_transport,
+            json_mode=settings.fallback_provider_json_mode,
+        )
+        return cls(primary=primary, secondary=secondary)
+
+    async def aclose(self) -> None:
+        """Close both component clients."""
+        try:
+            await self._primary.aclose()
+        finally:
+            await self._secondary.aclose()
+
+    async def complete(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> Completion:
+        """Try primary then secondary."""
+        try:
+            return await self._primary.complete(messages, schema)
+        except ProviderError as error:
+            if error.kind not in _RECOVERABLE:
+                raise
+            _LOGGER.warning('Fallback from %s after %s', error.provider, error.kind)
+            completion = await self._secondary.complete(messages, schema)
+            return Completion(
+                text=completion.text,
+                usage=replace(completion.usage, fallback_from=error.provider),
+            )

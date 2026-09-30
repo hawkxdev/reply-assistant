@@ -17,8 +17,6 @@ from reply_assistant.service import SuggestionRejectedError, suggest
 from reply_assistant.settings import Settings
 from reply_assistant.suggestion import SuggestionRequest
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 46 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
