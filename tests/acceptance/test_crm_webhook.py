@@ -18,8 +18,6 @@ from reply_assistant.model_client import Completion, ModelClient, ProviderError,
 from reply_assistant.service import Suggestion, suggest
 from reply_assistant.suggestion import SuggestionRequest
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 48 is not implemented')
-
 # === Data ===
 
 KB_FILE = Path(__file__).parents[2] / 'kb' / 'example-en.yaml'
