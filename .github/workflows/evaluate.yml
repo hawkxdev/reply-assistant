@@ -1,0 +1,60 @@
+name: Live evaluation
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: live-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: Public demonstration cases
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == github.repository_owner &&
+      github.triggering_actor == github.repository_owner
+    environment: provider-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      UV_LOCKED: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+      - name: Install
+        run: uv sync --locked
+      - name: Evaluate
+        env:
+          REPLY_ASSISTANT_PROVIDER_API_KEY: ${{ secrets.PROVIDER_API_KEY }}
+          REPLY_ASSISTANT_PROVIDER_BASE_URL: ${{ vars.PROVIDER_BASE_URL }}
+          REPLY_ASSISTANT_PROVIDER_MODEL: ${{ vars.PROVIDER_MODEL }}
+          REPLY_ASSISTANT_KB_PATH: kb/example-en.yaml
+          REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS: '600'
+        run: uv run --locked python scripts/evaluate_live.py --output-dir live-results
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f live-results/summary.md ]; then
+            cat live-results/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Live evaluation produced no report.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: live-evaluation-${{ github.run_id }}
+          path: |
+            live-results/results.json
+            live-results/summary.md
+          if-no-files-found: error
+          retention-days: 14
