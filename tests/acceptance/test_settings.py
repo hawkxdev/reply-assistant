@@ -159,6 +159,14 @@ def test_env_example_names_every_setting(settings_class: Any) -> None:
             'REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL',
             'REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE',
         },
+        set(ENVIRONMENT)
+        | {
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_API_KEY',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_BASE_URL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE',
+            'REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS',
+        },
     )
     assert set(env_example_entries()) == expected
 
