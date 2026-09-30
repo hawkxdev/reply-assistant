@@ -81,13 +81,17 @@ class OpenAICompatibleClient:
         model: str,
         transport: httpx2.AsyncBaseTransport | None = None,
         json_mode: bool = False,
+        max_output_tokens: int | None = None,
     ) -> None:
         """Store the provider details."""
+        if max_output_tokens is not None and max_output_tokens <= 0:
+            raise ValueError('max_output_tokens must be a positive integer')
         self._provider = httpx2.URL(base_url).host
         self._url = f'{base_url.rstrip("/")}/chat/completions'
         self._api_key = api_key
         self._model = model
         self._json_mode = json_mode
+        self._max_output_tokens = max_output_tokens
         self._client = httpx2.AsyncClient(transport=transport, timeout=_TIMEOUT)
 
     @classmethod
@@ -100,6 +104,7 @@ class OpenAICompatibleClient:
             api_key=settings.provider_api_key,
             model=settings.provider_model,
             transport=transport,
+            max_output_tokens=settings.provider_max_output_tokens,
         )
 
     async def aclose(self) -> None:
@@ -114,17 +119,26 @@ class OpenAICompatibleClient:
             response = await self._client.post(
                 self._url,
                 headers={'Authorization': f'Bearer {self._api_key.get_secret_value()}'},
-                json={
-                    'model': self._model,
-                    'messages': self._messages(messages, schema),
-                    'response_format': self._response_format(schema),
-                },
+                json=self._request(messages, schema),
             )
         except httpx2.TimeoutException as error:
             raise self._error('timeout', 'timed out') from error
         except httpx2.TransportError as error:
             raise self._error('connection', 'cannot be reached') from error
         return self._completion(response)
+
+    def _request(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Build the request body."""
+        body: dict[str, Any] = {
+            'model': self._model,
+            'messages': self._messages(messages, schema),
+            'response_format': self._response_format(schema),
+        }
+        if self._max_output_tokens is not None:
+            body['max_tokens'] = self._max_output_tokens
+        return body
 
     def _messages(
         self, messages: list[dict[str, str]], schema: dict[str, Any]
@@ -230,6 +244,7 @@ class FallbackClient:
             model=settings.fallback_provider_model,
             transport=secondary_transport,
             json_mode=settings.fallback_provider_json_mode,
+            max_output_tokens=settings.provider_max_output_tokens,
         )
         return cls(primary=primary, secondary=secondary)
 

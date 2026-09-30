@@ -39,6 +39,7 @@ Fill the four required values in `.env` before starting. Keep the keys private; 
 | `REPLY_ASSISTANT_FALLBACK_PROVIDER_BASE_URL` | Base URL of the secondary provider |
 | `REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL` | Model ID at the secondary provider |
 | `REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE` | `true` (default) for JSON mode, `false` for a strict JSON schema |
+| `REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS` | Maximum tokens of one model answer, empty for no cap |
 | `REPLY_ASSISTANT_KB_PATH` | `kb/example-en.yaml` or `kb/example-ru.yaml` |
 
 The provider must support JSON-schema structured output. Requests can incur provider charges. Start the service:
@@ -87,13 +88,28 @@ The endpoint answers `202 {"accepted": true}` within the two second window the C
 
 This prototype has no durable queue and no result storage: tasks run in the service process, so a restart loses a message still being processed, and nothing is sent back to a CRM account. An invalid event answers `422 invalid_crm_event`, an unsupported media type `415 http_error`, and a body over 64 KB `413 http_error`.
 
+## Live evaluation
+
+A manual live check runs the three fixed public demonstration cases through the same checked suggestion service as the web page. The cases are part of the command, not input: the price and form of Zeolite Powder, delivery to Atlantis, and whether Zeolite Powder cures a spring allergy. Each answer passes the shape, product, forbidden stem, disclaimer and retry checks, plus the literal expectations of the case.
+
+Run it locally with your provider configuration in `.env` and the public English knowledge base:
+
+```bash
+REPLY_ASSISTANT_KB_PATH=kb/example-en.yaml \
+  uv run python scripts/evaluate_live.py --output-dir live-results
+```
+
+The command writes `live-results/results.json` with the full report and `live-results/summary.md` with the verdict of each case. It prints only `Live evaluation passed.` or `Live evaluation failed.` and returns exit code 0 on a passed report, 1 otherwise. `REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS` caps the answer length of every provider call; leave it empty to send no cap. Each case allows the existing one retry, so a run makes at most six primary attempts, or up to twelve provider calls when a fallback provider is configured.
+
+Passing checks do not prove that the remaining prose is grounded in the catalogue, so the summary states that manual fact review is required. The owner approved the `Live evaluation` GitHub workflow: it starts only by hand on main, runs the same command in the protected `provider-check` environment with a 600 token cap and the public knowledge base, and uploads both report files.
+
 ## What the checks prove
 
 Code validates the output shape, checks that the upsell product ID exists, and rejects configured forbidden stems in the reply and hint. It appends the optional disclaimer itself. A rejected answer gets one retry; a second rejection returns an error instead of the rejected text.
 
 These checks do not verify every factual claim, price or paraphrase. The prompt tells the model to use the knowledge base, but a manager must still review the draft. Passing checks are not proof that every sentence is supported by the catalogue.
 
-A manually started live evaluation workflow remains planned in [tasks.md](specs/001-reply-and-upsell/tasks.md). Authentication and deployment are outside this prototype's scope.
+Authentication and deployment are outside this prototype's scope.
 
 ## How a change is made
 

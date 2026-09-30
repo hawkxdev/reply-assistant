@@ -1,5 +1,8 @@
 """Model client unit tests."""
 
+import json
+from typing import Any
+
 import httpx2
 import pytest
 from pydantic import SecretStr
@@ -60,3 +63,26 @@ async def test_other_transport_error_is_a_connection_error() -> None:
         await client(httpx2.MockTransport(handle)).complete(MESSAGES, SCHEMA)
 
     assert caught.value.kind == 'connection'
+
+
+async def test_unset_cap_sends_the_old_request_body() -> None:
+    bodies: list[dict[str, Any]] = []
+
+    def handle(request: httpx2.Request) -> httpx2.Response:
+        """Capture the request body."""
+        bodies.append(json.loads(request.content))
+        return httpx2.Response(
+            200,
+            json={
+                'choices': [{'message': {'content': '{}'}}],
+                'usage': {'prompt_tokens': 1, 'completion_tokens': 1},
+            },
+        )
+
+    model = client(httpx2.MockTransport(handle))
+    try:
+        await model.complete(MESSAGES, SCHEMA)
+    finally:
+        await model.aclose()
+
+    assert list(bodies[0]) == ['model', 'messages', 'response_format']
