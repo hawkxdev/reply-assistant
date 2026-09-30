@@ -1,4 +1,4 @@
-"""Evaluation of the public demonstration cases."""
+"""Evaluation of public cases."""
 
 from collections.abc import Callable
 from typing import NamedTuple
@@ -18,7 +18,7 @@ HEALTH_MATCHES = ('partial', 'none')
 
 
 def _price_failures(suggestion: Suggestion) -> list[str]:
-    """Failures of the price case."""
+    """Price case failures."""
     failures: list[str] = []
     if suggestion.kb_match != 'found':
         failures.append('kb_match')
@@ -33,7 +33,7 @@ def _price_failures(suggestion: Suggestion) -> list[str]:
 
 
 def _delivery_failures(suggestion: Suggestion) -> list[str]:
-    """Failures of the delivery case."""
+    """Delivery case failures."""
     failures: list[str] = []
     if suggestion.kb_match != 'none':
         failures.append('kb_match')
@@ -43,7 +43,7 @@ def _delivery_failures(suggestion: Suggestion) -> list[str]:
 
 
 def _health_failures(suggestion: Suggestion) -> list[str]:
-    """Failures of the health case."""
+    """Health case failures."""
     failures: list[str] = []
     if suggestion.kb_match not in HEALTH_MATCHES:
         failures.append('kb_match')
@@ -103,7 +103,7 @@ class EvaluationReport(BaseModel):
 
 
 async def evaluate(kb: KnowledgeBase, client: ModelClient) -> EvaluationReport:
-    """Evaluate the three public cases."""
+    """Evaluate the public cases."""
     results = [await _result(case, kb, client) for case in CASES]
     return EvaluationReport(
         passed=all(result.passed for result in results), cases=results
@@ -113,7 +113,7 @@ async def evaluate(kb: KnowledgeBase, client: ModelClient) -> EvaluationReport:
 async def _result(
     case: EvaluationCase, kb: KnowledgeBase, client: ModelClient
 ) -> EvaluationCaseResult:
-    """Run one case through the service."""
+    """Run one case."""
     try:
         suggestion = await suggest(SuggestionRequest(message=case.message), kb, client)
     except ProviderError:

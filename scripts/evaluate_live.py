@@ -1,4 +1,4 @@
-"""Live evaluation of the public demonstration cases."""
+"""Live evaluation command."""
 
 import argparse
 import asyncio
@@ -58,7 +58,7 @@ async def run(output_dir: Path) -> int:
             report = await evaluate(kb, model)
         finally:
             await model.aclose()
-        _write_reports(output_dir, report)
+        await asyncio.to_thread(_write_reports, output_dir, report)
     except Exception:
         print('Live evaluation failed.')
         return 1
@@ -70,9 +70,13 @@ async def run(output_dir: Path) -> int:
 
 
 def main() -> None:
-    """Run the command entry point."""
+    """Run the command."""
     parser = argparse.ArgumentParser(
         description='Evaluate the three public demonstration cases.'
     )
     parser.add_argument('--output-dir', type=Path, required=True)
     sys.exit(asyncio.run(run(parser.parse_args().output_dir)))
+
+
+if __name__ == '__main__':
+    main()
