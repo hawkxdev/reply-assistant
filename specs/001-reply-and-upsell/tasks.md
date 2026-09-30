@@ -14,7 +14,7 @@ The lead agent fills the **Issue** column when it opens the issue of a task, in 
 | T6 | Service function with validation, checks and one retry; fake model client for its tests | R13 | [#25](https://github.com/hawkxdev/reply-assistant/issues/25) |
 | T7 | `POST /api/suggest` with error mapping | R18, R21 | [#26](https://github.com/hawkxdev/reply-assistant/issues/26) |
 | T8 | Web page | R20, R22 to R26 | [#27](https://github.com/hawkxdev/reply-assistant/issues/27) |
-| T9 | Fallback to the secondary provider | R16 | |
+| T9 | Fallback to the secondary provider | R16 | [#46](https://github.com/hawkxdev/reply-assistant/issues/46) |
 | T10 | CRM event adapter and webhook endpoint | R19 | |
 | T11 | Live evaluation workflow started by hand | Acceptance 2 | |
 
