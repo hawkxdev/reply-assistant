@@ -73,13 +73,27 @@ When the primary provider fails with a timeout, a connection error, a rate limit
 
 The primary provider must support strict structured output by JSON schema. The secondary may support only JSON mode; that is the default. Set `REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE=false` when the secondary also supports strict output. Both answers pass the same validation, and a rejected answer is retried once on the same client. The rejection itself does not switch providers, but a recoverable failure of the primary during that retry does.
 
+## CRM webhook
+
+`POST /webhooks/crm/messages` accepts the incoming message event of a CRM in the `application/x-www-form-urlencoded` form. The customer text is taken from the single `message[add][0][text]` field as is, up to 2000 characters; other fields are ignored. A curl example:
+
+```bash
+curl http://127.0.0.1:8000/webhooks/crm/messages \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'message%5Badd%5D%5B0%5D%5Btext%5D=How+much+is+Zeolite+Powder%3F'
+```
+
+The endpoint answers `202 {"accepted": true}` within the two second window the CRM allows, before the model call finishes. The message is then processed in the background through the same checked suggestion service as `/api/suggest`, with the same knowledge base and provider client. Success and failure are written to the log with a fixed message, for example `CRM suggestion ready` or `CRM suggestion failed: provider_error`; no customer text or draft reply is logged. A processing failure never changes the acknowledgement already sent.
+
+This prototype has no durable queue and no result storage: tasks run in the service process, so a restart loses a message still being processed, and nothing is sent back to a CRM account. An invalid event answers `422 invalid_crm_event`, an unsupported media type `415 http_error`, and a body over 64 KB `413 http_error`.
+
 ## What the checks prove
 
 Code validates the output shape, checks that the upsell product ID exists, and rejects configured forbidden stems in the reply and hint. It appends the optional disclaimer itself. A rejected answer gets one retry; a second rejection returns an error instead of the rejected text.
 
 These checks do not verify every factual claim, price or paraphrase. The prompt tells the model to use the knowledge base, but a manager must still review the draft. Passing checks are not proof that every sentence is supported by the catalogue.
 
-The CRM webhook and a manually started live evaluation workflow remain planned in [tasks.md](specs/001-reply-and-upsell/tasks.md). Authentication and deployment are outside this prototype's scope.
+A manually started live evaluation workflow remains planned in [tasks.md](specs/001-reply-and-upsell/tasks.md). Authentication and deployment are outside this prototype's scope.
 
 ## How a change is made
 
