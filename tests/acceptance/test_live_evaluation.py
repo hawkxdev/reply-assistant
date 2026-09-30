@@ -22,8 +22,6 @@ from reply_assistant.model_client import (
 )
 from reply_assistant.settings import Settings
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 51 is not implemented')
-
 # === Data ===
 
 ROOT = Path(__file__).parents[2]
