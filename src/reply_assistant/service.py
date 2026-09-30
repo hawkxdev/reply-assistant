@@ -1,8 +1,8 @@
 """Suggestion service function."""
 
-from typing import Any, Literal
+from typing import Literal
 
-from pydantic import BaseModel, Field, model_serializer
+from pydantic import BaseModel, Field
 
 from reply_assistant.checks import (
     CheckError,
@@ -45,23 +45,9 @@ class UsageReport(BaseModel):
     output_tokens: int
     provider: str
     attempts: int
-    fallbacks: list[FallbackSwitch] = Field(default_factory=list)
-
-    @model_serializer
-    def reported(self) -> dict[str, Any]:
-        """Omit empty switch lists."""
-        data: dict[str, Any] = {
-            'input_tokens': self.input_tokens,
-            'output_tokens': self.output_tokens,
-            'provider': self.provider,
-            'attempts': self.attempts,
-        }
-        if self.fallbacks:
-            data['fallbacks'] = [
-                {'primary': switch.primary, 'secondary': switch.secondary}
-                for switch in self.fallbacks
-            ]
-        return data
+    fallbacks: list[FallbackSwitch] = Field(
+        default_factory=list, exclude_if=lambda switches: not switches
+    )
 
 
 class Suggestion(BaseModel):

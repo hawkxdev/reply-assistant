@@ -146,3 +146,33 @@ async def test_second_lifespan_builds_a_fresh_owned_client(
 
     assert codes == [200, 200]
     assert len(builds) == 2
+
+
+# === Contract ===
+
+
+def test_openapi_publishes_the_typed_usage_schema() -> None:
+    app = create_app(kb=english(), client=FakeModelClient([REPLY]))
+
+    spec = app.openapi()
+    response = spec['paths']['/api/suggest']['post']['responses']['200']
+    body = response['content']['application/json']['schema']
+
+    assert body == {'$ref': '#/components/schemas/Suggestion'}
+    assert spec['components']['schemas']['UsageReport'] == {
+        'properties': {
+            'input_tokens': {'title': 'Input Tokens', 'type': 'integer'},
+            'output_tokens': {'title': 'Output Tokens', 'type': 'integer'},
+            'provider': {'title': 'Provider', 'type': 'string'},
+            'attempts': {'title': 'Attempts', 'type': 'integer'},
+            'fallbacks': {
+                'items': {'$ref': '#/components/schemas/FallbackSwitch'},
+                'title': 'Fallbacks',
+                'type': 'array',
+            },
+        },
+        'required': ['input_tokens', 'output_tokens', 'provider', 'attempts'],
+        'title': 'UsageReport',
+        'description': 'Tokens of one suggestion.',
+        'type': 'object',
+    }
