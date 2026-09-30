@@ -4,12 +4,15 @@ import importlib.util
 import os
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from types import ModuleType
 
 import pytest
 
 from reply_assistant.evaluation import EvaluationCaseResult, EvaluationReport
+from reply_assistant.settings import Settings
+from tests.acceptance.test_live_evaluation import ANSWERS, ScriptedClient
 
 # === Data ===
 
@@ -108,3 +111,34 @@ def test_markdown_states_the_verdict_of_each_case(tmp_path: Path) -> None:
 
     assert '- price: passed' in summary
     assert '- delivery: failed' in summary
+
+
+async def test_report_writer_runs_outside_the_event_loop(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    cli = cli_module()
+    model = ScriptedClient(ANSWERS)
+    settings = Settings(
+        provider_api_key='test-key',
+        provider_base_url='https://primary.test/v1',
+        provider_model='test-model',
+        kb_path=ROOT / 'kb/example-en.yaml',
+        _env_file=None,
+    )
+    caller = threading.get_ident()
+    observations: list[bool] = []
+
+    def write(destination: Path, report: EvaluationReport) -> None:
+        """Record the writer thread."""
+        observations.append(threading.get_ident() == caller)
+
+    monkeypatch.setattr(cli, 'Settings', lambda: settings)
+    monkeypatch.setattr(
+        cli.OpenAICompatibleClient, 'from_settings', lambda config: model
+    )
+    monkeypatch.setattr(cli, '_write_reports', write)
+
+    code = await cli.run(tmp_path)
+
+    assert code == 0
+    assert observations == [False]
