@@ -63,6 +63,25 @@ def test_body_of_the_exact_limit_is_parsed_not_rejected() -> None:
     assert response.json()['code'] == 'invalid_crm_event'
 
 
+# === Validation ===
+
+
+def test_blank_only_text_is_rejected_before_model_work() -> None:
+    kb = asyncio.run(load_knowledge_base(KB / 'example-en.yaml'))
+    model = FakeModelClient([])
+
+    with TestClient(create_app(kb=kb, client=model)) as client:
+        response = client.post(
+            '/webhooks/crm/messages',
+            content=b'message[add][0][text]=+++',
+            headers={'content-type': FORM},
+        )
+
+    assert response.status_code == 422
+    assert response.json()['code'] == 'invalid_crm_event'
+    assert model.calls == []
+
+
 # === Processing ===
 
 

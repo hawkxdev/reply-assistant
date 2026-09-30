@@ -60,6 +60,6 @@ def parse_crm_event(body: bytes) -> str:
             text = value
         elif key.startswith(FORM_TEXT_PREFIX) and key.endswith(FORM_TEXT_SUFFIX):
             raise CRMEventError()
-    if text is None or not text or len(text) > TEXT_LIMIT:
+    if text is None or not text.strip() or len(text) > TEXT_LIMIT:
         raise CRMEventError()
     return text
