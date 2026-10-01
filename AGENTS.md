@@ -6,6 +6,8 @@ This file is the single source of instructions for every agent that works in thi
 
 Reply Assistant takes a customer message, reads a short knowledge base and returns a customer reply and an upsell hint for the manager. The specification is `specs/001-reply-and-upsell/spec.md`. Read it before any change.
 
+The separate offline quality evaluator is specified in `specs/002-grounded-product-replies/spec.md`. For an issue about that evaluator, also read its linked plan, rules and corpus format. Feature 002 assesses recorded answers under versioned semantic rules; it does not change generation, service checks or the historical T11 exact-match contract.
+
 ## Commands
 
 ```bash
