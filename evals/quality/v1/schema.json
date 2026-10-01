@@ -1015,11 +1015,24 @@
           ],
           "title": "Stance",
           "type": "string"
+        },
+        "target_product_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Product Id"
         }
       },
       "required": [
         "field",
         "product_id",
+        "target_product_id",
         "predicate",
         "stance"
       ],

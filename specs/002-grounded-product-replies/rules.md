@@ -108,6 +108,8 @@ Two products with the same form do not become one product. If a supported profil
 
 The question annotation is fixed before any evaluated answer exists and is confirmed by a human. It contains the chosen source_id, the language, the required subject IDs and TYPE, the expected kinds of answer when data is absent, and the allowed kb_match. Fact values come from the source, not from an expected answer string. Allowed kb_match values are explained by how the catalogue covers the question; they are not a disguised human verdict over the answer.
 
+Each required relation fixes its directed subject and `target_product_id` before the answer. R08 checks source membership of the stated pair; M03/M04 check that the requested pair was answered in the required field. A different valid outgoing edge cannot satisfy the requested pair, and answering one requested pair does not require every outgoing edge. Non-relation commitments carry an explicit null target; the target is part of the question's permitted assessment input.
+
 | ID | Condition | Resolution | Counterexample |
 |---|---|---|---|
 | M01 | upsell_product_id is not null and absent from the source | error by the existing product_exists | A known ID does not confirm the upsell_hint |

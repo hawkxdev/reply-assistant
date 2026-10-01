@@ -3,15 +3,15 @@
   "schema_version": 1,
   "schema_version": 1,
   "partition": "examples",
-  "sources_sha256": "fea0bca4a20561d0ab7a76421f72ff484aebf096e701b944049ab926afc3b98a",
-  "facts_sha256": "d325a024c64137c954efd4492190f43661c24b5c3d00a0da2f72e2eab431b75d",
-  "questions_sha256": "ca65e3f47f509434cf9ba5b0648141ce13ab9bbf19e60b1c65d28da155f282a4",
+  "sources_sha256": "f451ad707073938fb19a71de50a28428a41f0354666f334174c9e38b81ab2818",
+  "facts_sha256": "8f0a417724e0ae0df6ad4909abfee295d39130f0ec6fb52fd5239fde031aaca6",
+  "questions_sha256": "0ece74a04941c28ff3e41fcaf6b1132f43dfc3b0b852d103ef46859e604f7681",
   "cases": [
     {
       "id": "example-case-price",
       "group_id": "example-group-price",
       "question_id": "example-question-price",
-      "question_sha256": "5b39eaf75c6b31a73e3ecb2624c86ebe5e6c6b65782c0fbb0b47846dbe99a990",
+      "question_sha256": "71c90d118b173df5e002e5e1978022213d0d3258c08bdc4076c11057ce28d3bb",
       "categories": [
         "price_currency"
       ],

@@ -1,7 +1,7 @@
 {
   "document_kind": "quality_questions",
   "schema_version": 1,
-  "sources_sha256": "fea0bca4a20561d0ab7a76421f72ff484aebf096e701b944049ab926afc3b98a",
+  "sources_sha256": "f451ad707073938fb19a71de50a28428a41f0354666f334174c9e38b81ab2818",
   "questions": [
     {
       "id": "example-question-price",
@@ -15,7 +15,8 @@
           "field": "customer_reply",
           "product_id": "zeolite-powder-200",
           "predicate": "price",
-          "stance": "affirmed"
+          "stance": "affirmed",
+          "target_product_id": null
         }
       ],
       "required_actions": [],

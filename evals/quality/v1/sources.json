@@ -2,7 +2,7 @@
   "document_kind": "quality_sources",
   "schema_version": 1,
   "rules_id": "factual-assessment-v1",
-  "rules_sha256": "91a224e21b3a641f9e9e08057e675baa3a8ab328cbddb64e1bf56e68376ea70e",
+  "rules_sha256": "15cee88b97c849277e3c9db50f3f5a9efdae2fc53b24f93d529a55db706e8459",
   "sources": [
     {
       "id": "public-en",
