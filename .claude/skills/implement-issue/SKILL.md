@@ -11,7 +11,7 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 
 ## Steps
 
-1. Read the issue: goal, acceptance criteria, files in scope, files out of scope. Read the part of `specs/001-reply-and-upsell/spec.md` the issue links to.
+1. Read the issue: goal, acceptance criteria, files in scope, files out of scope. Read the specification sections and supporting contracts the issue links to.
 2. Stop and comment on the issue when a criterion cannot be verified by a command or an observation, or when the work needs a path from **Boundaries** in `AGENTS.md`.
 3. Work in a branch created from `main`. When the tool does not name it, use `feat/issue-<number>` or `fix/issue-<number>`.
 4. The acceptance tests of the issue already cover its criteria. Write a new test only for behaviour they do not cover, and let it fail for the right reason before the code exists. A test that fails only together with an acceptance test is a duplicate: do not add it.
