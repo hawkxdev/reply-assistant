@@ -52,6 +52,7 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["src", "tests", "scripts"]
+exclude = ['^private/']
 
 [tool.pyright]
 typeCheckingMode = "basic"
