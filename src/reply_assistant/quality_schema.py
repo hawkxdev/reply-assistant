@@ -85,7 +85,7 @@ class Sources(_StrictModel):
     """Describe the source collection."""
 
     document_kind: Literal['quality_sources']
-    schema_version: int
+    schema_version: int = Field(ge=1, le=1)
     rules_id: RulesId
     rules_sha256: str = Field(pattern=SHA256_PATTERN)
     sources: list[Source] = Field(min_length=1)
@@ -135,7 +135,7 @@ class Facts(_StrictModel):
     """Describe catalogue annotations."""
 
     document_kind: Literal['quality_facts']
-    schema_version: int
+    schema_version: int = Field(ge=1, le=1)
     sources_sha256: str = Field(pattern=SHA256_PATTERN)
     review_status: ReviewStatus
     confirmation_ref: str | None = Field(min_length=1)
@@ -178,7 +178,7 @@ class Questions(_StrictModel):
     """Collect question contracts."""
 
     document_kind: Literal['quality_questions']
-    schema_version: int
+    schema_version: int = Field(ge=1, le=1)
     sources_sha256: str = Field(pattern=SHA256_PATTERN)
     questions: list[Question] = Field(min_length=1)
 
@@ -256,7 +256,7 @@ class Corpus(_StrictModel):
     """Describe an isolated partition."""
 
     document_kind: Literal['quality_corpus']
-    schema_version: int
+    schema_version: int = Field(ge=1, le=1)
     partition: Partition
     sources_sha256: str = Field(pattern=SHA256_PATTERN)
     facts_sha256: str = Field(pattern=SHA256_PATTERN)
