@@ -11,8 +11,6 @@ from typing import Any, cast
 
 import pytest
 
-pytestmark = pytest.mark.xfail(strict=True, reason='issue 57 is not implemented')
-
 # === Data ===
 
 ROOT = Path(__file__).parents[2]
