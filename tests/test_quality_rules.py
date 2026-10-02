@@ -428,6 +428,37 @@ def test_russian_greeting_confirms_as_service(rules: Any, russian_index: Any) ->
     assert claim.matches is True
 
 
+def test_handoff_beside_absence_claim_stays_a_service_fragment(
+    rules: Any, english_index: Any
+) -> None:
+    text = (
+        'I do not have information about delivery to Atlantis or delivery '
+        'times. I can pass the question to a manager.'
+    )
+    result = rules.assess_field(text, english_index, 'customer_reply')
+
+    assert [claim.kind for claim in result.claims] == ['absence_delivery']
+    assert len(result.service_fragments) == 1
+    fragment = result.service_fragments[0]
+    assert fragment.kind == 'service'
+    assert text[fragment.start : fragment.end] == 'I can pass the question to a manager'
+    assert result.remainders == ()
+
+
+def test_greeting_beside_price_stays_a_service_fragment(
+    rules: Any, english_index: Any
+) -> None:
+    text = 'Hello! Zeolite Powder costs 18.00 USD.'
+    result = rules.assess_field(text, english_index, 'customer_reply')
+
+    assert [claim.kind for claim in result.claims] == ['price']
+    assert len(result.service_fragments) == 1
+    fragment = result.service_fragments[0]
+    assert fragment.kind == 'service'
+    assert text[fragment.start : fragment.end] == 'Hello'
+    assert result.remainders == ()
+
+
 def test_model_output_carries_no_disclaimer_claim(
     rules: Any, english_index: Any
 ) -> None:

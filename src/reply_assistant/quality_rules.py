@@ -65,6 +65,7 @@ class FieldAssessment:
     protected: bool
     protection_reason: str | None
     claims: tuple[Claim, ...]
+    service_fragments: tuple[Claim, ...]
     remainders: tuple[tuple[int, int], ...]
 
 
@@ -1251,6 +1252,7 @@ def assess_field(
             protected=True,
             protection_reason=reason,
             claims=(),
+            service_fragments=(),
             remainders=whole,
         )
     claims: list[Claim] = []
@@ -1278,15 +1280,17 @@ def assess_field(
         claims.extend(fragment_claims)
         if remainder is not None:
             remainders.append(remainder)
-    if service_claims and only_service:
+    if only_service:
         claims.extend(service_claims)
+        service_fragments: tuple[Claim, ...] = ()
     else:
-        remainders.extend((claim.start, claim.end) for claim in service_claims)
+        service_fragments = tuple(service_claims)
     if disclaimer is not None:
         claims.append(disclaimer)
     return FieldAssessment(
         protected=False,
         protection_reason=None,
         claims=tuple(claims),
+        service_fragments=service_fragments,
         remainders=tuple(remainders),
     )
