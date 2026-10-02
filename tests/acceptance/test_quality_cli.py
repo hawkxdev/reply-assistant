@@ -4,6 +4,7 @@ import hashlib
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 # === Data ===
 
@@ -66,7 +67,7 @@ def package_copy(
                 answer['customer_reply'] = 'Zeolite Powder costs 99.00 USD.'
                 answer['kb_match'] = 'found'
         if balanced:
-            selected: list[dict] = []
+            selected: list[dict[str, Any]] = []
             for language in ('-en-', '-ru-'):
                 for verdict in ('correct', 'incorrect'):
                     group = [
