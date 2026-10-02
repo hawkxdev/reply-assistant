@@ -519,3 +519,381 @@ def test_invalid_policy_values_raise(rules: Any, english_index: Any) -> None:
             'customer_reply',
             source_policy=rules.SourcePolicy(language='fr'),
         )
+
+
+# === Answer aggregation ===
+
+DISCLAIMER = 'This product is a food supplement and is not a medicine.'
+DELIVERY_REPLY = (
+    'I do not have information about delivery to Atlantis or delivery '
+    'times. I can pass the question to a manager.'
+)
+
+
+def required_claim(
+    predicate: Any = 'price',
+    product_id: Any = 'zeolite-powder-200',
+    target_product_id: Any = None,
+    stance: Any = 'affirmed',
+) -> Any:
+    """Build one required claim."""
+    schema = importlib.import_module('reply_assistant.quality_schema')
+    return schema.RequiredClaim(
+        field='customer_reply',
+        product_id=product_id,
+        target_product_id=target_product_id,
+        predicate=predicate,
+        stance=stance,
+    )
+
+
+def required_action(kind: Any = 'handoff') -> Any:
+    """Build one required action."""
+    schema = importlib.import_module('reply_assistant.quality_schema')
+    return schema.RequiredAction(field='customer_reply', kind=kind)
+
+
+def make_question(
+    claims: list[Any],
+    actions: list[Any] | None = None,
+    allowed: tuple[str, ...] = ('found',),
+) -> Any:
+    """Build one assessment question."""
+    schema = importlib.import_module('reply_assistant.quality_schema')
+    return schema.AssessmentQuestion(
+        source_id='public-en',
+        message='What does the catalogue say?',
+        language='en',
+        place=None,
+        topic=None,
+        required_claims=claims,
+        required_actions=actions or [],
+        allowed_kb_matches=list(allowed),
+    )
+
+
+def make_answer(
+    reply: str,
+    hint: str = '',
+    upsell_product_id: Any = None,
+    kb_match: Any = 'found',
+) -> Any:
+    """Build one recorded answer."""
+    schema = importlib.import_module('reply_assistant.quality_schema')
+    return schema.Answer(
+        customer_reply=reply,
+        upsell_hint=hint,
+        upsell_product_id=upsell_product_id,
+        kb_match=kb_match,
+    )
+
+
+def aggregate(rules: Any, index: Any, question: Any, answer: Any, policy: Any) -> Any:
+    """Assess and aggregate one answer."""
+    customer = rules.assess_field(
+        answer.customer_reply, index, 'customer_reply', answer.upsell_product_id, policy
+    )
+    hint = rules.assess_field(
+        answer.upsell_hint, index, 'upsell_hint', answer.upsell_product_id, policy
+    )
+    return rules.assess_answer(customer, hint, question, answer, index, policy)
+
+
+def output_policy(rules: Any, language: str = 'en') -> Any:
+    """Build one output stage policy."""
+    return rules.SourcePolicy(stage='model_output', language=language)
+
+
+def test_development_cases_aggregate_to_the_confirmed_labels() -> None:
+    corpus = importlib.import_module('reply_assistant.quality_corpus')
+    facts = importlib.import_module('reply_assistant.quality_facts')
+    rules = importlib.import_module('reply_assistant.quality_rules')
+    data = ROOT / 'evals' / 'quality' / 'v1'
+    package = asyncio.run(
+        corpus.load_quality_package(
+            ROOT,
+            data / 'sources.json',
+            data / 'facts.json',
+            data / 'questions.json',
+            [data / 'development.json'],
+        )
+    )
+    outcomes = []
+    for item in package.cases:
+        answer = item.assessment.observation.answer
+        question = item.assessment.question
+        index = facts.build_fact_index(
+            item.assessment.catalogue, item.assessment.product_facts
+        )
+        policy = rules.SourcePolicy(stage='model_output', language=question.language)
+        customer = rules.assess_field(
+            answer.customer_reply,
+            index,
+            'customer_reply',
+            answer.upsell_product_id,
+            policy,
+        )
+        hint = rules.assess_field(
+            answer.upsell_hint,
+            index,
+            'upsell_hint',
+            answer.upsell_product_id,
+            policy,
+        )
+        result = rules.assess_answer(customer, hint, question, answer, index, policy)
+        outcomes.append((item.case.id, item.case.label.verdict, result.verdict))
+
+    assert len(outcomes) == 40
+    assert outcomes == [
+        (case_id, label, 'confirmed' if label == 'correct' else 'error')
+        for case_id, label, _verdict in outcomes
+    ]
+
+
+def test_kb_match_outside_the_allowed_set_is_a_metadata_error(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='delivery', product_id=None, stance='unknown')],
+        [required_action('handoff')],
+        allowed=('none',),
+    )
+    answer = make_answer(DELIVERY_REPLY, kb_match='found')
+
+    result = aggregate(rules, english_index, question, answer, output_policy(rules))
+
+    assert result.verdict == 'error'
+    assert 'metadata_kb_match' in result.grounds
+
+
+def test_unknown_upsell_identifier_is_a_metadata_error(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer(
+        'Zeolite Powder costs 18.00 USD.', upsell_product_id='unknown-product'
+    )
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert 'metadata_upsell' in result.grounds
+
+
+def test_equal_repeated_prices_confirm(rules: Any, english_index: Any) -> None:
+    answer = make_answer(
+        'Zeolite Powder costs 18.00 USD. Zeolite Powder costs 18.00 USD.'
+    )
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'confirmed'
+    assert result.grounds == ()
+
+
+def test_wrong_price_beside_correct_price_names_the_wrong_value(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer(
+        'Zeolite Powder costs 18.00 USD. Zeolite Powder costs 20.00 USD.'
+    )
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert result.grounds == ('price_mismatch: expected 18.00 USD, found 20.00 USD',)
+
+
+def test_unknown_tail_after_correct_claims_is_manual_review(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Zeolite Powder costs 18.00 USD and ships tomorrow.')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'manual_review'
+    assert result.grounds == ()
+    assert [reason for reason in result.unresolved if 'ships tomorrow' in reason]
+
+
+def test_missing_price_with_remainder_routes_to_manual_review(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Zeolite Powder costs 1,000.00 USD.')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'manual_review'
+    assert result.grounds == ()
+    assert [
+        reason
+        for reason in result.unresolved
+        if reason.startswith('unresolved_obligation: price')
+    ]
+
+
+def test_fully_parsed_reply_without_required_price_is_incomplete(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Hello!')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert 'incompleteness' in result.grounds
+
+
+def test_missing_required_handoff_action_is_incomplete(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='delivery', product_id=None, stance='unknown')],
+        [required_action('handoff')],
+        allowed=('none',),
+    )
+    answer = make_answer(
+        'I do not have information about delivery to Atlantis or delivery times.',
+        kb_match='none',
+    )
+
+    result = aggregate(rules, english_index, question, answer, output_policy(rules))
+
+    assert result.verdict == 'error'
+    assert 'incompleteness' in result.grounds
+
+
+def test_protected_reply_keeps_obligations_unresolved(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Zeolite Powder does not cost 18.00 USD.')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        output_policy(rules),
+    )
+
+    assert result.verdict == 'manual_review'
+    assert result.grounds == ()
+    assert 'protected_context: customer_reply' in result.unresolved
+    assert 'unresolved_obligation: price of zeolite-powder-200' in result.unresolved
+
+
+def test_model_output_disclaimer_absence_confirms(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Zeolite Powder costs 18.00 USD.')
+    question = make_question([required_claim()])
+    output = aggregate(
+        rules,
+        english_index,
+        question,
+        answer,
+        rules.SourcePolicy(stage='model_output', language='en', disclaimer=DISCLAIMER),
+    )
+    final = aggregate(
+        rules,
+        english_index,
+        question,
+        answer,
+        rules.SourcePolicy(
+            stage='final_suggestion', language='en', disclaimer=DISCLAIMER
+        ),
+    )
+
+    assert output.verdict == 'confirmed'
+    assert final.verdict == 'error'
+
+
+def test_kb_match_inside_the_allowed_set_keeps_the_verdict(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question([required_claim()], allowed=('found', 'partial'))
+    found = aggregate(
+        rules,
+        english_index,
+        question,
+        make_answer('Zeolite Powder costs 18.00 USD.', kb_match='found'),
+        output_policy(rules),
+    )
+    partial = aggregate(
+        rules,
+        english_index,
+        question,
+        make_answer('Zeolite Powder costs 18.00 USD.', kb_match='partial'),
+        output_policy(rules),
+    )
+
+    assert found.verdict == 'confirmed'
+    assert partial.verdict == 'confirmed'
+
+
+def test_unsupported_stock_statement_carries_the_domain_ground(
+    rules: Any, russian_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='stock', product_id=None, stance='unknown')],
+        allowed=('none',),
+    )
+    answer = make_answer('Бразилия Сантос есть в наличии.', kb_match='none')
+
+    result = aggregate(
+        rules, russian_index, question, answer, output_policy(rules, 'ru')
+    )
+
+    assert result.verdict == 'error'
+    assert 'domain' in result.grounds
+
+
+def test_service_only_field_emits_its_service_fragment(
+    rules: Any, english_index: Any
+) -> None:
+    combined = rules.assess_field(DELIVERY_REPLY, english_index, 'customer_reply')
+    alone = rules.assess_field(
+        'I can pass the question to a manager.', english_index, 'customer_reply'
+    )
+
+    assert [claim.kind for claim in combined.claims] == ['absence_delivery']
+    assert [
+        DELIVERY_REPLY[claim.start : claim.end] for claim in combined.service_fragments
+    ] == ['I can pass the question to a manager']
+    assert combined.remainders == ()
+    assert [claim.kind for claim in alone.claims] == ['service']
+    assert [claim.kind for claim in alone.service_fragments] == ['service']
