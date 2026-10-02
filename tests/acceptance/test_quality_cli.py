@@ -33,7 +33,12 @@ def run_cli(*args: str) -> tuple[int, str, str]:
     return result.returncode, result.stdout, result.stderr
 
 
-def package_copy(directory: Path, only_correct: bool = False) -> Path:
+def package_copy(
+    directory: Path,
+    only_correct: bool = False,
+    mutate_answer: bool = False,
+    balanced: bool = False,
+) -> Path:
     """Copy the public package inputs into one directory."""
     destination = directory / 'package'
     destination.mkdir(parents=True, exist_ok=True)
@@ -45,17 +50,37 @@ def package_copy(directory: Path, only_correct: bool = False) -> Path:
     ):
         raw = (DATA / name).read_bytes()
         (destination / name).write_bytes(raw)
-    if only_correct:
+    if only_correct or mutate_answer or balanced:
         import json
 
         corpus_path = destination / 'development.json'
         corpus = json.loads(corpus_path.read_text(encoding='utf-8'))
-        corpus['cases'] = [
-            case
-            for case in corpus['cases']
-            if case['label']['proposed_verdict'] == 'correct'
-            and case['label']['verdict'] == 'correct'
-        ]
+        if only_correct:
+            corpus['cases'] = [
+                case
+                for case in corpus['cases']
+                if case['label']['proposed_verdict'] == 'correct'
+                and case['label']['verdict'] == 'correct'
+            ]
+        if mutate_answer:
+            for case in corpus['cases']:
+                answer = case['observation']['answer']
+                answer['customer_reply'] = 'Zeolite Powder costs 99.00 USD.'
+                answer['kb_match'] = 'found'
+        if balanced:
+            correct = [
+                case
+                for case in corpus['cases']
+                if case['label']['proposed_verdict'] == 'correct'
+            ]
+            incorrect = [
+                case
+                for case in corpus['cases']
+                if case['label']['proposed_verdict'] == 'incorrect'
+            ]
+            en = [case for case in correct + incorrect if '-en-' in case['case_id']]
+            ru = [case for case in correct + incorrect if '-ru-' in case['case_id']]
+            corpus['cases'] = en[:10] + ru[:10]
         corpus_path.write_bytes(
             json.dumps(corpus, ensure_ascii=False, indent=2).encode('utf-8')
         )
@@ -112,6 +137,60 @@ def test_acceptance_on_forty_cases_is_not_ready(tmp_path: Path) -> None:
     assert code == 2, stderr
     assert 'not ready' in stderr.lower()
     assert (out / 'report.json').is_file()
+
+
+@pytest.mark.xfail(strict=True, reason='E12 not implemented')
+def test_acceptance_ready_package_exits_zero(tmp_path: Path) -> None:
+    package = package_copy(tmp_path, balanced=True)
+    out = tmp_path / 'out'
+    code, _, stderr = run_cli(
+        'acceptance', '--package', str(package), '--out', str(out)
+    )
+
+    assert code == 0, (stderr,)
+    assert (out / 'report.json').is_file()
+    assert (out / 'report.md').is_file()
+
+
+@pytest.mark.xfail(strict=True, reason='E12 not implemented')
+def test_acceptance_failed_threshold_exits_one(tmp_path: Path) -> None:
+    package = package_copy(tmp_path, balanced=True)
+    corpus_path = package
+    import json as json_module
+
+    corpus = json_module.loads(corpus_path.read_text(encoding='utf-8'))
+    first = corpus['cases'][0]
+    first['observation']['answer']['customer_reply'] = 'Zeolite Powder costs 99.00 USD.'
+    first['observation']['answer']['kb_match'] = 'found'
+    corpus_path.write_text(
+        json_module.dumps(corpus, ensure_ascii=False), encoding='utf-8'
+    )
+    out = tmp_path / 'out'
+    code, _, stderr = run_cli(
+        'acceptance', '--package', str(package), '--out', str(out)
+    )
+
+    assert code == 1, (stderr,)
+    assert (out / 'report.json').is_file()
+
+
+@pytest.mark.xfail(strict=True, reason='E12 not implemented')
+def test_write_failure_is_safe(tmp_path: Path) -> None:
+    parent = tmp_path / 'locked'
+    parent.mkdir()
+    inner = package_copy(parent)
+    parent.chmod(0o555)
+
+    try:
+        code, _, stderr = run_cli(
+            'replay', '--package', str(inner), '--out', str(parent / 'out')
+        )
+    finally:
+        parent.chmod(0o755)
+
+    assert code == 2
+    assert 'Traceback' not in stderr
+    assert not (parent / 'out').exists()
 
 
 @pytest.mark.xfail(strict=True, reason='E12 not implemented')
@@ -172,15 +251,16 @@ def test_unknown_mode_exits_two(tmp_path: Path) -> None:
 
 @pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_package_bytes_unchanged_after_run(tmp_path: Path) -> None:
-    package = package_copy(tmp_path)
+    package = package_copy(tmp_path, only_correct=True)
     out = tmp_path / 'out'
-    code, _, _ = run_cli('replay', '--package', str(package), '--out', str(out))
-    assert code == 0
     before = {
         path.name: digest(path)
         for path in sorted(package.parent.rglob('*'))
         if path.is_file()
     }
+
+    code, _, _ = run_cli('replay', '--package', str(package), '--out', str(out))
+    assert code == 0
 
     run_cli('replay', '--package', str(package), '--out', str(out))
 
@@ -194,13 +274,13 @@ def test_package_bytes_unchanged_after_run(tmp_path: Path) -> None:
 
 @pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_runs_without_provider_key_or_network(tmp_path: Path) -> None:
-    package = package_copy(tmp_path)
+    package = package_copy(tmp_path, only_correct=True)
     out = tmp_path / 'out'
 
     code, stdout, stderr = run_cli(
         'replay', '--package', str(package), '--out', str(out)
     )
 
-    assert code == 1
+    assert code == 0
     assert stdout == ''
     assert 'Traceback' not in stderr
