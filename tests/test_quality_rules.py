@@ -134,6 +134,52 @@ def test_mixed_number_separators_stay_a_remainder(
     assert '1,000.00' in covered(text, result)
 
 
+def test_question_mark_protects_the_field(rules: Any, english_index: Any) -> None:
+    text = 'Zeolite Powder costs 18.00 USD?'
+    result = rules.assess_field(text, english_index)
+
+    assert result.protected is True
+    assert result.protection_reason == 'question'
+    assert result.claims == ()
+
+
+def test_curly_apostrophe_between_letters_is_not_a_quote(
+    rules: Any, english_index: Any
+) -> None:
+    text = 'Zeolite Powder costs 18.00 USD for a buyer’s kitchen.'
+    result = rules.assess_field(text, english_index)
+
+    assert result.protected is False
+    assert len(result.claims) == 1
+    assert result.claims[0].matches is True
+
+
+def test_mixed_space_kinds_stay_a_remainder(rules: Any, english_index: Any) -> None:
+    text = 'Zeolite Powder costs 1 000 000 RUB.'
+    result = rules.assess_field(text, english_index)
+
+    assert result.claims == ()
+    assert '1 000 000' in covered(text, result)
+
+
+def test_non_positive_form_quantity_stays_a_remainder(
+    rules: Any, english_index: Any
+) -> None:
+    zero = rules.assess_field(
+        'Zeolite Powder comes as a powder in a 0 g jar.', english_index
+    )
+    fractional = rules.assess_field(
+        'Zeolite Powder comes as a powder in a 0.5 g jar.', english_index
+    )
+
+    assert zero.claims == ()
+    assert '0 g jar' in covered('Zeolite Powder comes as a powder in a 0 g jar.', zero)
+    assert fractional.claims == ()
+    assert '0.5 g jar' in covered(
+        'Zeolite Powder comes as a powder in a 0.5 g jar.', fractional
+    )
+
+
 def test_f02_profile_confirms(rules: Any, english_index: Any) -> None:
     result = rules.assess_field(
         'Zeolite Capsules comes as capsules, 90 pieces.', english_index

@@ -14,7 +14,7 @@ from reply_assistant.quality_facts import (
 # === Assessment models ===
 
 ClaimKind = Literal['price', 'form']
-ProtectionReason = Literal['quote', 'negation', 'condition']
+ProtectionReason = Literal['quote', 'negation', 'condition', 'question']
 
 
 @dataclass(frozen=True)
@@ -42,7 +42,7 @@ class FieldAssessment:
 
 # === Protection pass N07 ===
 
-_QUOTE_MARKERS = frozenset('"`«»“”‘’„‚')
+_QUOTE_MARKERS = frozenset('"\'`«»“”‘’„‚')
 _WORD_APOSTROPHES = "'’"
 _NEGATION_MARKERS = (
     'not',
@@ -108,13 +108,12 @@ def _is_letter(char: str) -> bool:
 def _has_quote_marker(text: str) -> bool:
     """Search one quote marker."""
     for position, char in enumerate(text):
-        if char in _QUOTE_MARKERS:
-            return True
         if char in _WORD_APOSTROPHES:
             before = text[position - 1] if position else ''
             after = text[position + 1] if position + 1 < len(text) else ''
             if _is_letter(before) and _is_letter(after):
                 continue
+        if char in _QUOTE_MARKERS:
             return True
     return False
 
@@ -126,6 +125,8 @@ def _protection_reason(text: str) -> ProtectionReason | None:
     for marker, reason in _MARKER_KINDS:
         if _MARKER_RES[marker].search(text):
             return reason
+    if '?' in text:
+        return 'question'
     return None
 
 
@@ -192,6 +193,8 @@ def _number_at(text: str, position: int) -> tuple[Decimal, int] | None:
     if match is None:
         return None
     raw = match.group(0)
+    if len(set(raw).intersection(_SPACE_KINDS)) > 1:
+        return None
     for space in _SPACE_KINDS:
         raw = raw.replace(space, '')
     return Decimal(raw.replace(',', '.')), match.end()
@@ -234,7 +237,7 @@ _QUANTITY_PREDICATES: dict[str, str] = {
     'F07': 'package_quantity',
     'F08': 'batch_capacity',
 }
-_QUANTITY = r'(?P<quantity>\d+)'
+_QUANTITY = r'(?P<quantity>[1-9]\d*)'
 _UNIT = rf'(?P<unit>{_UNIT_PATTERN})'
 _FORM_CORES: dict[str, tuple[re.Pattern[str], ...]] = {
     'F01': (
