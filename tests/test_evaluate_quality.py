@@ -81,6 +81,21 @@ def build_package(
 # === Tests ===
 
 
+def test_real_package_replay_reads_kb_from_repository_root(
+    tmp_path: Path,
+) -> None:
+    cli = cli_module()
+    out = tmp_path / 'out'
+
+    code = cli.main(
+        ['replay', '--package', str(DATA / 'development.json'), '--out', str(out)]
+    )
+
+    assert code == 1
+    assert (out / 'report.json').is_file()
+    assert (out / 'report.md').is_file()
+
+
 def test_recorded_failure_exits_two_with_reports(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
