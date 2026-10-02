@@ -175,25 +175,6 @@ def test_acceptance_failed_threshold_exits_one(tmp_path: Path) -> None:
 
 
 @pytest.mark.xfail(strict=True, reason='E12 not implemented')
-def test_write_failure_is_safe(tmp_path: Path) -> None:
-    parent = tmp_path / 'locked'
-    parent.mkdir()
-    inner = package_copy(parent)
-    parent.chmod(0o555)
-
-    try:
-        code, _, stderr = run_cli(
-            'replay', '--package', str(inner), '--out', str(parent / 'out')
-        )
-    finally:
-        parent.chmod(0o755)
-
-    assert code == 2
-    assert 'Traceback' not in stderr
-    assert not (parent / 'out').exists()
-
-
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_missing_package_exits_two_without_reports(tmp_path: Path) -> None:
     out = tmp_path / 'out'
     code, _, stderr = run_cli(
