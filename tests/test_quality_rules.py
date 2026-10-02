@@ -273,3 +273,218 @@ def test_compound_colon_confirms_both_slots(rules: Any, russian_index: Any) -> N
     assert kinds == ['form', 'price']
     assert all(claim.matches for claim in result.claims)
     assert all(claim.product_id == 'brazil-santos-250' for claim in result.claims)
+
+
+def test_description_intro_and_first_letter_confirms(
+    rules: Any, english_index: Any
+) -> None:
+    text = (
+        'Description of Zeolite Powder: finely milled natural zeolite '
+        'for daily use with water.'
+    )
+    result = rules.assess_field(text, english_index, 'customer_reply')
+
+    assert len(result.claims) == 1
+    claim = result.claims[0]
+    assert claim.kind == 'description'
+    assert claim.matches is True
+    assert claim.expected == 'Finely milled natural zeolite for daily use with water.'
+    assert claim.found == 'finely milled natural zeolite for daily use with water'
+
+
+def test_description_russian_intro_confirms(rules: Any, russian_index: Any) -> None:
+    text = 'Описание Бразилия Сантос: Кофе средней обжарки с нотами ореха и шоколада.'
+    result = rules.assess_field(text, russian_index, 'customer_reply')
+
+    assert len(result.claims) == 1
+    claim = result.claims[0]
+    assert claim.kind == 'description'
+    assert claim.matches is True
+    assert claim.product_id == 'brazil-santos-250'
+
+
+def test_batch_capacity_english_spelling_confirms(
+    rules: Any, russian_index: Any
+) -> None:
+    result = rules.assess_field(
+        'Ручная кофемолка grinds 30 g per batch.', russian_index, 'customer_reply'
+    )
+
+    assert len(result.claims) == 1
+    claim = result.claims[0]
+    assert claim.kind == 'batch_capacity'
+    assert claim.matches is True
+
+
+def test_batch_capacity_volume_unit_stays_a_remainder(
+    rules: Any, russian_index: Any
+) -> None:
+    text = 'Ручная кофемолка перемалывает 30 мл за раз.'
+    result = rules.assess_field(text, russian_index, 'customer_reply')
+
+    assert result.claims == ()
+    assert 'перемалывает 30 мл за раз' in covered(text, result)
+
+
+def test_filter_size_foreign_subject_stays_a_remainder(
+    rules: Any, russian_index: Any
+) -> None:
+    text = 'Бразилия Сантос для воронки размера 02.'
+    result = rules.assess_field(text, russian_index, 'customer_reply')
+
+    assert result.claims == ()
+    assert 'размера 02' in covered(text, result)
+
+
+def test_relation_russian_spelling_is_directed(rules: Any, russian_index: Any) -> None:
+    good = rules.assess_field(
+        'Бразилия Сантос сочетается с Ручная кофемолка.',
+        russian_index,
+        'customer_reply',
+    )
+    bad = rules.assess_field(
+        'Ручная кофемолка сочетается с Бразилия Сантос.',
+        russian_index,
+        'customer_reply',
+    )
+
+    assert good.claims[0].kind == 'relation'
+    assert good.claims[0].matches is True
+    assert bad.claims[0].matches is False
+
+
+def test_directive_consider_spelling_binds(rules: Any, english_index: Any) -> None:
+    result = rules.assess_field(
+        'Consider Measuring Spoon.', english_index, 'upsell_hint', 'measuring-spoon'
+    )
+
+    assert len(result.claims) == 1
+    claim = result.claims[0]
+    assert claim.kind == 'directive'
+    assert claim.matches is True
+    assert claim.expected == 'measuring-spoon'
+
+
+def test_delivery_russian_and_days_templates_error(
+    rules: Any, russian_index: Any, english_index: Any
+) -> None:
+    russian = rules.assess_field(
+        'У нас есть доставка в Атлантиду.', russian_index, 'customer_reply'
+    )
+    days = rules.assess_field(
+        'Delivery to Atlantis takes 3 days.', english_index, 'customer_reply'
+    )
+
+    assert russian.claims[0].kind == 'delivery'
+    assert russian.claims[0].matches is False
+    assert days.claims[0].kind == 'delivery'
+    assert days.claims[0].matches is False
+
+
+def test_absence_delivery_russian_template_confirms(
+    rules: Any, russian_index: Any
+) -> None:
+    text = 'В базе нет информации о доставке в Атлантиду и сроках.'
+    result = rules.assess_field(text, russian_index, 'customer_reply')
+
+    assert result.protected is False
+    assert result.claims[0].kind == 'absence_delivery'
+    assert result.claims[0].matches is True
+
+
+def test_absence_stock_english_template_confirms(
+    rules: Any, english_index: Any
+) -> None:
+    result = rules.assess_field(
+        'I do not have stock information for Measuring Spoon.',
+        english_index,
+        'customer_reply',
+    )
+
+    assert result.claims[0].kind == 'absence_stock'
+    assert result.claims[0].matches is True
+    assert result.claims[0].product_id == 'measuring-spoon'
+
+
+def test_greeting_stays_a_remainder_in_the_hint(rules: Any, english_index: Any) -> None:
+    text = 'Hello!'
+    result = rules.assess_field(text, english_index, 'upsell_hint')
+
+    assert result.claims == ()
+    assert covered(text, result) == 'Hello'
+
+
+def test_russian_greeting_confirms_as_service(rules: Any, russian_index: Any) -> None:
+    result = rules.assess_field(
+        'Здравствуйте!',
+        russian_index,
+        'customer_reply',
+        source_policy=rules.SourcePolicy(language='ru'),
+    )
+
+    assert len(result.claims) == 1
+    claim = result.claims[0]
+    assert claim.kind == 'service'
+    assert claim.matches is True
+
+
+def test_model_output_carries_no_disclaimer_claim(
+    rules: Any, english_index: Any
+) -> None:
+    text = (
+        'Zeolite Powder costs 18.00 USD.\n\n'
+        'This product is a food supplement and is not a medicine.'
+    )
+    result = rules.assess_field(
+        text,
+        english_index,
+        'customer_reply',
+        source_policy=rules.SourcePolicy(
+            disclaimer='This product is a food supplement and is not a medicine.',
+            stage='model_output',
+        ),
+    )
+
+    assert [claim for claim in result.claims if claim.kind == 'disclaimer'] == []
+    assert len(result.claims) == 1
+
+
+def test_claims_and_remainders_cover_the_field(rules: Any, english_index: Any) -> None:
+    text = (
+        'Zeolite Powder costs 18.00 USD. I do not have stock information '
+        'for Measuring Spoon.'
+    )
+    result = rules.assess_field(text, english_index, 'customer_reply')
+    spans = [(claim.start, claim.end) for claim in result.claims]
+    spans.extend(result.remainders)
+
+    assert [claim.kind for claim in result.claims] == ['price', 'absence_stock']
+    uncovered = [
+        position
+        for position in range(len(text))
+        if not any(start <= position < end for start, end in spans)
+        and text[position] not in '. '
+    ]
+    assert uncovered == []
+
+
+def test_unknown_field_name_raises(rules: Any, english_index: Any) -> None:
+    with pytest.raises(ValueError, match='unknown field'):
+        rules.assess_field('Hello', english_index, 'summary')
+
+
+def test_invalid_policy_values_raise(rules: Any, english_index: Any) -> None:
+    with pytest.raises(ValueError, match='unknown stage'):
+        rules.assess_field(
+            'Hello!',
+            english_index,
+            'customer_reply',
+            source_policy=rules.SourcePolicy(stage='replay'),
+        )
+    with pytest.raises(ValueError, match='unknown language'):
+        rules.assess_field(
+            'Hello!',
+            english_index,
+            'customer_reply',
+            source_policy=rules.SourcePolicy(language='fr'),
+        )

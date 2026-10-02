@@ -1,6 +1,7 @@
 """Finite answer grammar."""
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Literal, cast
@@ -13,8 +14,35 @@ from reply_assistant.quality_facts import (
 
 # === Assessment models ===
 
-ClaimKind = Literal['price', 'form']
+ClaimKind = Literal[
+    'price',
+    'form',
+    'description',
+    'batch_capacity',
+    'object_mass',
+    'filter_size',
+    'relation',
+    'stock',
+    'delivery',
+    'absence_delivery',
+    'absence_stock',
+    'directive',
+    'service',
+    'disclaimer',
+]
 ProtectionReason = Literal['quote', 'negation', 'condition', 'question']
+FieldName = Literal['customer_reply', 'upsell_hint']
+Stage = Literal['model_output', 'final_suggestion']
+PolicyLanguage = Literal['en', 'ru']
+
+
+@dataclass(frozen=True)
+class SourcePolicy:
+    """Policy strings of one source."""
+
+    disclaimer: str | None = None
+    stage: Stage | None = None
+    language: PolicyLanguage = 'en'
 
 
 @dataclass(frozen=True)
@@ -118,16 +146,30 @@ def _has_quote_marker(text: str) -> bool:
     return False
 
 
-def _protection_reason(text: str) -> ProtectionReason | None:
+def _protection_reason(
+    text: str, excluded: Sequence[tuple[int, int]] = ()
+) -> ProtectionReason | None:
     """Find the protection reason."""
     if _has_quote_marker(text):
         return 'quote'
+    scan = _mask_ranges(text, excluded)
     for marker, reason in _MARKER_KINDS:
-        if _MARKER_RES[marker].search(text):
+        if _MARKER_RES[marker].search(scan):
             return reason
-    if '?' in text:
+    if '?' in scan:
         return 'question'
     return None
+
+
+def _mask_ranges(text: str, excluded: Sequence[tuple[int, int]]) -> str:
+    """Blank the excluded ranges."""
+    if not excluded:
+        return text
+    chars = list(text)
+    for start, end in excluded:
+        for position in range(max(start, 0), min(end, len(text))):
+            chars[position] = ' '
+    return ''.join(chars)
 
 
 # === Statement split N05 ===
@@ -185,6 +227,9 @@ _UNITS: dict[str, str] = {
     'sections': 'section',
     'отделений': 'section',
 }
+_INTEGER_RE = re.compile(r'[1-9]\d*')
+_DIGITS_RE = re.compile(r'\d+')
+_MASS_ALIASES: dict[str, str] = {'g': 'g', 'г': 'g'}
 
 
 def _number_at(text: str, position: int) -> tuple[Decimal, int] | None:
@@ -223,6 +268,33 @@ def _price_at(text: str, position: int) -> tuple[Decimal, str, int] | None:
     if currency is None:
         return None
     return value, currency[0], currency[1]
+
+
+def _mass_at(
+    text: str, position: int, integer: bool
+) -> tuple[Decimal, str, int, int] | None:
+    """Match one mass value."""
+    gap = _spaces_at(text, position)
+    if gap is None:
+        return None
+    if integer:
+        match = _INTEGER_RE.match(text, gap)
+        if match is None:
+            return None
+        value, after = Decimal(match.group(0)), match.end()
+    else:
+        number = _number_at(text, gap)
+        if number is None:
+            return None
+        value, after = number
+    unit_gap = _spaces_at(text, after)
+    if unit_gap is None:
+        return None
+    for spelling, unit in _MASS_ALIASES.items():
+        unit_end = _word_at(text, unit_gap, spelling)
+        if unit_end is not None:
+            return value, unit, gap, unit_end
+    return None
 
 
 # === Form profiles F01 to F08 ===
@@ -393,6 +465,26 @@ def _price_tail(text: str, position: int, word: str) -> tuple[Decimal, str, int]
 
 
 # === Claim builders ===
+
+
+def _claim(
+    product_id: str,
+    kind: ClaimKind,
+    span: tuple[int, int],
+    expected: str,
+    found: str,
+    matches: bool,
+) -> Claim:
+    """Build one typed claim."""
+    return Claim(
+        product_id=product_id,
+        kind=kind,
+        start=span[0],
+        end=span[1],
+        expected=expected,
+        found=found,
+        matches=matches,
+    )
 
 
 def _price_claim(
@@ -632,6 +724,407 @@ def _parse_construction(
     return _parse_price(fragment, product, name)
 
 
+# === Policy templates R09 to R12 ===
+
+_PLACE = r'[^\W\d_]+(?:[\s\-]+[^\W\d_]+)*'
+_ABSENCE_DELIVERY_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        rf'I\s+do\s+not\s+have\s+information\s+about\s+delivery\s+to\s+(?P<place>{_PLACE})\s+or\s+delivery\s+times',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        rf'В\s+базе\s+нет\s+информации\s+о\s+доставке\s+в\s+(?P<place>{_PLACE})\s+и\s+сроках',
+        re.IGNORECASE,
+    ),
+)
+_ABSENCE_STOCK_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        rf'I\s+do\s+not\s+have\s+stock\s+information\s+for\s+(?P<name>{_PLACE})',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        rf'В\s+базе\s+нет\s+информации\s+о\s+наличии\s+(?P<name>{_PLACE})',
+        re.IGNORECASE,
+    ),
+)
+_DELIVERY_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(rf'We\s+deliver\s+to\s+(?P<place>{_PLACE})', re.IGNORECASE),
+    re.compile(
+        rf'Delivery\s+to\s+(?P<place>{_PLACE})\s+takes\s+[1-9]\d*\s+days',
+        re.IGNORECASE,
+    ),
+    re.compile(rf'У\s+нас\s+есть\s+доставка\s+в\s+(?P<place>{_PLACE})', re.IGNORECASE),
+    re.compile(
+        rf'Доставка\s+в\s+(?P<place>{_PLACE})\s*:\s*[1-9]\d*\s+дней', re.IGNORECASE
+    ),
+)
+
+
+def _product_named(index: VerifiedFactIndex, name: str) -> VerifiedProductFacts | None:
+    """Find one product by name."""
+    for product in index.products.values():
+        if product.text('name') == name:
+            return product
+    return None
+
+
+def _absence_claim(fragment: str, start: int, index: VerifiedFactIndex) -> Claim | None:
+    """Parse one absence template."""
+    for pattern in _ABSENCE_DELIVERY_RES:
+        if pattern.fullmatch(fragment) is not None:
+            return _claim(
+                '',
+                'absence_delivery',
+                (start, start + len(fragment)),
+                'no delivery information',
+                fragment,
+                True,
+            )
+    for pattern in _ABSENCE_STOCK_RES:
+        match = pattern.fullmatch(fragment)
+        if match is None:
+            continue
+        product = _product_named(index, match.group('name'))
+        if product is None:
+            return None
+        return _claim(
+            product.product_id,
+            'absence_stock',
+            (start, start + len(fragment)),
+            'no stock information',
+            fragment,
+            product.support.get('stock') == 'absent',
+        )
+    return None
+
+
+def _delivery_claim(fragment: str, start: int) -> Claim | None:
+    """Parse one delivery affirmation."""
+    for pattern in _DELIVERY_RES:
+        if pattern.fullmatch(fragment) is not None:
+            return _claim(
+                '',
+                'delivery',
+                (start, start + len(fragment)),
+                'no delivery information',
+                fragment,
+                False,
+            )
+    return None
+
+
+# === Service phrases R14 ===
+
+_SERVICE_PHRASES: tuple[tuple[tuple[str, ...], PolicyLanguage, bool], ...] = (
+    (('Hello',), 'en', False),
+    (('Здравствуйте',), 'ru', False),
+    (('I', 'can', 'pass', 'the', 'question', 'to', 'a', 'manager'), 'en', True),
+    (('Могу', 'передать', 'вопрос', 'менеджеру'), 'ru', True),
+    (('Please', 'ask', 'a', 'doctor', 'about', 'health', 'questions'), 'en', True),
+)
+
+
+def _service_claim(
+    fragment: str, start: int, field: FieldName, language: PolicyLanguage
+) -> Claim | None:
+    """Parse one service phrase."""
+    for words, phrase_language, any_field in _SERVICE_PHRASES:
+        if phrase_language != language:
+            continue
+        if field == 'upsell_hint' and not any_field:
+            continue
+        end = _words_at(fragment, 0, words)
+        if end == len(fragment):
+            return _claim(
+                '',
+                'service',
+                (start, start + len(fragment)),
+                ' '.join(words),
+                fragment,
+                True,
+            )
+    return None
+
+
+# === Hint directive R13 ===
+
+
+def _directive_claim(
+    fragment: str,
+    start: int,
+    index: VerifiedFactIndex,
+    field: FieldName,
+    upsell_product_id: str | None,
+) -> Claim | None:
+    """Parse one manager directive."""
+    if field != 'upsell_hint' or upsell_product_id is None:
+        return None
+    for verb in ('Offer', 'Consider', 'Предложите'):
+        verb_end = _word_at(fragment, 0, verb)
+        if verb_end is None:
+            continue
+        gap = _spaces_at(fragment, verb_end)
+        if gap is None:
+            continue
+        for product in index.products.values():
+            name = product.text('name')
+            if name is None:
+                continue
+            name_end = _name_at(fragment, gap, name)
+            if name_end == len(fragment):
+                return _claim(
+                    upsell_product_id,
+                    'directive',
+                    (start, start + len(fragment)),
+                    upsell_product_id,
+                    product.product_id,
+                    product.product_id == upsell_product_id,
+                )
+    return None
+
+
+# === Typed constructions R04 to R09 ===
+
+
+def _description_claim(
+    fragment: str, start: int, product: VerifiedProductFacts
+) -> Claim | None:
+    """Parse one description quote."""
+    description = product.text('description')
+    name = product.text('name')
+    if description is None or name is None:
+        return None
+    anchors: list[int | None] = [_name_at(fragment, 0, name)]
+    for words in (('Description', 'of'), ('Описание',)):
+        intro = _words_at(fragment, 0, words)
+        gap = None if intro is None else _spaces_at(fragment, intro)
+        anchors.append(None if gap is None else _name_at(fragment, gap, name))
+    for anchor in anchors:
+        if anchor is None:
+            continue
+        colon = _colon_at(fragment, anchor)
+        if colon is None:
+            continue
+        rest = fragment[colon:]
+        if _description_matches(rest, description):
+            return _claim(
+                product.product_id,
+                'description',
+                (start, start + len(fragment)),
+                description,
+                rest,
+                True,
+            )
+    return None
+
+
+def _description_matches(rest: str, description: str) -> bool:
+    """Compare one description quote."""
+    body = description[:-1] if description[-1:] in _SEPARATORS else description
+    if not body or len(rest) != len(body):
+        return False
+    return rest[1:] == body[1:] and rest[0].casefold() == body[0].casefold()
+
+
+def _batch_claim(
+    fragment: str, start: int, product: VerifiedProductFacts
+) -> Claim | None:
+    """Parse one batch claim."""
+    expected = product.count('batch_capacity')
+    name = product.text('name')
+    if expected is None or name is None:
+        return None
+    cursor = _name_at(fragment, 0, name)
+    if cursor is None:
+        return None
+    for verb, tail in (('перемалывает', ('за', 'раз')), ('grinds', ('per', 'batch'))):
+        gap = _spaces_at(fragment, cursor)
+        if gap is None:
+            continue
+        verb_end = _word_at(fragment, gap, verb)
+        if verb_end is None:
+            continue
+        mass = _mass_at(fragment, verb_end, integer=True)
+        if mass is None:
+            continue
+        value, unit, value_start, unit_end = mass
+        tail_end = _words_at(fragment, unit_end, tail, leading=True)
+        if tail_end != len(fragment):
+            continue
+        return _claim(
+            product.product_id,
+            'batch_capacity',
+            (start, start + len(fragment)),
+            f'{expected[0]} {expected[1]}',
+            fragment[value_start:unit_end],
+            (int(value), unit) == expected,
+        )
+    return None
+
+
+def _mass_claim(
+    fragment: str, start: int, product: VerifiedProductFacts
+) -> Claim | None:
+    """Parse one mass claim."""
+    name = product.text('name')
+    if name is None:
+        return None
+    cursor = _name_at(fragment, 0, name)
+    if cursor is None:
+        return None
+    for verb in ('весит', 'weighs'):
+        gap = _spaces_at(fragment, cursor)
+        if gap is None:
+            continue
+        verb_end = _word_at(fragment, gap, verb)
+        if verb_end is None:
+            continue
+        mass = _mass_at(fragment, verb_end, integer=False)
+        if mass is None:
+            continue
+        value, unit, value_start, unit_end = mass
+        if unit_end != len(fragment):
+            continue
+        if product.support.get('object_mass') == 'unresolved':
+            return None
+        typed = product.count('object_mass')
+        expected = f'{typed[0]} {typed[1]}' if typed is not None else 'no object mass'
+        return _claim(
+            product.product_id,
+            'object_mass',
+            (start, start + len(fragment)),
+            expected,
+            fragment[value_start:unit_end],
+            typed is not None and value == Decimal(typed[0]) and unit == typed[1],
+        )
+    return None
+
+
+def _filter_claim(
+    fragment: str, start: int, product: VerifiedProductFacts
+) -> Claim | None:
+    """Parse one filter claim."""
+    name = product.text('name')
+    code = product.text('filter_size')
+    if name is None or code is None:
+        return None
+    cursor = _name_at(fragment, 0, name)
+    if cursor is None:
+        return None
+    for words in (('для', 'воронки', 'размера'), ('for', 'filter', 'size')):
+        tail = _words_at(fragment, cursor, words, leading=True)
+        if tail is None:
+            continue
+        gap = _spaces_at(fragment, tail)
+        if gap is None:
+            continue
+        match = _DIGITS_RE.match(fragment, gap)
+        if match is None or match.end() != len(fragment):
+            continue
+        return _claim(
+            product.product_id,
+            'filter_size',
+            (start, start + len(fragment)),
+            code,
+            match.group(0),
+            match.group(0) == code,
+        )
+    return None
+
+
+def _stock_claim(
+    fragment: str, start: int, product: VerifiedProductFacts
+) -> Claim | None:
+    """Parse one stock claim."""
+    name = product.text('name')
+    if name is None:
+        return None
+    cursor = _name_at(fragment, 0, name)
+    if cursor is None:
+        return None
+    for words in (('is', 'in', 'stock'), ('есть', 'в', 'наличии')):
+        tail = _words_at(fragment, cursor, words, leading=True)
+        if tail == len(fragment):
+            return _claim(
+                product.product_id,
+                'stock',
+                (start, start + len(fragment)),
+                'no stock information',
+                fragment,
+                False,
+            )
+    return None
+
+
+def _relation_claim(
+    fragment: str, start: int, index: VerifiedFactIndex
+) -> Claim | None:
+    """Parse one relation claim."""
+    for source in index.products.values():
+        name = source.text('name')
+        if name is None:
+            continue
+        cursor = _name_at(fragment, 0, name)
+        if cursor is None:
+            continue
+        for words in (('pairs', 'with'), ('сочетается', 'с')):
+            connector = _words_at(fragment, cursor, words, leading=True)
+            if connector is None:
+                continue
+            gap = _spaces_at(fragment, connector)
+            if gap is None:
+                continue
+            for target in index.products.values():
+                target_name = target.text('name')
+                if target_name is None or target is source:
+                    continue
+                target_end = _name_at(fragment, gap, target_name)
+                if target_end == len(fragment):
+                    return _claim(
+                        source.product_id,
+                        'relation',
+                        (start, start + len(fragment)),
+                        target.product_id,
+                        target_name,
+                        target.product_id in source.edges,
+                    )
+    return None
+
+
+# === Disclaimer R15 ===
+
+
+def _disclaimer_ranges(
+    text: str, policy: SourcePolicy | None
+) -> tuple[tuple[int, int], ...]:
+    """Locate disclaimer occurrence ranges."""
+    if policy is None or not policy.disclaimer:
+        return ()
+    ranges: list[tuple[int, int]] = []
+    offset = text.find(policy.disclaimer)
+    while offset != -1:
+        ranges.append((offset, offset + len(policy.disclaimer)))
+        offset = text.find(policy.disclaimer, offset + 1)
+    return tuple(ranges)
+
+
+def _disclaimer_claim(text: str, policy: SourcePolicy) -> Claim | None:
+    """Check the disclaimer suffix."""
+    disclaimer = policy.disclaimer
+    if policy.stage != 'final_suggestion' or not disclaimer:
+        return None
+    ends_with = text.endswith(disclaimer)
+    start = len(text) - len(disclaimer) if ends_with else len(text)
+    return _claim(
+        '',
+        'disclaimer',
+        (start, len(text)),
+        disclaimer,
+        text[start:] if ends_with else '',
+        text.endswith(f'\n\n{disclaimer}'),
+    )
+
+
 # === Field assessment ===
 
 
@@ -644,35 +1137,114 @@ def _contains_name(fragment: str, product: VerifiedProductFacts) -> bool:
     return position >= 0 and _name_at(fragment, position, name) is not None
 
 
-def _parse_fragment(
-    text: str, start: int, end: int, index: VerifiedFactIndex
-) -> tuple[list[Claim], tuple[int, int] | None]:
-    """Parse one statement fragment."""
-    fragment = text[start:end]
-    subjects = [
+def _subject_products(
+    fragment: str, index: VerifiedFactIndex
+) -> list[VerifiedProductFacts]:
+    """Collect the named subjects."""
+    return [
         product
         for product in index.products.values()
         if _contains_name(fragment, product)
     ]
+
+
+def _inside_ranges(start: int, end: int, ranges: Sequence[tuple[int, int]]) -> bool:
+    """Report one covered span."""
+    return any(low <= start and end <= high for low, high in ranges)
+
+
+def _excluded_ranges(
+    text: str, index: VerifiedFactIndex, policy: SourcePolicy | None
+) -> tuple[tuple[int, int], ...]:
+    """Collect the masked policy ranges."""
+    ranges: list[tuple[int, int]] = []
+    for start, end in _statements(text):
+        if _absence_claim(text[start:end], start, index) is not None:
+            ranges.append((start, end))
+    ranges.extend(_disclaimer_ranges(text, policy))
+    return tuple(ranges)
+
+
+def _parse_fragment(
+    text: str,
+    start: int,
+    end: int,
+    index: VerifiedFactIndex,
+    field: FieldName,
+    upsell_product_id: str | None,
+) -> tuple[list[Claim], tuple[int, int] | None]:
+    """Parse one statement fragment."""
+    fragment = text[start:end]
+    absence = _absence_claim(fragment, start, index)
+    if absence is not None:
+        return [absence], None
+    delivery = _delivery_claim(fragment, start)
+    if delivery is not None:
+        return [delivery], None
+    subjects = _subject_products(fragment, index)
+    if len(subjects) == 2:
+        relation = _relation_claim(fragment, start, index)
+        if relation is not None:
+            return [relation], None
+        return [], (start, end)
     if len(subjects) != 1:
         return [], (start, end)
-    parsed = _parse_construction(fragment, subjects[0])
-    if parsed is None:
-        return [], (start, end)
-    claims, match_end = parsed
-    offset_claims = [
-        replace(claim, start=claim.start + start, end=claim.end + start)
-        for claim in claims
-    ]
-    remainder_start, remainder_end = _trim_span(text, start + match_end, end)
-    if remainder_start >= remainder_end:
-        return offset_claims, None
-    return offset_claims, (remainder_start, remainder_end)
+    product = subjects[0]
+    directive = _directive_claim(fragment, start, index, field, upsell_product_id)
+    if directive is not None:
+        return [directive], None
+    parsed = _parse_construction(fragment, product)
+    if parsed is not None:
+        claims, match_end = parsed
+        offset_claims = [
+            replace(claim, start=claim.start + start, end=claim.end + start)
+            for claim in claims
+        ]
+        remainder_start, remainder_end = _trim_span(text, start + match_end, end)
+        if remainder_start >= remainder_end:
+            return offset_claims, None
+        return offset_claims, (remainder_start, remainder_end)
+    for builder in (
+        _description_claim,
+        _batch_claim,
+        _mass_claim,
+        _filter_claim,
+        _stock_claim,
+    ):
+        claim = builder(fragment, start, product)
+        if claim is not None:
+            return [claim], None
+    return [], (start, end)
 
 
-def assess_field(text: str, index: VerifiedFactIndex) -> FieldAssessment:
+def _check_field(field: str) -> None:
+    """Validate one field name."""
+    if field not in ('customer_reply', 'upsell_hint'):
+        raise ValueError(f'unknown field: {field}')
+
+
+def _check_policy(policy: SourcePolicy) -> None:
+    """Validate one source policy."""
+    if policy.stage not in (None, 'model_output', 'final_suggestion'):
+        raise ValueError(f'unknown stage: {policy.stage}')
+    if policy.language not in ('en', 'ru'):
+        raise ValueError(f'unknown language: {policy.language}')
+
+
+def assess_field(
+    text: str,
+    index: VerifiedFactIndex,
+    field: FieldName = 'customer_reply',
+    upsell_product_id: str | None = None,
+    source_policy: SourcePolicy | None = None,
+) -> FieldAssessment:
     """Assess one answer field."""
-    reason = _protection_reason(text)
+    _check_field(field)
+    if source_policy is not None:
+        _check_policy(source_policy)
+    language = source_policy.language if source_policy is not None else 'en'
+    excluded = _excluded_ranges(text, index, source_policy)
+    reason = _protection_reason(text, excluded)
     if reason is not None:
         whole = ((0, len(text)),) if text else ()
         return FieldAssessment(
@@ -683,11 +1255,35 @@ def assess_field(text: str, index: VerifiedFactIndex) -> FieldAssessment:
         )
     claims: list[Claim] = []
     remainders: list[tuple[int, int]] = []
+    service_claims: list[Claim] = []
+    only_service = True
+    disclaimer = (
+        _disclaimer_claim(text, source_policy) if source_policy is not None else None
+    )
+    skip_ranges = (
+        _disclaimer_ranges(text, source_policy) if disclaimer is not None else ()
+    )
     for start, end in _statements(text):
-        fragment_claims, remainder = _parse_fragment(text, start, end, index)
+        if _inside_ranges(start, end, skip_ranges):
+            continue
+        fragment = text[start:end]
+        service = _service_claim(fragment, start, field, language)
+        if service is not None:
+            service_claims.append(service)
+            continue
+        only_service = False
+        fragment_claims, remainder = _parse_fragment(
+            text, start, end, index, field, upsell_product_id
+        )
         claims.extend(fragment_claims)
         if remainder is not None:
             remainders.append(remainder)
+    if service_claims and only_service:
+        claims.extend(service_claims)
+    else:
+        remainders.extend((claim.start, claim.end) for claim in service_claims)
+    if disclaimer is not None:
+        claims.append(disclaimer)
     return FieldAssessment(
         protected=False,
         protection_reason=None,

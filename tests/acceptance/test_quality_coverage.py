@@ -82,7 +82,6 @@ def extract(text: str, span: tuple[int, int]) -> str:
 # === Product constructions ===
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_description_confirms_and_foreign_text_stays_outside(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -107,7 +106,6 @@ def test_description_confirms_and_foreign_text_stays_outside(
     assert 'A cosmetic clay mask' in covered
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_batch_capacity_confirms_and_detects_error(
     rules: ModuleType, russian_index: Any
 ) -> None:
@@ -124,7 +122,6 @@ def test_batch_capacity_confirms_and_detects_error(
     assert bad.claims[0].found == '60 г'
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_object_mass_stays_unresolved_or_errors(
     rules: ModuleType, english_index: Any, russian_index: Any
 ) -> None:
@@ -144,7 +141,6 @@ def test_object_mass_stays_unresolved_or_errors(
     assert grinder.claims[0].matches is False
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_filter_size_keeps_the_code(rules: ModuleType, russian_index: Any) -> None:
     good = rules.assess_field(
         'Бумажные фильтры для воронки размера 02.', russian_index, 'customer_reply'
@@ -159,7 +155,6 @@ def test_filter_size_keeps_the_code(rules: ModuleType, russian_index: Any) -> No
     assert bad.claims[0].found == '2'
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_relation_membership_is_directed(rules: ModuleType, english_index: Any) -> None:
     good = rules.assess_field(
         'Zeolite Powder pairs with Measuring Spoon.', english_index, 'customer_reply'
@@ -173,7 +168,6 @@ def test_relation_membership_is_directed(rules: ModuleType, english_index: Any) 
     assert bad.claims[0].matches is False
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_presence_statements_are_unsupported_errors(
     rules: ModuleType, english_index: Any, russian_index: Any
 ) -> None:
@@ -195,7 +189,6 @@ def test_presence_statements_are_unsupported_errors(
     assert stock_ru.claims[0].matches is False
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_absence_templates_confirm_with_remainders(
     rules: ModuleType, english_index: Any, russian_index: Any
 ) -> None:
@@ -236,7 +229,6 @@ def test_absence_templates_confirm_with_remainders(
 # === Hint, service phrases and disclaimer ===
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_directive_binds_the_recorded_upsell(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -259,7 +251,6 @@ def test_directive_binds_the_recorded_upsell(
     assert reply_directive.claims == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_service_phrases_follow_field_and_catalogue(
     rules: ModuleType, english_index: Any, russian_index: Any
 ) -> None:
@@ -289,7 +280,6 @@ def test_service_phrases_follow_field_and_catalogue(
     assert handoff_hint.claims[0].matches is True
 
 
-@pytest.mark.xfail(strict=True, reason='E08 not implemented')
 def test_disclaimer_requires_suffix_on_final_suggestion(
     rules: ModuleType, english_index: Any
 ) -> None:
