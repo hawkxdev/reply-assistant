@@ -34,9 +34,17 @@ jobs:
           enable-cache: true
       - name: Install
         run: uv sync --locked
-      - uses: anomalyco/opencode/github@51ef4be1d3c122f18fefb510dca8d778571f4f18 # v1.18.33
+      - name: Install OpenCode
+        env:
+          OPENCODE_VERSION: v1.18.34
+        run: |
+          curl -fsSL https://opencode.ai/install | bash -s -- --version "$OPENCODE_VERSION" --no-modify-path
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+          opencode --version
+
+      - name: Author
+        run: opencode github run
         env:
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
-        with:
-          model: ${{ vars.AUTHOR_MODEL }}
-          share: false
+          MODEL: ${{ vars.AUTHOR_MODEL }}
+          SHARE: 'false'
