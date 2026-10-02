@@ -1,0 +1,1850 @@
+{
+  "document_kind": "quality_corpus",
+  "schema_version": 1,
+  "partition": "development",
+  "sources_sha256": "f451ad707073938fb19a71de50a28428a41f0354666f334174c9e38b81ab2818",
+  "facts_sha256": "8f0a417724e0ae0df6ad4909abfee295d39130f0ec6fb52fd5239fde031aaca6",
+  "questions_sha256": "82550fe2ba439bbad5933353ee356b7748e2e6ccc8809db73bb5b0bdf1c8c407",
+  "cases": [
+    {
+      "id": "case-price-en-1-correct",
+      "group_id": "g-price-en-1",
+      "question_id": "q-price-en-1",
+      "question_sha256": "a6561ffe479feab99775f353570f4193249ee2d22cfd65bbd9b3719b87cb2496",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder costs 18.00 USD.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-en-1-incorrect",
+      "group_id": "g-price-en-1",
+      "question_id": "q-price-en-1",
+      "question_sha256": "a6561ffe479feab99775f353570f4193249ee2d22cfd65bbd9b3719b87cb2496",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder costs 20.00 USD.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-en-2-correct",
+      "group_id": "g-price-en-2",
+      "question_id": "q-price-en-2",
+      "question_sha256": "78b85b04061f1a1e7442f3fd63c8f5ab8cfd7dda628d8396d9d0e7cb8facb1c7",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "The price of Zeolite Capsules is 24.00 USD.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-en-2-incorrect",
+      "group_id": "g-price-en-2",
+      "question_id": "q-price-en-2",
+      "question_sha256": "78b85b04061f1a1e7442f3fd63c8f5ab8cfd7dda628d8396d9d0e7cb8facb1c7",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "The price of Zeolite Capsules is 24.00 RUB.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-ru-1-correct",
+      "group_id": "g-price-ru-1",
+      "question_id": "q-price-ru-1",
+      "question_sha256": "a0144862ef90f7bd8fe846e8eff00cce11e11e68796ae1ce50082d7115e6c261",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос стоит 690 RUB.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-ru-1-incorrect",
+      "group_id": "g-price-ru-1",
+      "question_id": "q-price-ru-1",
+      "question_sha256": "a0144862ef90f7bd8fe846e8eff00cce11e11e68796ae1ce50082d7115e6c261",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос стоит 6900 RUB.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-ru-2-correct",
+      "group_id": "g-price-ru-2",
+      "question_id": "q-price-ru-2",
+      "question_sha256": "e890bede606b03cbc295c69853901c719221d6eb5ef17071412d3141e1cc81ca",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Эфиопия Сидамо: цена 890 RUB.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-price-ru-2-incorrect",
+      "group_id": "g-price-ru-2",
+      "question_id": "q-price-ru-2",
+      "question_sha256": "e890bede606b03cbc295c69853901c719221d6eb5ef17071412d3141e1cc81ca",
+      "categories": [
+        "price_currency"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Эфиопия Сидамо: цена 990 RUB.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-en-1-correct",
+      "group_id": "g-form-en-1",
+      "question_id": "q-form-en-1",
+      "question_sha256": "e5ef6d43e58b6b635f0cb29b884e5b244e426b0f2eb18d0dff903f09532a3ea6",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder comes as a powder in a 200 g jar.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-en-1-incorrect",
+      "group_id": "g-form-en-1",
+      "question_id": "q-form-en-1",
+      "question_sha256": "e5ef6d43e58b6b635f0cb29b884e5b244e426b0f2eb18d0dff903f09532a3ea6",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder comes as a powder in a 500 g jar.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-en-2-correct",
+      "group_id": "g-form-en-2",
+      "question_id": "q-form-en-2",
+      "question_sha256": "1a255e6c4eae7954c7ab5d1fe0668cadeb089bbe8a8952131220215504ed9f71",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules: capsules, 90 pieces.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-en-2-incorrect",
+      "group_id": "g-form-en-2",
+      "question_id": "q-form-en-2",
+      "question_sha256": "1a255e6c4eae7954c7ab5d1fe0668cadeb089bbe8a8952131220215504ed9f71",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules: capsules, 80 pieces.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-ru-1-correct",
+      "group_id": "g-form-ru-1",
+      "question_id": "q-form-ru-1",
+      "question_sha256": "57b1a804d6717e1bfb5d90a86b0b8502b95689b479e6100d2706df6b1c9cf7b0",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос выпускается в форме зерно в пачке 250 г.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-ru-1-incorrect",
+      "group_id": "g-form-ru-1",
+      "question_id": "q-form-ru-1",
+      "question_sha256": "57b1a804d6717e1bfb5d90a86b0b8502b95689b479e6100d2706df6b1c9cf7b0",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос выпускается в форме зерно в пачке 500 г.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-ru-2-correct",
+      "group_id": "g-form-ru-2",
+      "question_id": "q-form-ru-2",
+      "question_sha256": "e41392becfbe5ee1206646eed77a8dfd70de996b969b83750c38ae799b28ba1b",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Ручная кофемолка перемалывает 30 г за раз.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-form-ru-2-incorrect",
+      "group_id": "g-form-ru-2",
+      "question_id": "q-form-ru-2",
+      "question_sha256": "e41392becfbe5ee1206646eed77a8dfd70de996b969b83750c38ae799b28ba1b",
+      "categories": [
+        "form_quantity"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Ручная кофемолка перемалывает 60 г за раз.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-en-1-correct",
+      "group_id": "g-rel-en-1",
+      "question_id": "q-rel-en-1",
+      "question_sha256": "aa8b08f39dfa843ae992a01d0f549d42077cc168247a5563ad8d6f88bea2ada3",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder pairs with Measuring Spoon.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-en-1-incorrect",
+      "group_id": "g-rel-en-1",
+      "question_id": "q-rel-en-1",
+      "question_sha256": "aa8b08f39dfa843ae992a01d0f549d42077cc168247a5563ad8d6f88bea2ada3",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Measuring Spoon pairs with Zeolite Powder.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-en-2-correct",
+      "group_id": "g-rel-en-2",
+      "question_id": "q-rel-en-2",
+      "question_sha256": "6d8b241d623ecef29807bdfefdd90941f68fa0d4713df184b4d9be1aba24c301",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules pairs with Travel Pill Box.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-en-2-incorrect",
+      "group_id": "g-rel-en-2",
+      "question_id": "q-rel-en-2",
+      "question_sha256": "6d8b241d623ecef29807bdfefdd90941f68fa0d4713df184b4d9be1aba24c301",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules pairs with Mineral Clay Face Mask.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-ru-1-correct",
+      "group_id": "g-rel-ru-1",
+      "question_id": "q-rel-ru-1",
+      "question_sha256": "c49b7b264d52a1508bc76203a6844315aed2a286510fadcb5bbe507bc3f33f50",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос сочетается с Бумажные фильтры.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-ru-1-incorrect",
+      "group_id": "g-rel-ru-1",
+      "question_id": "q-rel-ru-1",
+      "question_sha256": "c49b7b264d52a1508bc76203a6844315aed2a286510fadcb5bbe507bc3f33f50",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос сочетается с Эфиопия Сидамо.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-ru-2-correct",
+      "group_id": "g-rel-ru-2",
+      "question_id": "q-rel-ru-2",
+      "question_sha256": "176e98eac6ea4c69bb3897193c5fc1e521474daeb45ef1f2b15754476b5cf359",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос сочетается с Ручная кофемолка.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-rel-ru-2-incorrect",
+      "group_id": "g-rel-ru-2",
+      "question_id": "q-rel-ru-2",
+      "question_sha256": "176e98eac6ea4c69bb3897193c5fc1e521474daeb45ef1f2b15754476b5cf359",
+      "categories": [
+        "product_relations"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Ручная кофемолка сочетается с Бразилия Сантос.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-en-1-correct",
+      "group_id": "g-uns-en-1",
+      "question_id": "q-uns-en-1",
+      "question_sha256": "7b7d06d63325d93c0a20bbaf229972264d272b80d155a62ad196386cb9aee007",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "I do not have information about delivery to Atlantis or delivery times. I can pass the question to a manager.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "none"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-en-1-incorrect",
+      "group_id": "g-uns-en-1",
+      "question_id": "q-uns-en-1",
+      "question_sha256": "7b7d06d63325d93c0a20bbaf229972264d272b80d155a62ad196386cb9aee007",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "We deliver to Atlantis within two days.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-en-2-correct",
+      "group_id": "g-uns-en-2",
+      "question_id": "q-uns-en-2",
+      "question_sha256": "fc483e1e0b4e03dd4f01bb3073b159af429fc5568fd741a3bd5efa54fa501554",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Please ask a doctor about health questions.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "none"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-en-2-incorrect",
+      "group_id": "g-uns-en-2",
+      "question_id": "q-uns-en-2",
+      "question_sha256": "fc483e1e0b4e03dd4f01bb3073b159af429fc5568fd741a3bd5efa54fa501554",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Powder cures spring allergies.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-ru-1-correct",
+      "group_id": "g-uns-ru-1",
+      "question_id": "q-uns-ru-1",
+      "question_sha256": "2fb9967139cdd9cd9dff7f3943af55a33e630b9dfba30c2121e3c2cec26019a9",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "В базе нет информации о доставке в Атлантиду и сроках. Могу передать вопрос менеджеру.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "none"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-ru-1-incorrect",
+      "group_id": "g-uns-ru-1",
+      "question_id": "q-uns-ru-1",
+      "question_sha256": "2fb9967139cdd9cd9dff7f3943af55a33e630b9dfba30c2121e3c2cec26019a9",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "У нас есть доставка в Атлантиду.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-ru-2-correct",
+      "group_id": "g-uns-ru-2",
+      "question_id": "q-uns-ru-2",
+      "question_sha256": "81d05ff36b4a97fede98d8e525914b85dfb7c89a1331d7c187fa5fe0d2788968",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "В базе нет информации о наличии Бразилия Сантос.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "none"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-uns-ru-2-incorrect",
+      "group_id": "g-uns-ru-2",
+      "question_id": "q-uns-ru-2",
+      "question_sha256": "81d05ff36b4a97fede98d8e525914b85dfb7c89a1331d7c187fa5fe0d2788968",
+      "categories": [
+        "unsupported_facts"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Бразилия Сантос есть в наличии.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-en-1-correct",
+      "group_id": "g-com-en-1",
+      "question_id": "q-com-en-1",
+      "question_sha256": "343d980ed0669537696bb7697d1e602977a4d508abe2702e503736b4b2afb3f5",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "The price of Measuring Spoon is 4.00 USD.",
+          "upsell_hint": "Offer Measuring Spoon.",
+          "upsell_product_id": "measuring-spoon",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-en-1-incorrect",
+      "group_id": "g-com-en-1",
+      "question_id": "q-com-en-1",
+      "question_sha256": "343d980ed0669537696bb7697d1e602977a4d508abe2702e503736b4b2afb3f5",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Hello!",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the mandatory answer is absent; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-en-2-correct",
+      "group_id": "g-com-en-2",
+      "question_id": "q-com-en-2",
+      "question_sha256": "385141d8f1865cf40b9d408303be575dbd4acce2f0769b6dd119df4a29d88246",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules costs 24.00 USD.",
+          "upsell_hint": "Consider Travel Pill Box.",
+          "upsell_product_id": "travel-pill-box",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-en-2-incorrect",
+      "group_id": "g-com-en-2",
+      "question_id": "q-com-en-2",
+      "question_sha256": "385141d8f1865cf40b9d408303be575dbd4acce2f0769b6dd119df4a29d88246",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Zeolite Capsules costs 24.00 USD.",
+          "upsell_hint": "Offer Mineral Clay Face Mask.",
+          "upsell_product_id": "travel-pill-box",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-ru-1-correct",
+      "group_id": "g-com-ru-1",
+      "question_id": "q-com-ru-1",
+      "question_sha256": "b31fbfed784daa342a9632ad39579659737e703b02f6414d91c9853e222996f1",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Ручная кофемолка стоит 3900 RUB.",
+          "upsell_hint": "Предложите Бумажные фильтры.",
+          "upsell_product_id": "paper-filters-100",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-ru-1-incorrect",
+      "group_id": "g-com-ru-1",
+      "question_id": "q-com-ru-1",
+      "question_sha256": "b31fbfed784daa342a9632ad39579659737e703b02f6414d91c9853e222996f1",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Здравствуйте.",
+          "upsell_hint": "",
+          "upsell_product_id": null,
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the mandatory answer is absent; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-ru-2-correct",
+      "group_id": "g-com-ru-2",
+      "question_id": "q-com-ru-2",
+      "question_sha256": "97200fa9114489a6e224e9aac177c8eea82bd491f070ea670feb2826483085a1",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Цена Бумажные фильтры: 350 RUB.",
+          "upsell_hint": "Предложите Бразилия Сантос.",
+          "upsell_product_id": "brazil-santos-250",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "correct",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    },
+    {
+      "id": "case-com-ru-2-incorrect",
+      "group_id": "g-com-ru-2",
+      "question_id": "q-com-ru-2",
+      "question_sha256": "97200fa9114489a6e224e9aac177c8eea82bd491f070ea670feb2826483085a1",
+      "categories": [
+        "completeness_hint"
+      ],
+      "observation": {
+        "outcome": "answer",
+        "stage": "model_output",
+        "answer": {
+          "customer_reply": "Цена Бумажные фильтры: 350 RUB.",
+          "upsell_hint": "Предложите Ручная кофемолка.",
+          "upsell_product_id": "brazil-santos-250",
+          "kb_match": "found"
+        },
+        "error_code": null
+      },
+      "question_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "answer_origin": {
+        "kind": "agent_authored",
+        "reference": null,
+        "sha256": null,
+        "parent_case_id": null,
+        "record_pointer": null,
+        "generation": null
+      },
+      "label": {
+        "status": "pending",
+        "proposed_verdict": "incorrect",
+        "verdict": null,
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "evidence": [],
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "confirmation_ref": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,462 @@
+{
+  "document_kind": "quality_questions",
+  "schema_version": 1,
+  "sources_sha256": "f451ad707073938fb19a71de50a28428a41f0354666f334174c9e38b81ab2818",
+  "questions": [
+    {
+      "id": "q-price-en-1",
+      "source_id": "public-en",
+      "message": "How much does Zeolite Powder cost?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-powder-200",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists a price for Zeolite Powder."
+    },
+    {
+      "id": "q-price-en-2",
+      "source_id": "public-en",
+      "message": "What is the price of Zeolite Capsules?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-capsules-90",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists a price for Zeolite Capsules."
+    },
+    {
+      "id": "q-price-ru-1",
+      "source_id": "public-ru",
+      "message": "Сколько стоит Бразилия Сантос?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "brazil-santos-250",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана цена Бразилия Сантос."
+    },
+    {
+      "id": "q-price-ru-2",
+      "source_id": "public-ru",
+      "message": "Какая цена у Эфиопия Сидамо?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "ethiopia-sidamo-250",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана цена Эфиопия Сидамо."
+    },
+    {
+      "id": "q-form-en-1",
+      "source_id": "public-en",
+      "message": "What form does Zeolite Powder come in?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-powder-200",
+          "target_product_id": null,
+          "predicate": "form",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue declares the F01 form profile for Zeolite Powder."
+    },
+    {
+      "id": "q-form-en-2",
+      "source_id": "public-en",
+      "message": "How many capsules are in a pack of Zeolite Capsules?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-capsules-90",
+          "target_product_id": null,
+          "predicate": "package_quantity",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue declares ninety pieces for Zeolite Capsules."
+    },
+    {
+      "id": "q-form-ru-1",
+      "source_id": "public-ru",
+      "message": "В какой форме выпускается Бразилия Сантос?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "brazil-santos-250",
+          "target_product_id": null,
+          "predicate": "form",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана форма Бразилия Сантос."
+    },
+    {
+      "id": "q-form-ru-2",
+      "source_id": "public-ru",
+      "message": "Сколько Ручная кофемолка перемалывает за раз?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "hand-grinder",
+          "target_product_id": null,
+          "predicate": "batch_capacity",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана разовая порция помола Ручная кофемолка."
+    },
+    {
+      "id": "q-rel-en-1",
+      "source_id": "public-en",
+      "message": "Does Zeolite Powder pair with the Measuring Spoon?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-powder-200",
+          "target_product_id": "measuring-spoon",
+          "predicate": "goes_with",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists the directed pair to the Measuring Spoon."
+    },
+    {
+      "id": "q-rel-en-2",
+      "source_id": "public-en",
+      "message": "Does Zeolite Capsules pair with the Travel Pill Box?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-capsules-90",
+          "target_product_id": "travel-pill-box",
+          "predicate": "goes_with",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists the directed pair to the Travel Pill Box."
+    },
+    {
+      "id": "q-rel-ru-1",
+      "source_id": "public-ru",
+      "message": "Сочетается ли Бразилия Сантос с бумажными фильтрами?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "brazil-santos-250",
+          "target_product_id": "paper-filters-100",
+          "predicate": "goes_with",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана пара с Бумажные фильтры."
+    },
+    {
+      "id": "q-rel-ru-2",
+      "source_id": "public-ru",
+      "message": "Сочетается ли Бразилия Сантос с кофемолкой?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "brazil-santos-250",
+          "target_product_id": "hand-grinder",
+          "predicate": "goes_with",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана пара с Ручная кофемолка."
+    },
+    {
+      "id": "q-uns-en-1",
+      "source_id": "public-en",
+      "message": "Do you deliver to Atlantis?",
+      "language": "en",
+      "place": "Atlantis",
+      "topic": "delivery",
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": null,
+          "target_product_id": null,
+          "predicate": "delivery",
+          "stance": "unknown"
+        }
+      ],
+      "required_actions": [
+        {
+          "field": "customer_reply",
+          "kind": "handoff"
+        }
+      ],
+      "allowed_kb_matches": [
+        "none"
+      ],
+      "basis": "Neither public catalogue contains delivery information."
+    },
+    {
+      "id": "q-uns-en-2",
+      "source_id": "public-en",
+      "message": "Does Zeolite Powder help with spring allergies?",
+      "language": "en",
+      "place": null,
+      "topic": "treatment_result",
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": null,
+          "target_product_id": null,
+          "predicate": "treatment_result",
+          "stance": "unknown"
+        }
+      ],
+      "required_actions": [
+        {
+          "field": "customer_reply",
+          "kind": "doctor"
+        }
+      ],
+      "allowed_kb_matches": [
+        "none"
+      ],
+      "basis": "The pinned source states no treatment result and its rules require a doctor note."
+    },
+    {
+      "id": "q-uns-ru-1",
+      "source_id": "public-ru",
+      "message": "Есть ли доставка в Атлантиду?",
+      "language": "ru",
+      "place": "Атлантиду",
+      "topic": "delivery",
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": null,
+          "target_product_id": null,
+          "predicate": "delivery",
+          "stance": "unknown"
+        }
+      ],
+      "required_actions": [
+        {
+          "field": "customer_reply",
+          "kind": "handoff"
+        }
+      ],
+      "allowed_kb_matches": [
+        "none"
+      ],
+      "basis": "В публичных каталогах нет сведений о доставке."
+    },
+    {
+      "id": "q-uns-ru-2",
+      "source_id": "public-ru",
+      "message": "Есть ли в наличии Бразилия Сантос?",
+      "language": "ru",
+      "place": null,
+      "topic": "stock",
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": null,
+          "target_product_id": null,
+          "predicate": "stock",
+          "stance": "unknown"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "none"
+      ],
+      "basis": "В публичных каталогах нет сведений о наличии."
+    },
+    {
+      "id": "q-com-en-1",
+      "source_id": "public-en",
+      "message": "What is the price of Measuring Spoon?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "measuring-spoon",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists a price for Measuring Spoon."
+    },
+    {
+      "id": "q-com-en-2",
+      "source_id": "public-en",
+      "message": "How much do the Zeolite Capsules cost?",
+      "language": "en",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "zeolite-capsules-90",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "The pinned English catalogue lists a price for Zeolite Capsules."
+    },
+    {
+      "id": "q-com-ru-1",
+      "source_id": "public-ru",
+      "message": "Сколько стоит Ручная кофемолка?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "hand-grinder",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана цена Ручная кофемолка."
+    },
+    {
+      "id": "q-com-ru-2",
+      "source_id": "public-ru",
+      "message": "Какая цена у Бумажные фильтры?",
+      "language": "ru",
+      "place": null,
+      "topic": null,
+      "required_claims": [
+        {
+          "field": "customer_reply",
+          "product_id": "paper-filters-100",
+          "target_product_id": null,
+          "predicate": "price",
+          "stance": "affirmed"
+        }
+      ],
+      "required_actions": [],
+      "allowed_kb_matches": [
+        "found"
+      ],
+      "basis": "В закреплённом русском каталоге указана цена Бумажные фильтры."
+    }
+  ]
+}
