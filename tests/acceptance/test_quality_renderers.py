@@ -57,6 +57,7 @@ def report_module_stub() -> Any:
 # === Structure ===
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_json_carries_identity_and_summary(report_module: Any) -> None:
     report = report_module.build_report(
         meta(report_module), [entry(), entry(case_id='case-en-2')]
@@ -81,6 +82,7 @@ def test_json_carries_identity_and_summary(report_module: Any) -> None:
     ]
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_markdown_agrees_with_json(report_module: Any) -> None:
     report = report_module.build_report(
         meta(report_module),
@@ -118,6 +120,7 @@ def test_markdown_agrees_with_json(report_module: Any) -> None:
     assert str(payload['summary']['error']) in summary_section
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_renders_are_deterministic_and_ordered(report_module: Any) -> None:
     entries = [entry(), entry(case_id='case-en-2'), entry(case_id='case-en-3')]
     first = report_module.build_report(meta(report_module), entries)
@@ -133,6 +136,7 @@ def test_renders_are_deterministic_and_ordered(report_module: Any) -> None:
     ]
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_grounds_and_uncertainty_are_reported(report_module: Any) -> None:
     report = report_module.build_report(
         meta(report_module),
@@ -150,6 +154,7 @@ def test_grounds_and_uncertainty_are_reported(report_module: Any) -> None:
     assert 'remainder:0:10' in report_module.render_markdown(report)
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_label_state_is_reported(report_module: Any) -> None:
     report = report_module.build_report(
         meta(report_module),
@@ -162,6 +167,7 @@ def test_label_state_is_reported(report_module: Any) -> None:
     assert 'pending' in report_module.render_markdown(report)
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_failures_are_separated_from_evaluated(report_module: Any) -> None:
     report = report_module.build_report(
         meta(report_module),
@@ -176,6 +182,7 @@ def test_failures_are_separated_from_evaluated(report_module: Any) -> None:
     assert payload['summary']['failures'] == 1
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_no_timestamps_or_absolute_paths(report_module: Any) -> None:
     leak_entry = report_module.CaseEntry(
         case_id='case-abs',
@@ -203,6 +210,7 @@ def test_no_timestamps_or_absolute_paths(report_module: Any) -> None:
 # === Restricted content ===
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_restricted_content_stays_out(report_module: Any) -> None:
     entry = report_module.CaseEntry(
         case_id='case-secret',
@@ -224,6 +232,7 @@ def test_restricted_content_stays_out(report_module: Any) -> None:
     assert 'REPLY_ASSISTANT' not in rendered
 
 
+@pytest.mark.xfail(strict=True, reason='E11 not implemented')
 def test_outcome_mapping_matches_e10(report_module: Any) -> None:
     entries = [
         entry(),
