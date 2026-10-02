@@ -46,7 +46,6 @@ def readiness_set(manual: int = 0) -> list[Any]:
 # === Metrics ===
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_metrics_on_a_mixed_set_are_exact() -> None:
     false_rejection = outcome(factual_verdict='error')
     false_confirmation = outcome(human_verdict='incorrect', factual_verdict='confirmed')
@@ -78,7 +77,6 @@ def test_metrics_on_a_mixed_set_are_exact() -> None:
     assert metrics.manual_share == pytest.approx(1 / 6)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_metrics_count_uncertain_references() -> None:
     metrics = the_report().compute_metrics(
         [
@@ -99,7 +97,6 @@ def test_metrics_count_uncertain_references() -> None:
     assert metrics.w_size == 0
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_rates_are_null_on_empty_denominators() -> None:
     report = the_report()
     en_only = report.compute_metrics([outcome()])
@@ -123,7 +120,6 @@ def test_rates_are_null_on_empty_denominators() -> None:
     assert ru_only.manual_share == 0.0
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_failure_enters_no_quality_count() -> None:
     outcomes = [
         outcome(execution_status='recorded_failure', factual_verdict=None),
@@ -143,7 +139,6 @@ def test_failure_enters_no_quality_count() -> None:
     assert metrics.manual_review == 0
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_unresolved_label_never_enters_c_or_w() -> None:
     metrics = the_report().compute_metrics(
         [outcome(factual_verdict='manual_review', human_verdict='unresolved')]
@@ -157,7 +152,6 @@ def test_unresolved_label_never_enters_c_or_w() -> None:
 # === Readiness ===
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_ready_set_passes() -> None:
     readiness = the_report().acceptance_gate(readiness_set())
 
@@ -165,7 +159,6 @@ def test_ready_set_passes() -> None:
     assert readiness.reasons == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_four_manual_reviews_still_pass() -> None:
     readiness = the_report().acceptance_gate(readiness_set(manual=4))
 
@@ -173,7 +166,6 @@ def test_four_manual_reviews_still_pass() -> None:
     assert readiness.reasons == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_empty_set_is_not_ready() -> None:
     readiness = the_report().acceptance_gate([])
 
@@ -181,7 +173,6 @@ def test_empty_set_is_not_ready() -> None:
     assert any('expected 20 outcomes' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_fifth_manual_case_fails_readiness() -> None:
     readiness = the_report().acceptance_gate(readiness_set(manual=5))
 
@@ -189,7 +180,6 @@ def test_fifth_manual_case_fails_readiness() -> None:
     assert any('manual' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_truth_imbalance_blocks_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(human_verdict='incorrect')
@@ -200,7 +190,6 @@ def test_truth_imbalance_blocks_readiness() -> None:
     assert any('correct' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_language_imbalance_blocks_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(language='ru')
@@ -211,7 +200,6 @@ def test_language_imbalance_blocks_readiness() -> None:
     assert any('language' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_unresolved_reference_blocks_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(human_verdict='unresolved')
@@ -221,7 +209,6 @@ def test_unresolved_reference_blocks_readiness() -> None:
     assert readiness.state == 'not_ready'
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_pending_reference_blocks_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(human_status='pending', human_verdict=None)
@@ -231,7 +218,6 @@ def test_pending_reference_blocks_readiness() -> None:
     assert readiness.state == 'not_ready'
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_false_confirmation_fails_readiness() -> None:
     outcomes = readiness_set()
     outcomes[10] = outcome(
@@ -246,7 +232,6 @@ def test_false_confirmation_fails_readiness() -> None:
     assert any('confirmation' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_false_rejection_fails_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(factual_verdict='error')
@@ -257,7 +242,6 @@ def test_false_rejection_fails_readiness() -> None:
     assert any('rejection' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_contaminated_set_is_not_ready() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(independent=False)
@@ -268,7 +252,6 @@ def test_contaminated_set_is_not_ready() -> None:
     assert any('contaminated' in reason for reason in readiness.reasons)
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_execution_failure_blocks_readiness() -> None:
     outcomes = readiness_set()
     outcomes[0] = outcome(
@@ -281,7 +264,6 @@ def test_execution_failure_blocks_readiness() -> None:
     assert readiness.state == 'not_ready'
 
 
-@pytest.mark.xfail(strict=True, reason='E10 not implemented')
 def test_metrics_are_repeatable() -> None:
     outcomes = readiness_set(manual=2)
 
