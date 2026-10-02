@@ -22,6 +22,7 @@ def outcome(**changes: Any) -> Any:
         'human_status': 'confirmed',
         'human_verdict': 'correct',
         'language': 'en',
+        'independent': True,
     }
     base.update(changes)
     return module.CaseOutcome(**base)
