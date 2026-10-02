@@ -299,14 +299,20 @@ def _check_lineage(records: dict[str, tuple[Corpus, Case]]) -> None:
 # === Source verification ===
 
 
-def _check_source_paths(project_root: Path, sources: Sources) -> None:
-    """Check safe source paths."""
-    for index, source in enumerate(sources.sources):
-        current = project_root
-        for part in Path(source.path).parts:
-            current = current / part
-            if current.is_symlink():
-                raise QualityInputError('source_path', f'sources.{index}.path')
+def _resolve_source_path(project_root: Path, source: Source, index: int) -> Path:
+    """Resolve one safe path."""
+    current = project_root
+    for part in Path(source.path).parts:
+        current = current / part
+        if current.is_symlink():
+            raise QualityInputError('source_path', f'sources.{index}.path')
+    return current
+
+
+def _read_source_bytes(project_root: Path, source: Source, index: int) -> bytes:
+    """Read one safe source."""
+    path = _resolve_source_path(project_root, source, index)
+    return read_quality_bytes(path)
 
 
 async def _verify_source(
@@ -315,7 +321,7 @@ async def _verify_source(
     """Read and verify one source."""
     location = f'sources.{index}.sha256'
     try:
-        raw = await asyncio.to_thread(read_quality_bytes, project_root / source.path)
+        raw = await asyncio.to_thread(_read_source_bytes, project_root, source, index)
     except OSError:
         raise QualityInputError('read_error', location) from None
     if hashlib.sha256(raw).hexdigest() != source.sha256:
@@ -459,17 +465,29 @@ def _evidence_leaf(
     raise QualityInputError('invalid_evidence', pointer)
 
 
-def _check_evidence(
-    catalogue: KnowledgeBase, evidence: Evidence, product_index: int
-) -> None:
+def _check_span(evidence: Evidence, leaf: str) -> None:
     """Check one evidence span."""
-    leaf, pointer_product = _evidence_leaf(catalogue, evidence)
-    if pointer_product is not None and pointer_product != product_index:
-        raise QualityInputError('invalid_evidence', evidence.pointer)
     if not 0 <= evidence.start < evidence.end <= len(leaf):
         raise QualityInputError('invalid_evidence', evidence.pointer)
     if leaf[evidence.start : evidence.end] != evidence.quote:
         raise QualityInputError('invalid_evidence', evidence.pointer)
+
+
+def _check_evidence(
+    catalogue: KnowledgeBase, evidence: Evidence, product_index: int
+) -> None:
+    """Check one owned span."""
+    leaf, pointer_product = _evidence_leaf(catalogue, evidence)
+    if pointer_product is not None and pointer_product != product_index:
+        raise QualityInputError('invalid_evidence', evidence.pointer)
+    _check_span(evidence, leaf)
+
+
+def _check_label_evidence(catalogue: KnowledgeBase, label: Label) -> None:
+    """Check label evidence spans."""
+    for evidence in label.evidence:
+        leaf, _ = _evidence_leaf(catalogue, evidence)
+        _check_span(evidence, leaf)
 
 
 # === Fact checks ===
@@ -484,6 +502,12 @@ _QUANTITY_UNITS: dict[str, frozenset[str]] = {
 }
 _DECIMAL_VALUE = re.compile(r'^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$')
 _INTEGER_VALUE = re.compile(r'^[1-9][0-9]*$')
+_UNIT_SPELLINGS: dict[str, frozenset[str]] = {
+    'g': frozenset({'g', 'г'}),  # noqa: RUF001
+    'ml': frozenset({'ml', 'мл'}),
+    'piece': frozenset({'pieces', 'штук'}),
+    'section': frozenset({'sections', 'отделений'}),
+}
 
 
 def _check_fact_shape(fact: Fact, location: str) -> None:
@@ -522,6 +546,38 @@ def _check_fact_shape(fact: Fact, location: str) -> None:
         )
     if not consistent:
         raise QualityInputError('inconsistent_fact', location)
+
+
+def _check_fact_grounded(fact: Fact, location: str) -> None:
+    """Check one grounded value."""
+    quotes = [entry.quote for entry in fact.evidence]
+    unit = fact.unit
+    if fact.derivation == 'literal':
+        grounded = fact.value in quotes
+    elif fact.derivation == 'decimal':
+        grounded = unit is not None and fact.value in quotes and unit in quotes
+    elif fact.derivation == 'unit_alias':
+        grounded = (
+            unit is not None
+            and fact.value in quotes
+            and any(quote in _UNIT_SPELLINGS[unit] for quote in quotes)
+        )
+    else:
+        grounded = any(quote.startswith(fact.value) for quote in quotes)
+    if not grounded:
+        raise QualityInputError('inconsistent_fact', location)
+
+
+def _check_profile_coverage(facts: Facts, catalogues: dict[str, KnowledgeBase]) -> None:
+    """Check complete profile coverage."""
+    for source_id, catalogue in catalogues.items():
+        annotated = {
+            profile.product_id
+            for profile in facts.products
+            if profile.source_id == source_id
+        }
+        if annotated != {product.id for product in catalogue.products}:
+            raise QualityInputError('inconsistent_fact', 'products')
 
 
 def _check_edges(profile: ProductFacts, edges: list[str], location: str) -> None:
@@ -720,8 +776,7 @@ async def load_quality_package(
     records = _check_cases_identity(corpus_documents, frozenset(questions_by_id))
     _check_lineage(records)
 
-    # Step 3: verify source paths then pinned catalogue bytes.
-    _check_source_paths(project_root, sources_document)
+    # Step 3: verify pinned catalogue bytes per source.
     catalogues: dict[str, KnowledgeBase] = {}
     product_ids: dict[str, frozenset[str]] = {}
     product_indexes: dict[str, dict[str, int]] = {}
@@ -746,6 +801,7 @@ async def load_quality_package(
     )
 
     # Step 5: check evidence spans and typed fact support.
+    _check_profile_coverage(facts_document, catalogues)
     for index, profile in enumerate(facts_document.products):
         catalogue = catalogues[profile.source_id]
         product_index = product_indexes[profile.source_id][profile.product_id]
@@ -753,6 +809,7 @@ async def load_quality_package(
             for evidence in fact.evidence:
                 _check_evidence(catalogue, evidence, product_index)
             _check_fact_shape(fact, f'products.{index}.facts.{fact_index}')
+            _check_fact_grounded(fact, f'products.{index}.facts.{fact_index}')
         edges = catalogue.products[product_index].goes_with
         _check_edges(profile, edges, f'products.{index}.facts')
         _check_support(profile, edges)
@@ -765,6 +822,10 @@ async def load_quality_package(
             )
             _check_observation(case.observation, observation_location)
             _check_label(case.label, _case_location(corpus_index, case_index, 'label'))
+            _check_label_evidence(
+                catalogues[questions_by_id[case.question_id].source_id],
+                case.label,
+            )
             _check_origin(
                 case.question_origin,
                 False,

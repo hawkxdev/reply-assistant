@@ -2,16 +2,19 @@
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
+from reply_assistant import quality_corpus
 from reply_assistant.quality_corpus import (
     QualityInputError,
     load_quality_document,
     load_quality_package,
 )
+from reply_assistant.quality_schema import Source
 
 DATA = Path(__file__).parents[1] / 'evals' / 'quality' / 'v1'
 ROOT = Path(__file__).parents[1]
@@ -198,3 +201,96 @@ async def test_unknown_annotated_product_fails(tmp_path: Path) -> None:
     paths = build_package(tmp_path, facts=facts)
 
     assert (await package_error(paths)).code == 'unknown_reference'
+
+
+def fact_of(product: dict[str, Any], predicate: str) -> dict[str, Any]:
+    """Find one fact payload."""
+    return cast(
+        dict[str, Any],
+        next(item for item in product['facts'] if item['predicate'] == predicate),
+    )
+
+
+@pytest.mark.parametrize(
+    'defect',
+    ['literal', 'decimal', 'unit_alias', 'profile_component'],
+)
+async def test_ungrounded_fact_value_fails(tmp_path: Path, defect: str) -> None:
+    facts = package_payload('facts.json')
+    if defect == 'literal':
+        fact = fact_of(facts['products'][0], 'name')
+        fact['value'] = 'Zeolite Powder Pro'
+    elif defect == 'decimal':
+        fact = fact_of(facts['products'][0], 'price')
+        fact['value'] = '99.00'
+    elif defect == 'unit_alias':
+        fact = fact_of(facts['products'][2], 'package_quantity')
+        fact['unit'] = 'g'
+    else:
+        fact = fact_of(facts['products'][8], 'material')
+        fact['value'] = 'алюминий'
+    paths = build_package(tmp_path, facts=facts)
+
+    assert (await package_error(paths)).code == 'inconsistent_fact'
+
+
+async def test_missing_product_profile_fails(tmp_path: Path) -> None:
+    facts = package_payload('facts.json')
+    del facts['products'][8]
+    paths = build_package(tmp_path, facts=facts)
+
+    assert (await package_error(paths)).code == 'inconsistent_fact'
+
+
+def label_evidence(quote: str) -> list[dict[str, Any]]:
+    """Build one label evidence entry."""
+    return [
+        {
+            'pointer': '/products/1/name',
+            'start': 0,
+            'end': 16,
+            'quote': quote,
+        }
+    ]
+
+
+async def test_ungrounded_label_evidence_fails(tmp_path: Path) -> None:
+    corpus = package_payload('examples/corpus-valid.json')
+    corpus['cases'][0]['label']['evidence'] = label_evidence('Wrong Product')
+    paths = build_package(tmp_path, corpora=[corpus])
+
+    assert (await package_error(paths)).code == 'invalid_evidence'
+
+
+async def test_label_evidence_allows_other_products(tmp_path: Path) -> None:
+    corpus = package_payload('examples/corpus-valid.json')
+    corpus['cases'][0]['label']['evidence'] = label_evidence('Zeolite Capsules')
+    paths = build_package(tmp_path, corpora=[corpus])
+    sources, facts, questions, corpora_paths = paths
+
+    package = await load_quality_package(
+        tmp_path, sources, facts, questions, corpora_paths
+    )
+
+    assert len(package.cases) == 1
+
+
+async def test_source_resolution_runs_off_event_loop(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = build_package(tmp_path)
+    loop_thread = threading.get_ident()
+    threads: list[bool] = []
+    original = quality_corpus._resolve_source_path
+
+    def observe_resolution(project_root: Path, source: Source, index: int) -> Path:
+        """Observe one source resolution."""
+        threads.append(threading.get_ident() != loop_thread)
+        return original(project_root, source, index)
+
+    monkeypatch.setattr(quality_corpus, '_resolve_source_path', observe_resolution)
+    sources, facts, questions, corpora = paths
+    package = await load_quality_package(tmp_path, sources, facts, questions, corpora)
+
+    assert package.cases[0].case.id == 'example-case-price'
+    assert threads == [True, True]
