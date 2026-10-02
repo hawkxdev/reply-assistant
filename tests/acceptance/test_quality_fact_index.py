@@ -64,7 +64,6 @@ def russian_index(facts_module: ModuleType) -> Any:
 # === Index content ===
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 async def test_index_builds_from_both_public_sources(
     facts_module: ModuleType, english_index: Any, russian_index: Any
 ) -> None:
@@ -91,7 +90,6 @@ async def test_index_builds_from_both_public_sources(
     assert santos.price.currency == 'RUB'
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_prices_are_decimal_from_strings(english_index: Any) -> None:
     powder = english_index.products['zeolite-powder-200']
 
@@ -101,7 +99,6 @@ def test_prices_are_decimal_from_strings(english_index: Any) -> None:
     assert powder.price.value.as_tuple().exponent == -2
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_filter_size_keeps_leading_zero(russian_index: Any) -> None:
     filters = russian_index.products['paper-filters-100']
 
@@ -110,7 +107,6 @@ def test_filter_size_keeps_leading_zero(russian_index: Any) -> None:
     assert isinstance(size, str)
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_unresolved_role_yields_no_mass(english_index: Any, russian_index: Any) -> None:
     spoon = english_index.products['measuring-spoon']
     grinder = russian_index.products['hand-grinder']
@@ -125,7 +121,6 @@ def test_unresolved_role_yields_no_mass(english_index: Any, russian_index: Any) 
     assert grinder.text('object_mass') is None
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_counts_are_typed_with_units(english_index: Any) -> None:
     powder = english_index.products['zeolite-powder-200']
     box = english_index.products['travel-pill-box']
@@ -134,7 +129,6 @@ def test_counts_are_typed_with_units(english_index: Any) -> None:
     assert box.count('section_count') == (7, 'section')
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_edges_are_directed_and_complete(
     english_index: Any, russian_index: Any
 ) -> None:
@@ -147,7 +141,6 @@ def test_edges_are_directed_and_complete(
     assert santos.edges == ('paper-filters-100', 'hand-grinder')
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_index_is_repeatable(facts_module: ModuleType, english_index: Any) -> None:
     again = facts_module.build_fact_index(
         catalogue('example-en.yaml'), product_facts('public-en')
@@ -156,7 +149,6 @@ def test_index_is_repeatable(facts_module: ModuleType, english_index: Any) -> No
     assert again.products == english_index.products
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_products_keep_distinct_values_with_equal_support(
     facts_module: ModuleType,
 ) -> None:
@@ -172,7 +164,6 @@ def test_products_keep_distinct_values_with_equal_support(
 # === Inconsistent annotation ===
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_support_contradicting_fact_raises(facts_module: ModuleType) -> None:
     import copy
 
@@ -195,7 +186,6 @@ def test_support_contradicting_fact_raises(facts_module: ModuleType) -> None:
     assert caught.value.code == 'inconsistent_fact'
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_borrowed_price_value_raises(facts_module: ModuleType) -> None:
     import copy
 
@@ -275,6 +265,28 @@ def synthetic_annotation() -> Any:
             ],
         ),
         fact(
+            'mystery:form:0',
+            'form',
+            'text',
+            'powder, 250 g jar',
+            None,
+            'literal',
+            [evidence('/products/0/form', 0, 17, 'powder, 250 g jar')],
+        ),
+        fact(
+            'mystery:description:0',
+            'description',
+            'text',
+            'A synthetic product for tests.',
+            None,
+            'literal',
+            [
+                evidence(
+                    '/products/0/description', 0, 30, 'A synthetic product for tests.'
+                )
+            ],
+        ),
+        fact(
             'mystery:package:0',
             'package_quantity',
             'integer',
@@ -326,7 +338,6 @@ def synthetic_catalogue() -> Any:
     return module._document(payload)
 
 
-@pytest.mark.xfail(strict=True, reason='E06 not implemented')
 def test_synthetic_annotation_derives_without_id_branches(
     facts_module: ModuleType,
 ) -> None:
@@ -340,5 +351,6 @@ def test_synthetic_annotation_derives_without_id_branches(
     assert product.price.currency == 'USD'
     assert product.count('package_quantity') == (250, 'g')
     assert product.text('name') == 'Mystery Powder'
+    assert product.text('form') == 'powder, 250 g jar'
     assert product.edges == ()
     assert product.quantity_role == 'package_quantity'
