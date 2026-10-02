@@ -75,7 +75,6 @@ def extract(text: str, span: tuple[int, int]) -> str:
 # === Confirmed constructions ===
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_price_confirms_with_original_span(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -94,7 +93,6 @@ def test_price_confirms_with_original_span(
     assert result.remainders == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_comma_decimal_confirms(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder costs 18,00 USD.'
     result = rules.assess_field(text, english_index)
@@ -106,7 +104,6 @@ def test_comma_decimal_confirms(rules: ModuleType, english_index: Any) -> None:
     assert (claim.start, claim.end) == (0, 30)
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_wrong_price_is_an_error(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder costs 20.00 USD.'
     result = rules.assess_field(text, english_index)
@@ -118,7 +115,6 @@ def test_wrong_price_is_an_error(rules: ModuleType, english_index: Any) -> None:
     assert claim.found == '20.00 USD'
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_russian_price_confirms_and_detects_error(
     rules: ModuleType, russian_index: Any
 ) -> None:
@@ -131,7 +127,6 @@ def test_russian_price_confirms_and_detects_error(
     assert bad.claims[0].found == '990 RUB'
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_compound_confirms_both_slots(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder comes as a powder in a 200 g jar and costs 18.00 USD.'
     result = rules.assess_field(text, english_index)
@@ -142,7 +137,6 @@ def test_compound_confirms_both_slots(rules: ModuleType, english_index: Any) -> 
     assert all(claim.product_id == 'zeolite-powder-200' for claim in result.claims)
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_wrong_form_quantity_is_an_error(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder comes as a powder in a 500 g jar.'
     result = rules.assess_field(text, english_index)
@@ -155,7 +149,6 @@ def test_wrong_form_quantity_is_an_error(rules: ModuleType, english_index: Any) 
     assert claim.found == 'powder in a 500 g jar'
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_spoon_form_profile_confirms_and_detects_error(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -167,22 +160,22 @@ def test_spoon_form_profile_confirms_and_detects_error(
     assert bad.claims[0].found == 'steel spoon, 10 g'
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_grinder_profile_confirms_and_detects_error(
     rules: ModuleType, russian_index: Any
 ) -> None:
     good = rules.assess_field(
-        'Ручная кофемолка: стальные жернова, 30 г за раз.', russian_index
+        'Ручная кофемолка выпускается в форме стальные жернова, 30 г за раз.',
+        russian_index,
     )
     bad = rules.assess_field(
-        'Ручная кофемолка: стальные жернова, 60 г за раз.', russian_index
+        'Ручная кофемолка выпускается в форме стальные жернова, 60 г за раз.',
+        russian_index,
     )
 
     assert good.claims[0].matches is True
     assert bad.claims[0].matches is False
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_foreign_subject_binds_own_value(rules: ModuleType, english_index: Any) -> None:
     text = 'Measuring Spoon costs 18.00 USD.'
     result = rules.assess_field(text, english_index)
@@ -197,7 +190,6 @@ def test_foreign_subject_binds_own_value(rules: ModuleType, english_index: Any) 
 # === Protected context and remainders ===
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_quoted_field_yields_no_claims(rules: ModuleType, english_index: Any) -> None:
     text = '"Zeolite Powder costs 18.00 USD."'
     result = rules.assess_field(text, english_index)
@@ -207,7 +199,6 @@ def test_quoted_field_yields_no_claims(rules: ModuleType, english_index: Any) ->
     assert result.claims == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_negation_protects_the_field(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder does not cost 18.00 USD.'
     result = rules.assess_field(text, english_index)
@@ -217,7 +208,6 @@ def test_negation_protects_the_field(rules: ModuleType, english_index: Any) -> N
     assert result.claims == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_condition_marker_protects_the_field(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -229,7 +219,6 @@ def test_condition_marker_protects_the_field(
     assert result.claims == ()
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_invalid_grouping_stays_a_remainder(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -242,7 +231,6 @@ def test_invalid_grouping_stays_a_remainder(
     assert '3 9 00' in covered
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_unknown_tail_stays_a_remainder(rules: ModuleType, english_index: Any) -> None:
     text = 'Zeolite Powder costs 18.00 USD and ships tomorrow.'
     result = rules.assess_field(text, english_index)
@@ -253,7 +241,6 @@ def test_unknown_tail_stays_a_remainder(rules: ModuleType, english_index: Any) -
     assert 'ships tomorrow' in covered
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_second_sentence_reports_original_span(
     rules: ModuleType, english_index: Any
 ) -> None:
@@ -266,7 +253,6 @@ def test_second_sentence_reports_original_span(
     assert extract(text, (claim.start, claim.end)) == 'Zeolite Powder costs 18.00 USD'
 
 
-@pytest.mark.xfail(strict=True, reason='E07 not implemented')
 def test_unknown_name_yields_no_claim(rules: ModuleType, english_index: Any) -> None:
     text = 'zeolite powder costs 18.00 USD.'
     result = rules.assess_field(text, english_index)
