@@ -5,8 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 # === Data ===
 
 ROOT = Path(__file__).parents[2]
@@ -99,7 +97,6 @@ def digest(path: Path) -> str:
 # === Replay ===
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_replay_clean_package_exits_zero_and_writes_pair(
     tmp_path: Path,
 ) -> None:
@@ -112,7 +109,6 @@ def test_replay_clean_package_exits_zero_and_writes_pair(
     assert (out / 'report.md').is_file()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_replay_with_findings_exits_one(tmp_path: Path) -> None:
     package = package_copy(tmp_path)
     out = tmp_path / 'out'
@@ -126,7 +122,6 @@ def test_replay_with_findings_exits_one(tmp_path: Path) -> None:
 # === Modes and failures ===
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_acceptance_on_forty_cases_is_not_ready(tmp_path: Path) -> None:
     package = package_copy(tmp_path)
     out = tmp_path / 'out'
@@ -139,7 +134,6 @@ def test_acceptance_on_forty_cases_is_not_ready(tmp_path: Path) -> None:
     assert (out / 'report.json').is_file()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_acceptance_ready_package_exits_zero(tmp_path: Path) -> None:
     package = package_copy(tmp_path, balanced=True)
     out = tmp_path / 'out'
@@ -152,7 +146,6 @@ def test_acceptance_ready_package_exits_zero(tmp_path: Path) -> None:
     assert (out / 'report.md').is_file()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_acceptance_failed_threshold_exits_one(tmp_path: Path) -> None:
     package = package_copy(tmp_path, balanced=True)
     corpus_path = package
@@ -174,7 +167,6 @@ def test_acceptance_failed_threshold_exits_one(tmp_path: Path) -> None:
     assert (out / 'report.json').is_file()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_missing_package_exits_two_without_reports(tmp_path: Path) -> None:
     out = tmp_path / 'out'
     code, _, stderr = run_cli(
@@ -186,7 +178,6 @@ def test_missing_package_exits_two_without_reports(tmp_path: Path) -> None:
     assert not out.exists() or not any(out.iterdir())
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_existing_out_directory_is_refused(tmp_path: Path) -> None:
     package = package_copy(tmp_path)
     out = tmp_path / 'out'
@@ -202,7 +193,6 @@ def test_existing_out_directory_is_refused(tmp_path: Path) -> None:
     assert not (out / 'report.json').exists()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_invalid_package_exits_two(tmp_path: Path) -> None:
     package = package_copy(tmp_path)
     target = package
@@ -216,7 +206,6 @@ def test_invalid_package_exits_two(tmp_path: Path) -> None:
     assert not (out / 'report.json').exists()
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_unknown_mode_exits_two(tmp_path: Path) -> None:
     package = package_copy(tmp_path)
     out = tmp_path / 'out'
@@ -230,7 +219,6 @@ def test_unknown_mode_exits_two(tmp_path: Path) -> None:
 # === Safety ===
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_package_bytes_unchanged_after_run(tmp_path: Path) -> None:
     package = package_copy(tmp_path, only_correct=True)
     out = tmp_path / 'out'
@@ -253,7 +241,6 @@ def test_package_bytes_unchanged_after_run(tmp_path: Path) -> None:
     assert before == after
 
 
-@pytest.mark.xfail(strict=True, reason='E12 not implemented')
 def test_runs_without_provider_key_or_network(tmp_path: Path) -> None:
     package = package_copy(tmp_path, only_correct=True)
     out = tmp_path / 'out'
