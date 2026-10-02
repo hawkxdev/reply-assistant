@@ -153,10 +153,7 @@ def test_index_is_repeatable(facts_module: ModuleType, english_index: Any) -> No
         catalogue('example-en.yaml'), product_facts('public-en')
     )
 
-    assert again.products.keys() == english_index.products.keys()
-    for product_id, product in again.products.items():
-        assert product.price == english_index.products[product_id].price
-        assert product.edges == english_index.products[product_id].edges
+    assert again.products == english_index.products
 
 
 @pytest.mark.xfail(strict=True, reason='E06 not implemented')
@@ -216,4 +213,132 @@ def test_borrowed_price_value_raises(facts_module: ModuleType) -> None:
     with pytest.raises(QualityInputError) as caught:
         facts_module.build_fact_index(catalogue('example-en.yaml'), annotations)
 
-    assert caught.value.code == 'invalid_evidence'
+    assert caught.value.code == 'inconsistent_fact'
+
+
+def synthetic_annotation() -> Any:
+    """Build one annotation for a product outside the known ids."""
+    from reply_assistant.quality_schema import (
+        Derivation,
+        Evidence,
+        Fact,
+        Predicate,
+        ProductFacts,
+        Unit,
+        ValueType,
+    )
+
+    def evidence(pointer: str, start: int, end: int, quote: str) -> Evidence:
+        """Build one evidence span."""
+        return Evidence(pointer=pointer, start=start, end=end, quote=quote)
+
+    def fact(
+        fid: str,
+        predicate: Predicate,
+        value_type: ValueType,
+        value: str,
+        unit: Unit | None,
+        derivation: Derivation,
+        spans: list[Evidence],
+    ) -> Fact:
+        """Build one grounded fact."""
+        return Fact(
+            id=fid,
+            predicate=predicate,
+            value_type=value_type,
+            value=value,
+            unit=unit,
+            derivation=derivation,
+            evidence=spans,
+        )
+
+    facts = [
+        fact(
+            'mystery:name:0',
+            'name',
+            'text',
+            'Mystery Powder',
+            None,
+            'literal',
+            [evidence('/products/0/name', 0, 14, 'Mystery Powder')],
+        ),
+        fact(
+            'mystery:price:0',
+            'price',
+            'decimal',
+            '12.50',
+            'USD',
+            'decimal',
+            [
+                evidence('/products/0/price', 0, 5, '12.50'),
+                evidence('/products/0/price', 6, 9, 'USD'),
+            ],
+        ),
+        fact(
+            'mystery:package:0',
+            'package_quantity',
+            'integer',
+            '250',
+            'g',
+            'unit_alias',
+            [
+                evidence('/products/0/form', 8, 11, '250'),
+                evidence('/products/0/form', 12, 13, 'g'),
+            ],
+        ),
+    ]
+    support = [
+        {'predicate': 'goes_with', 'status': 'absent', 'reason': 'Empty list.'},
+        {'predicate': 'delivery', 'status': 'absent', 'reason': 'No delivery.'},
+    ]
+    return ProductFacts.model_validate(
+        {
+            'source_id': 'public-en',
+            'product_id': 'mystery-powder',
+            'profile_id': 'F01',
+            'quantity_role': 'package_quantity',
+            'facts': [item.model_dump() for item in facts],
+            'predicate_support': support,
+        }
+    )
+
+
+def synthetic_catalogue() -> Any:
+    """Build one catalogue with a product outside the known ids."""
+    module = importlib.import_module('reply_assistant.knowledge_base')
+    payload = {
+        'company': 'Mystery Goods',
+        'language': 'en',
+        'reply_rules': ['Answer plainly.'],
+        'forbidden_claims': [],
+        'products': [
+            {
+                'id': 'mystery-powder',
+                'name': 'Mystery Powder',
+                'form': 'powder, 250 g jar',
+                'price': '12.50 USD',
+                'description': 'A synthetic product for tests.',
+                'goes_with': [],
+            }
+        ],
+        'disclaimer': None,
+    }
+    return module._document(payload)
+
+
+@pytest.mark.xfail(strict=True, reason='E06 not implemented')
+def test_synthetic_annotation_derives_without_id_branches(
+    facts_module: ModuleType,
+) -> None:
+    index = facts_module.build_fact_index(
+        synthetic_catalogue(), [synthetic_annotation()]
+    )
+    product = index.products['mystery-powder']
+
+    assert product.price is not None
+    assert product.price.value == Decimal('12.50')
+    assert product.price.currency == 'USD'
+    assert product.count('package_quantity') == (250, 'g')
+    assert product.text('name') == 'Mystery Powder'
+    assert product.edges == ()
+    assert product.quantity_role == 'package_quantity'
