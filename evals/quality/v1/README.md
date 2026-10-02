@@ -1,6 +1,6 @@
 # Quality evaluation inputs
 
-These artifacts define the first offline quality-evaluation format. They contain two fictional public sources, agent-prepared annotations for nine products and one pending format example. They are not the planned sixty-case dataset, human reference labels or a working evaluator.
+These artifacts define the first offline quality-evaluation format. They contain two fictional public sources, agent-prepared annotations for nine products, one pending format example, and forty development cases whose labels the repository owner confirmed as the human reference; the twenty holdout cases rest in custodian-controlled storage outside this repository. No working evaluator exists yet.
 
 Read the [specification](../../../specs/002-grounded-product-replies/spec.md), [plan](../../../specs/002-grounded-product-replies/plan.md), [rules](../../../specs/002-grounded-product-replies/rules.md) and [semantic format](../../../specs/002-grounded-product-replies/corpus-format.md). `schema.json` owns structural types; the format owns decoding and package invariants. Source YAML remains in `kb/example-en.yaml` and `kb/example-ru.yaml`.
 
@@ -10,7 +10,7 @@ Read the [specification](../../../specs/002-grounded-product-replies/spec.md), [
 | `sources.json` | Catalogue and rule byte hashes |
 | `facts.json` | Source annotations, exact evidence and support states |
 | `questions.json` | Twenty development question obligations fixed before answers |
-| `development.json` | Forty development cases with pending agent proposals |
+| `development.json` | Forty development cases confirmed as the human reference |
 | `examples/questions.json` | Question obligations fixed independently of an answer |
 | `examples/corpus-valid.json` | Structurally valid pending example, partition examples |
 | `examples/corpus-invalid-type.json` | Intentional schema error: boolean version |

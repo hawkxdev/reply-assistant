@@ -103,18 +103,18 @@ async def test_development_composition_matrix(loader: ModuleType) -> None:
     assert all(len(item.case.categories) == 1 for item in package.cases)
 
 
-async def test_development_labels_are_pending_proposals(loader: ModuleType) -> None:
+async def test_development_labels_are_human_confirmed(loader: ModuleType) -> None:
     package = await load_package(loader)
 
     for item in package.cases:
         label = item.case.label
-        assert label.status == 'pending'
-        assert label.verdict is None
-        assert label.reviewed_by is None
-        assert label.reviewed_at is None
-        assert label.confirmation_ref is None
+        assert label.status == 'confirmed'
+        assert label.verdict in ('correct', 'incorrect')
         assert label.proposed_verdict in ('correct', 'incorrect')
         assert bool(label.rationale)
+        assert label.reviewed_by == 'hawkxdev'
+        assert label.reviewed_at is not None
+        assert label.confirmation_ref is not None
 
 
 async def test_questions_precede_answers(loader: ModuleType) -> None:

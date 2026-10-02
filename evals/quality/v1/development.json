@@ -42,14 +42,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -88,14 +88,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -134,14 +134,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -180,14 +180,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -226,14 +226,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -272,14 +272,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -318,14 +318,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -364,14 +364,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -410,14 +410,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -456,14 +456,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -502,14 +502,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -548,14 +548,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -594,14 +594,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -640,14 +640,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -686,14 +686,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -732,14 +732,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -778,14 +778,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -824,14 +824,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -870,14 +870,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -916,14 +916,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -962,14 +962,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1008,14 +1008,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1054,14 +1054,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1100,14 +1100,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1146,14 +1146,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1192,14 +1192,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1238,14 +1238,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1284,14 +1284,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1330,14 +1330,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1376,14 +1376,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1422,14 +1422,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1468,14 +1468,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1514,14 +1514,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1560,14 +1560,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the mandatory answer is absent; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the mandatory answer is absent; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1606,14 +1606,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1652,14 +1652,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1698,14 +1698,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1744,14 +1744,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the mandatory answer is absent; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the mandatory answer is absent; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1790,14 +1790,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "correct",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer matches the pinned catalogue; no human confirmation.",
+        "verdict": "correct",
+        "rationale": "Agent proposal: the answer matches the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     },
     {
@@ -1836,14 +1836,14 @@
         "generation": null
       },
       "label": {
-        "status": "pending",
+        "status": "confirmed",
         "proposed_verdict": "incorrect",
-        "verdict": null,
-        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; no human confirmation.",
+        "verdict": "incorrect",
+        "rationale": "Agent proposal: the answer contradicts the pinned catalogue; confirmed by the owner as the human reference in the E05 questionnaire session of 2026-10-02.",
         "evidence": [],
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "confirmation_ref": null
+        "reviewed_by": "hawkxdev",
+        "reviewed_at": "2026-10-02T00:00:00Z",
+        "confirmation_ref": "owner-e05-questionnaire-2026-10-02"
       }
     }
   ]
