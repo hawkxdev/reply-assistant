@@ -66,19 +66,17 @@ def package_copy(
                 answer['customer_reply'] = 'Zeolite Powder costs 99.00 USD.'
                 answer['kb_match'] = 'found'
         if balanced:
-            correct = [
-                case
-                for case in corpus['cases']
-                if case['label']['proposed_verdict'] == 'correct'
-            ]
-            incorrect = [
-                case
-                for case in corpus['cases']
-                if case['label']['proposed_verdict'] == 'incorrect'
-            ]
-            en = [case for case in correct + incorrect if '-en-' in case['case_id']]
-            ru = [case for case in correct + incorrect if '-ru-' in case['case_id']]
-            corpus['cases'] = en[:10] + ru[:10]
+            selected: list[dict] = []
+            for language in ('-en-', '-ru-'):
+                for verdict in ('correct', 'incorrect'):
+                    group = [
+                        case
+                        for case in corpus['cases']
+                        if language in case['id']
+                        and case['label']['proposed_verdict'] == verdict
+                    ]
+                    selected.extend(group[:5])
+            corpus['cases'] = selected
         corpus_path.write_bytes(
             json.dumps(corpus, ensure_ascii=False, indent=2).encode('utf-8')
         )
