@@ -100,6 +100,13 @@ def test_description_confirms_and_foreign_text_stays_outside(
     assert good.claims[0].kind == 'description'
     assert good.claims[0].matches is True
     assert foreign.claims == ()
+    covered = ''.join(
+        extract(
+            'Zeolite Powder: A cosmetic clay mask for weekly skin care.', span
+        )
+        for span in foreign.remainders
+    )
+    assert 'A cosmetic clay mask' in covered
 
 
 @pytest.mark.xfail(strict=True, reason='E08 not implemented')
@@ -176,7 +183,7 @@ def test_presence_statements_are_unsupported_errors(
         'Zeolite Powder is in stock.', english_index, 'customer_reply'
     )
     delivery = rules.assess_field(
-        'We deliver to Atlantis within two days.', english_index, 'customer_reply'
+        'We deliver to Atlantis.', english_index, 'customer_reply'
     )
     stock_ru = rules.assess_field(
         'Бразилия Сантос есть в наличии.', russian_index, 'customer_reply'
@@ -242,12 +249,16 @@ def test_directive_binds_the_recorded_upsell(
         'Offer Measuring Spoon.', english_index, 'upsell_hint', 'travel-pill-box'
     )
     free = rules.assess_field('Call us now!', english_index, 'upsell_hint', None)
+    reply_directive = rules.assess_field(
+        'Offer Measuring Spoon.', english_index, 'customer_reply', 'measuring-spoon'
+    )
 
     assert good.claims[0].kind == 'directive'
     assert good.claims[0].matches is True
     assert bad.claims[0].matches is False
     assert free.claims == ()
     assert len(free.remainders) == 1
+    assert reply_directive.claims == ()
 
 
 @pytest.mark.xfail(strict=True, reason='E08 not implemented')
@@ -296,6 +307,12 @@ def test_disclaimer_requires_suffix_on_final_suggestion(
         'customer_reply',
         source_policy=policy(stage='final_suggestion'),
     )
+    wrong = rules.assess_field(
+        'Zeolite Powder costs 18.00 USD.\n' + DISCLAIMER,
+        english_index,
+        'customer_reply',
+        source_policy=policy(stage='final_suggestion'),
+    )
     output = rules.assess_field(
         'Zeolite Powder costs 18.00 USD.',
         english_index,
@@ -311,4 +328,9 @@ def test_disclaimer_requires_suffix_on_final_suggestion(
     ]
     assert len(missing_disclaimer) == 1
     assert missing_disclaimer[0].matches is False
+    wrong_disclaimer = [
+        claim for claim in wrong.claims if claim.kind == 'disclaimer'
+    ]
+    assert len(wrong_disclaimer) == 1
+    assert wrong_disclaimer[0].matches is False
     assert [claim for claim in output.claims if claim.kind == 'disclaimer'] == []
