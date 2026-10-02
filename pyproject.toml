@@ -45,6 +45,7 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "ASYNC", "SIM", "RUF", "PT"]
 "tests/acceptance/test_quality_development_corpus.py" = ["RUF001"]
 "tests/acceptance/test_quality_rules.py" = ["RUF001"]
 "tests/acceptance/test_quality_coverage.py" = ["RUF001"]
+"tests/acceptance/test_quality_cli.py" = ["S108", "S603"]
 "tests/test_quality_rules.py" = ["RUF001"]
 "src/reply_assistant/quality_rules.py" = ["RUF001"]
 
