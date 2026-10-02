@@ -33,7 +33,7 @@ class CaseOutcome:
     human_status: HumanStatus
     human_verdict: HumanVerdict | None
     language: Language
-    independent: bool = True
+    independent: bool = False
 
 
 @dataclass(frozen=True)
@@ -142,6 +142,20 @@ def _structural_reasons(outcomes: Sequence[CaseOutcome]) -> list[str]:
         reasons.append(
             f'{not_evaluated} outcomes were not evaluated, '
             f'the measurement is incomplete'
+        )
+    missing_verdict = sum(
+        1 for item in outcomes if _is_evaluated(item) and item.factual_verdict is None
+    )
+    if missing_verdict:
+        reasons.append(f'{missing_verdict} evaluated outcomes carry no factual verdict')
+    stray_verdict = sum(
+        1
+        for item in outcomes
+        if not _is_evaluated(item) and item.factual_verdict is not None
+    )
+    if stray_verdict:
+        reasons.append(
+            f'{stray_verdict} outcomes were not evaluated but carry a verdict'
         )
     unconfirmed = sum(
         1

@@ -16,6 +16,7 @@ def outcome(**changes: Any) -> CaseOutcome:
         'human_status': 'confirmed',
         'human_verdict': 'correct',
         'language': 'en',
+        'independent': True,
     }
     base.update(changes)
     return CaseOutcome(**base)
@@ -87,6 +88,45 @@ def test_gate_names_every_structural_violation() -> None:
     assert readiness.state == 'not_ready'
     assert any('correct' in reason for reason in readiness.reasons)
     assert any('language' in reason for reason in readiness.reasons)
+
+
+def test_evaluated_outcomes_without_a_verdict_never_reach_thresholds() -> None:
+    outcomes = readiness_set()
+    outcomes[0] = outcome(factual_verdict=None)
+
+    readiness = acceptance_gate(outcomes)
+
+    assert readiness.state == 'not_ready'
+    assert any('no factual verdict' in reason for reason in readiness.reasons)
+
+
+def test_gate_names_a_stray_verdict_on_a_not_evaluated_outcome() -> None:
+    outcomes = readiness_set()
+    outcomes[0] = outcome(
+        execution_status='recorded_failure',
+        factual_verdict='confirmed',
+    )
+
+    readiness = acceptance_gate(outcomes)
+
+    assert readiness.state == 'not_ready'
+    assert any('but carry a verdict' in reason for reason in readiness.reasons)
+
+
+def test_missing_independence_evidence_is_contamination() -> None:
+    outcomes = readiness_set()
+    outcomes[0] = CaseOutcome(
+        execution_status='evaluated',
+        factual_verdict='confirmed',
+        human_status='confirmed',
+        human_verdict='correct',
+        language='en',
+    )
+
+    readiness = acceptance_gate(outcomes)
+
+    assert readiness.state == 'not_ready'
+    assert any('contaminated' in reason for reason in readiness.reasons)
 
 
 def test_gate_names_every_threshold_violation() -> None:
