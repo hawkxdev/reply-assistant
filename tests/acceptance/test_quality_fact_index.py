@@ -265,6 +265,28 @@ def synthetic_annotation() -> Any:
             ],
         ),
         fact(
+            'mystery:form:0',
+            'form',
+            'text',
+            'powder, 250 g jar',
+            None,
+            'literal',
+            [evidence('/products/0/form', 0, 17, 'powder, 250 g jar')],
+        ),
+        fact(
+            'mystery:description:0',
+            'description',
+            'text',
+            'A synthetic product for tests.',
+            None,
+            'literal',
+            [
+                evidence(
+                    '/products/0/description', 0, 30, 'A synthetic product for tests.'
+                )
+            ],
+        ),
+        fact(
             'mystery:package:0',
             'package_quantity',
             'integer',
@@ -329,5 +351,6 @@ def test_synthetic_annotation_derives_without_id_branches(
     assert product.price.currency == 'USD'
     assert product.count('package_quantity') == (250, 'g')
     assert product.text('name') == 'Mystery Powder'
+    assert product.text('form') == 'powder, 250 g jar'
     assert product.edges == ()
     assert product.quantity_role == 'package_quantity'
