@@ -1112,7 +1112,7 @@
     },
     {
       "id": "case-uns-en-1-correct",
-      "group_id": "g-uns-en-1",
+      "group_id": "g-uns-atlantis",
       "question_id": "q-uns-en-1",
       "question_sha256": "7b7d06d63325d93c0a20bbaf229972264d272b80d155a62ad196386cb9aee007",
       "categories": [
@@ -1158,7 +1158,7 @@
     },
     {
       "id": "case-uns-en-1-incorrect",
-      "group_id": "g-uns-en-1",
+      "group_id": "g-uns-atlantis",
       "question_id": "q-uns-en-1",
       "question_sha256": "7b7d06d63325d93c0a20bbaf229972264d272b80d155a62ad196386cb9aee007",
       "categories": [
@@ -1296,7 +1296,7 @@
     },
     {
       "id": "case-uns-ru-1-correct",
-      "group_id": "g-uns-ru-1",
+      "group_id": "g-uns-atlantis",
       "question_id": "q-uns-ru-1",
       "question_sha256": "2fb9967139cdd9cd9dff7f3943af55a33e630b9dfba30c2121e3c2cec26019a9",
       "categories": [
@@ -1342,7 +1342,7 @@
     },
     {
       "id": "case-uns-ru-1-incorrect",
-      "group_id": "g-uns-ru-1",
+      "group_id": "g-uns-atlantis",
       "question_id": "q-uns-ru-1",
       "question_sha256": "2fb9967139cdd9cd9dff7f3943af55a33e630b9dfba30c2121e3c2cec26019a9",
       "categories": [

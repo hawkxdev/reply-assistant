@@ -89,16 +89,17 @@ async def test_development_composition_matrix(loader: ModuleType) -> None:
     package = await load_package(loader)
     languages = [item.assessment.question.language for item in package.cases]
     families = [item.case.categories[0] for item in package.cases]
-    groups: dict[str, set[str]] = {}
+    groups: dict[str, list[str]] = {}
     for item in package.cases:
-        members = groups.setdefault(item.case.group_id, set())
-        members.add(item.case.label.proposed_verdict)
+        members = groups.setdefault(item.case.group_id, [])
+        members.append(item.case.label.proposed_verdict)
 
     assert languages.count('en') == 20
     assert languages.count('ru') == 20
     assert all(families.count(name) == 8 for name in FAMILIES)
-    assert len(groups) == 20
-    assert all(members == {'correct', 'incorrect'} for members in groups.values())
+    assert len(groups) == 19
+    assert sorted(len(members) for members in groups.values()) == [2] * 18 + [4]
+    assert all(set(members) == {'correct', 'incorrect'} for members in groups.values())
     assert all(len(item.case.categories) == 1 for item in package.cases)
 
 
