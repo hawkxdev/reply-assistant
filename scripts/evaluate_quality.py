@@ -71,8 +71,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     return asyncio.run(_run(mode, package, out_dir))
 
 
+def _repository_root() -> Path:
+    """Locate the repository root."""
+    return Path(__file__).resolve().parents[1]
+
+
 async def _run(mode: str, package: Path, out_dir: Path) -> int:
     """Execute one evaluation run."""
+    root = _repository_root()
     # Step 1: verify the package documents and the destination off the loop.
     problem = await asyncio.to_thread(_problem, package, out_dir)
     if problem is not None:
@@ -82,7 +88,7 @@ async def _run(mode: str, package: Path, out_dir: Path) -> int:
     # Step 2: load the verified package.
     try:
         loaded = await load_quality_package(
-            package.parent, documents[0], documents[1], documents[2], [package]
+            root, documents[0], documents[1], documents[2], [package]
         )
     except QualityInputError as error:
         print(f'invalid package: {error}', file=sys.stderr)
