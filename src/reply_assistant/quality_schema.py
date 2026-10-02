@@ -183,6 +183,19 @@ class Questions(_StrictModel):
     questions: list[Question] = Field(min_length=1)
 
 
+class AssessmentQuestion(_StrictModel):
+    """Assessment question projection."""
+
+    source_id: str = Field(min_length=1)
+    message: str = Field(min_length=1, max_length=2000)
+    language: Language
+    place: str | None = Field(min_length=1)
+    topic: Topic | None
+    required_claims: list[RequiredClaim]
+    required_actions: list[RequiredAction]
+    allowed_kb_matches: list[KbMatch] = Field(min_length=1)
+
+
 class Answer(_StrictModel):
     """Keep the recorded answer."""
 

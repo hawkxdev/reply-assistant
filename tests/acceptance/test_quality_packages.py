@@ -164,7 +164,6 @@ def derived_origin(parent: str | None) -> dict[str, Any]:
 # === Supplied set ===
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_supplied_set_loads_end_to_end(loader: ModuleType) -> None:
     package = await loader.load_quality_package(
         ROOT,
@@ -178,7 +177,6 @@ async def test_supplied_set_loads_end_to_end(loader: ModuleType) -> None:
     assert package.cases[0].case.id == 'example-case-price'
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_projection_exposes_assessment_content_only(loader: ModuleType) -> None:
     package = await loader.load_quality_package(
         ROOT,
@@ -222,7 +220,6 @@ async def test_projection_exposes_assessment_content_only(loader: ModuleType) ->
         assert not hasattr(assessment, name)
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_projection_keeps_unknown_upsell_id_as_data(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -237,7 +234,6 @@ async def test_projection_keeps_unknown_upsell_id_as_data(
     assert answer.upsell_product_id == 'not-a-catalogue-product'
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_recorded_failure_remains_a_case(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -277,7 +273,6 @@ async def test_recorded_failure_remains_a_case(
 # === Pins and sources ===
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_binding_example_fails_with_binding_hash(loader: ModuleType) -> None:
     with pytest.raises(loader.QualityInputError) as caught:
         await loader.load_quality_package(
@@ -301,7 +296,6 @@ async def test_binding_example_fails_with_binding_hash(loader: ModuleType) -> No
     ],
     ids=['sources', 'facts', 'questions', 'question'],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_pin_mutations_fail_with_hash_codes(
     loader: ModuleType, tmp_path: Path, defect: str, code: str
 ) -> None:
@@ -322,7 +316,6 @@ async def test_pin_mutations_fail_with_hash_codes(
     assert (await failed_code(loader, paths)).code == code
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_changed_catalogue_fails_with_source_hash(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -342,7 +335,6 @@ async def test_changed_catalogue_fails_with_source_hash(
         ('symlink', 'source_path'),
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_source_paths_reject_before_read(
     loader: ModuleType,
     tmp_path: Path,
@@ -378,7 +370,6 @@ async def test_source_paths_reject_before_read(
     assert all(not read.name.startswith('example-') for read in reads)
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_source_resolution_ignores_process_cwd(
     loader: ModuleType, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -409,7 +400,6 @@ async def test_source_resolution_ignores_process_cwd(
         'category',
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_duplicate_identity_fails(
     loader: ModuleType, tmp_path: Path, defect: str
 ) -> None:
@@ -452,7 +442,6 @@ async def test_duplicate_identity_fails(
     'defect',
     ['question', 'claim-product', 'claim-target', 'edge-target', 'derived-parent'],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_unknown_references_fail(
     loader: ModuleType, tmp_path: Path, defect: str
 ) -> None:
@@ -483,7 +472,6 @@ async def test_unknown_references_fail(
     assert (await failed_code(loader, paths)).code == 'unknown_reference'
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_derived_lineage_cycle_fails(loader: ModuleType, tmp_path: Path) -> None:
     corpus = corpus_payload()
     second = copy_case(case_of(corpus))
@@ -500,7 +488,6 @@ async def test_derived_lineage_cycle_fails(loader: ModuleType, tmp_path: Path) -
 
 
 @pytest.mark.parametrize('defect', ['pointer', 'range', 'equal', 'quote', 'foreign'])
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_evidence_violations_fail(
     loader: ModuleType, tmp_path: Path, defect: str
 ) -> None:
@@ -537,7 +524,6 @@ async def test_evidence_violations_fail(
         'support-contradiction',
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_inconsistent_facts_fail(
     loader: ModuleType, tmp_path: Path, defect: str
 ) -> None:
@@ -677,7 +663,6 @@ async def test_inconsistent_facts_fail(
         'answer-with-code',
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_observation_matrix_fails(
     loader: ModuleType, tmp_path: Path, defect: str, observation: dict[str, Any]
 ) -> None:
@@ -744,7 +729,6 @@ async def test_observation_matrix_fails(
         'empty-rationale',
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_label_matrix_fails(
     loader: ModuleType, tmp_path: Path, defect: str, changes: dict[str, Any]
 ) -> None:
@@ -845,7 +829,6 @@ async def test_label_matrix_fails(
         'derived-with-pointer',
     ],
 )
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_origin_matrix_fails(
     loader: ModuleType, tmp_path: Path, defect: str, origin: dict[str, Any]
 ) -> None:
@@ -865,7 +848,6 @@ async def test_origin_matrix_fails(
 # === Partitions ===
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_group_across_partitions_fails(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -879,7 +861,6 @@ async def test_group_across_partitions_fails(
     assert (await failed_code(loader, paths)).code == 'split_leakage'
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_duplicate_case_across_corpora_fails(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -895,7 +876,6 @@ async def test_duplicate_case_across_corpora_fails(
 # === Isolation ===
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_metadata_changes_keep_projection_equal(
     loader: ModuleType, tmp_path: Path
 ) -> None:
@@ -933,7 +913,6 @@ async def test_metadata_changes_keep_projection_equal(
 # === File boundary ===
 
 
-@pytest.mark.xfail(strict=True, reason='E04 unit 2 not implemented')
 async def test_document_reads_run_once_outside_event_loop(
     loader: ModuleType, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
