@@ -1142,9 +1142,13 @@ def _disclaimer_ranges(
     return tuple(ranges)
 
 
-def _disclaimer_claim(text: str, policy: SourcePolicy) -> Claim | None:
-    """Check the disclaimer suffix."""
+def _disclaimer_claim(
+    text: str, field: FieldName, policy: SourcePolicy
+) -> Claim | None:
+    """Check the reply disclaimer suffix."""
     disclaimer = policy.disclaimer
+    if field != 'customer_reply':
+        return None
     if policy.stage != 'final_suggestion' or not disclaimer:
         return None
     ends_with = text.endswith(disclaimer)
@@ -1293,7 +1297,9 @@ def assess_field(
     service_claims: list[Claim] = []
     only_service = True
     disclaimer = (
-        _disclaimer_claim(text, source_policy) if source_policy is not None else None
+        _disclaimer_claim(text, field, source_policy)
+        if source_policy is not None
+        else None
     )
     skip_ranges = (
         _disclaimer_ranges(text, source_policy) if disclaimer is not None else ()

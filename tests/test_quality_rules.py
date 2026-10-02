@@ -883,6 +883,26 @@ def test_model_output_disclaimer_absence_confirms(
     assert final.verdict == 'error'
 
 
+def test_final_suggestion_disclaimer_confines_to_the_reply(
+    rules: Any, english_index: Any
+) -> None:
+    policy = rules.SourcePolicy(
+        stage='final_suggestion', language='en', disclaimer=DISCLAIMER
+    )
+    hint = rules.assess_field('', english_index, 'upsell_hint', None, policy)
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        make_answer('Zeolite Powder costs 18.00 USD.\n\n' + DISCLAIMER),
+        policy,
+    )
+
+    assert hint.claims == ()
+    assert result.verdict == 'confirmed'
+    assert result.grounds == ()
+
+
 def test_kb_match_inside_the_allowed_set_keeps_the_verdict(
     rules: Any, english_index: Any
 ) -> None:
