@@ -1392,21 +1392,48 @@ def _obligation_label(obligation: RequiredClaim) -> str:
     return f'{obligation.predicate} of {obligation.product_id}'
 
 
+def _action_claim(claim: Claim, kind: str) -> bool:
+    """Match one action claim."""
+    return (
+        claim.kind == 'service'
+        and claim.matches
+        and _SERVICE_ACTIONS.get(claim.expected) == kind
+    )
+
+
+def _phrase_inside_claims(
+    action: RequiredAction,
+    assessment: FieldAssessment,
+    texts: dict[str, str],
+    language: PolicyLanguage,
+) -> bool:
+    """Search spans for one phrase."""
+    text = texts[action.field]
+    for claim in assessment.claims:
+        piece = text[claim.start : claim.end]
+        for start, end in _statements(piece):
+            service = _service_claim(
+                piece[start:end], claim.start + start, action.field, language
+            )
+            if service is not None and _action_claim(service, action.kind):
+                return True
+    return False
+
+
 def _action_satisfied(
-    action: RequiredAction, fields: dict[str, FieldAssessment]
+    action: RequiredAction,
+    fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
 ) -> bool:
     """Report one satisfied action."""
     assessment = fields[action.field]
     if assessment.protected:
         return False
-    for claim in assessment.service_fragments:
-        if (
-            claim.kind == 'service'
-            and claim.matches
-            and (_SERVICE_ACTIONS.get(claim.expected) == action.kind)
-        ):
+    for claim in (*assessment.claims, *assessment.service_fragments):
+        if _action_claim(claim, action.kind):
             return True
-    return False
+    return _phrase_inside_claims(action, assessment, texts, language)
 
 
 def _unknown_satisfied(
@@ -1414,6 +1441,8 @@ def _unknown_satisfied(
     assessment: FieldAssessment,
     question: AssessmentQuestion,
     fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
 ) -> bool:
     """Check one unknown stance."""
     absence_kind = _ABSENCE_KINDS.get(obligation.predicate)
@@ -1422,7 +1451,7 @@ def _unknown_satisfied(
             if claim.kind == absence_kind and claim.matches:
                 return True
     return any(
-        _action_satisfied(action, fields)
+        _action_satisfied(action, fields, texts, language)
         for action in question.required_actions
         if action.field == obligation.field
     )
@@ -1432,6 +1461,8 @@ def _resolve_claim_obligation(
     obligation: RequiredClaim,
     question: AssessmentQuestion,
     fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
     grounds: list[str],
     unresolved: list[str],
 ) -> None:
@@ -1442,7 +1473,9 @@ def _resolve_claim_obligation(
         unresolved.append(f'unresolved_obligation: {label}')
         return
     if obligation.stance == 'unknown':
-        satisfied = _unknown_satisfied(obligation, assessment, question, fields)
+        satisfied = _unknown_satisfied(
+            obligation, assessment, question, fields, texts, language
+        )
         contradicting: list[Claim] = []
     else:
         matching, contradicting = _split_claims(obligation, assessment)
@@ -1458,11 +1491,13 @@ def _resolve_claim_obligation(
 def _resolve_action_obligation(
     action: RequiredAction,
     fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
     grounds: list[str],
     unresolved: list[str],
 ) -> None:
     """Resolve one action obligation."""
-    if _action_satisfied(action, fields):
+    if _action_satisfied(action, fields, texts, language):
         return
     assessment = fields[action.field]
     if _fully_parsed(assessment):
@@ -1487,6 +1522,9 @@ def assess_answer(
         'customer_reply': answer.customer_reply,
         'upsell_hint': answer.upsell_hint,
     }
+    language = (
+        source_policy.language if source_policy is not None else question.language
+    )
     grounds: list[str] = []
     unresolved: list[str] = []
     # Step 1: establish proven claim errors by A02 and A06.
@@ -1513,10 +1551,12 @@ def assess_answer(
         grounds.append('metadata_kb_match')
     # Step 3: resolve the claim obligations by M03 and M04.
     for obligation in question.required_claims:
-        _resolve_claim_obligation(obligation, question, fields, grounds, unresolved)
+        _resolve_claim_obligation(
+            obligation, question, fields, texts, language, grounds, unresolved
+        )
     # Step 4: resolve the action obligations.
     for action in question.required_actions:
-        _resolve_action_obligation(action, fields, grounds, unresolved)
+        _resolve_action_obligation(action, fields, texts, language, grounds, unresolved)
     # Step 5: preserve every unchecked tail by A03.
     for name, assessment in fields.items():
         if assessment.protected:

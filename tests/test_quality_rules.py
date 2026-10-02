@@ -797,6 +797,47 @@ def test_missing_required_handoff_action_is_incomplete(
     assert 'incompleteness' in result.grounds
 
 
+def test_handoff_inside_a_claim_span_satisfies_the_action(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='delivery', product_id=None, stance='unknown')],
+        [required_action('handoff')],
+        allowed=('none',),
+    )
+    answer = make_answer(DELIVERY_REPLY, kb_match='none')
+    absence = rules.Claim(
+        product_id='',
+        kind='absence_delivery',
+        start=0,
+        end=len(DELIVERY_REPLY),
+        expected='no delivery information',
+        found=DELIVERY_REPLY,
+        matches=True,
+    )
+    customer = rules.FieldAssessment(
+        protected=False,
+        protection_reason=None,
+        claims=(absence,),
+        service_fragments=(),
+        remainders=(),
+    )
+    empty = rules.FieldAssessment(
+        protected=False,
+        protection_reason=None,
+        claims=(),
+        service_fragments=(),
+        remainders=(),
+    )
+
+    result = rules.assess_answer(
+        customer, empty, question, answer, english_index, output_policy(rules)
+    )
+
+    assert result.verdict == 'confirmed'
+    assert result.grounds == ()
+
+
 def test_protected_reply_keeps_obligations_unresolved(
     rules: Any, english_index: Any
 ) -> None:
