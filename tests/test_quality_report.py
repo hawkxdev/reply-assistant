@@ -1,8 +1,18 @@
-"""Quality report metrics tests."""
+"""Quality report unit tests."""
 
+import json
 from typing import Any
 
-from reply_assistant.quality_report import CaseOutcome, acceptance_gate, compute_metrics
+from reply_assistant.quality_report import (
+    CaseEntry,
+    CaseOutcome,
+    ReportMeta,
+    acceptance_gate,
+    build_report,
+    compute_metrics,
+    render_json,
+    render_markdown,
+)
 
 # === Fixtures and helpers ===
 
@@ -144,3 +154,69 @@ def test_gate_names_every_threshold_violation() -> None:
     assert any('confirmation' in reason for reason in readiness.reasons)
     assert any('rejection' in reason for reason in readiness.reasons)
     assert any('manual' in reason for reason in readiness.reasons)
+
+
+# === Renderers ===
+
+
+def report_meta() -> ReportMeta:
+    """Build one report meta."""
+
+    return ReportMeta(
+        rules_id='factual-assessment-v1',
+        rules_sha256='a' * 64,
+        sources=[('kb/example-en.yaml', 'b' * 64)],
+    )
+
+
+def case_entry(**changes: Any) -> CaseEntry:
+    """Build one case entry."""
+
+    base: dict[str, Any] = {
+        'case_id': 'case-en-1',
+        'language': 'en',
+        'source_path': 'kb/example-en.yaml',
+        'question': 'How much does Zeolite Powder cost?',
+        'answer': 'Zeolite Powder costs 18.00 USD.',
+        'execution_status': 'evaluated',
+        'factual_verdict': 'confirmed',
+        'human_status': 'confirmed',
+        'human_verdict': 'correct',
+        'grounds': (),
+        'unresolved': (),
+    }
+    base.update(changes)
+    return CaseEntry(**base)
+
+
+def test_markdown_repeats_the_rules_and_source_versions() -> None:
+    markdown = render_markdown(build_report(report_meta(), [case_entry()]))
+
+    assert 'factual-assessment-v1' in markdown
+    assert 'a' * 64 in markdown
+    assert 'kb/example-en.yaml' in markdown
+    assert 'b' * 64 in markdown
+
+
+def test_absolute_source_paths_publish_only_pinned_forms() -> None:
+    entries = [
+        case_entry(
+            case_id='case-local',
+            source_path='/workspace/reply-assistant/kb/example-en.yaml',
+        ),
+        case_entry(case_id='case-unknown', source_path='/elsewhere/other.yaml'),
+    ]
+
+    payload = json.loads(render_json(build_report(report_meta(), entries)))
+
+    assert payload['cases'][0]['source_path'] == 'kb/example-en.yaml'
+    assert payload['cases'][1]['source_path'] is None
+
+
+def test_markdown_keeps_a_verdict_line_without_a_verdict() -> None:
+    report = build_report(
+        report_meta(),
+        [case_entry(execution_status='recorded_failure', factual_verdict=None)],
+    )
+
+    assert 'Verdict: null' in render_markdown(report)

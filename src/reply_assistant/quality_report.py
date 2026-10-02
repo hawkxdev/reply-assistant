@@ -1,7 +1,8 @@
 """Quality metrics and readiness."""
 
+import json
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Literal
 
 # === Contract types ===
@@ -216,3 +217,196 @@ def acceptance_gate(outcomes: Sequence[CaseOutcome]) -> Readiness:
     if threshold:
         return Readiness(state='fail_', reasons=tuple(threshold))
     return Readiness(state='pass_', reasons=())
+
+
+# === Report records ===
+
+REPORT_KIND = 'quality-evaluation'
+SCHEMA_VERSION = 1
+
+
+@dataclass(frozen=True)
+class ReportMeta:
+    """Identity of the inputs."""
+
+    rules_id: str
+    rules_sha256: str
+    sources: Sequence[tuple[str, str]]
+
+
+@dataclass(frozen=True)
+class CaseEntry:
+    """One case of the report."""
+
+    case_id: str
+    language: Language
+    source_path: str
+    question: str
+    answer: str
+    execution_status: ExecutionStatus
+    factual_verdict: FactualVerdict | None
+    human_status: HumanStatus
+    human_verdict: HumanVerdict | None
+    grounds: Sequence[str]
+    unresolved: Sequence[str]
+
+
+@dataclass(frozen=True)
+class QualityReport:
+    """Assembled quality report."""
+
+    report_kind: str
+    schema_version: int
+    meta: ReportMeta
+    summary: Metrics
+    cases: tuple[CaseEntry, ...]
+
+
+# === Report assembly ===
+
+
+def build_report(meta: ReportMeta, entries: Sequence[CaseEntry]) -> QualityReport:
+    """Assemble one quality report."""
+
+    outcomes = [
+        CaseOutcome(
+            execution_status=entry.execution_status,
+            factual_verdict=entry.factual_verdict,
+            human_status=entry.human_status,
+            human_verdict=entry.human_verdict,
+            language=entry.language,
+        )
+        for entry in entries
+    ]
+    return QualityReport(
+        report_kind=REPORT_KIND,
+        schema_version=SCHEMA_VERSION,
+        meta=meta,
+        summary=compute_metrics(outcomes),
+        cases=tuple(entries),
+    )
+
+
+# === Report rendering ===
+
+
+def _text(value: object) -> str:
+    """Text of one optional value."""
+
+    return 'null' if value is None else str(value)
+
+
+def _pinned_path(path: str, meta: ReportMeta) -> str | None:
+    """Pinned form of a path."""
+
+    if not path.startswith('/'):
+        return path
+    for pinned, _digest in meta.sources:
+        if not pinned.startswith('/') and path.endswith(f'/{pinned}'):
+            return pinned
+    return None
+
+
+def _case_payload(entry: CaseEntry, meta: ReportMeta) -> dict[str, object]:
+    """JSON payload of one case."""
+
+    return {
+        'case_id': entry.case_id,
+        'language': entry.language,
+        'source_path': _pinned_path(entry.source_path, meta),
+        'question': entry.question,
+        'answer': entry.answer,
+        'execution_status': entry.execution_status,
+        'factual_verdict': entry.factual_verdict,
+        'human_status': entry.human_status,
+        'human_verdict': entry.human_verdict,
+        'grounds': list(entry.grounds),
+        'unresolved': list(entry.unresolved),
+    }
+
+
+def render_json(report: QualityReport) -> str:
+    """Render the report as JSON."""
+
+    payload: dict[str, object] = {
+        'report_kind': report.report_kind,
+        'schema_version': report.schema_version,
+        'rules_id': report.meta.rules_id,
+        'rules_sha256': report.meta.rules_sha256,
+        'sources': [[path, digest] for path, digest in report.meta.sources],
+        'summary': asdict(report.summary),
+        'cases': [_case_payload(entry, report.meta) for entry in report.cases],
+    }
+    return json.dumps(payload, indent=2) + '\n'
+
+
+def _summary_lines(summary: Metrics) -> list[str]:
+    """Markdown summary block."""
+
+    return [
+        f'- Total: {summary.total}',
+        f'- Evaluated: {summary.evaluated}',
+        f'- Confirmed: {summary.confirmed}',
+        f'- Error: {summary.error}',
+        f'- Manual review: {summary.manual_review}',
+        f'- Failures: {summary.failures}',
+        f'- Pending references: {summary.pending_references}',
+        f'- Disputed references: {summary.disputed_references}',
+        f'- Unresolved references: {summary.unresolved_references}',
+        f'- C size: {summary.c_size}',
+        f'- W size: {summary.w_size}',
+        f'- False confirmation rate: {_text(summary.false_confirmation_rate)}',
+        f'- False rejection rate: {_text(summary.false_rejection_rate)}',
+        f'- Manual share: {_text(summary.manual_share)}',
+    ]
+
+
+def _reason_lines(title: str, reasons: Sequence[str]) -> list[str]:
+    """Markdown block of reasons."""
+
+    lines = [f'{title}:']
+    lines.extend(f'- {reason}' for reason in reasons)
+    lines.append('')
+    return lines
+
+
+def _case_lines(entry: CaseEntry, meta: ReportMeta) -> list[str]:
+    """Markdown block of one case."""
+
+    lines = [
+        f'### {entry.case_id}',
+        '',
+        f'- Language: {entry.language}',
+        f'- Source: {_text(_pinned_path(entry.source_path, meta))}',
+        f'- Execution: {entry.execution_status}',
+        f'- Verdict: {_text(entry.factual_verdict)}',
+        f'- Human: {entry.human_status}/{_text(entry.human_verdict)}',
+        '',
+        f'Question: {entry.question}',
+        '',
+        f'Answer: {entry.answer}',
+        '',
+    ]
+    lines.extend(_reason_lines('Grounds', entry.grounds))
+    lines.extend(_reason_lines('Unresolved', entry.unresolved))
+    return lines
+
+
+def render_markdown(report: QualityReport) -> str:
+    """Render the report as Markdown."""
+
+    lines = [
+        '# Quality evaluation report',
+        '',
+        f'- Report kind: {report.report_kind}',
+        f'- Schema version: {report.schema_version}',
+        f'- Rules: {report.meta.rules_id} ({report.meta.rules_sha256})',
+        '- Sources:',
+    ]
+    lines.extend(f'  - {path} ({digest})' for path, digest in report.meta.sources)
+    lines.extend(['', '## Summary', ''])
+    lines.extend(_summary_lines(report.summary))
+    lines.extend(['', '## Cases', ''])
+    for entry in report.cases:
+        lines.extend(_case_lines(entry, report.meta))
+    return '\n'.join(lines) + '\n'
