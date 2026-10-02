@@ -6,10 +6,17 @@ from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Literal, cast
 
+from reply_assistant.checks import _comparable
 from reply_assistant.quality_facts import (
     PriceValue,
     VerifiedFactIndex,
     VerifiedProductFacts,
+)
+from reply_assistant.quality_schema import (
+    Answer,
+    AssessmentQuestion,
+    RequiredAction,
+    RequiredClaim,
 )
 
 # === Assessment models ===
@@ -34,6 +41,7 @@ ProtectionReason = Literal['quote', 'negation', 'condition', 'question']
 FieldName = Literal['customer_reply', 'upsell_hint']
 Stage = Literal['model_output', 'final_suggestion']
 PolicyLanguage = Literal['en', 'ru']
+Verdict = Literal['confirmed', 'error', 'manual_review']
 
 
 @dataclass(frozen=True)
@@ -43,6 +51,7 @@ class SourcePolicy:
     disclaimer: str | None = None
     stage: Stage | None = None
     language: PolicyLanguage = 'en'
+    forbidden_stems: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -67,6 +76,15 @@ class FieldAssessment:
     claims: tuple[Claim, ...]
     service_fragments: tuple[Claim, ...]
     remainders: tuple[tuple[int, int], ...]
+
+
+@dataclass(frozen=True)
+class AnswerAssessment:
+    """Aggregated answer verdict."""
+
+    verdict: Verdict
+    grounds: tuple[str, ...]
+    unresolved: tuple[str, ...]
 
 
 # === Protection pass N07 ===
@@ -816,20 +834,37 @@ def _delivery_claim(fragment: str, start: int) -> Claim | None:
 
 # === Service phrases R14 ===
 
-_SERVICE_PHRASES: tuple[tuple[tuple[str, ...], PolicyLanguage, bool], ...] = (
-    (('Hello',), 'en', False),
-    (('Здравствуйте',), 'ru', False),
-    (('I', 'can', 'pass', 'the', 'question', 'to', 'a', 'manager'), 'en', True),
-    (('Могу', 'передать', 'вопрос', 'менеджеру'), 'ru', True),
-    (('Please', 'ask', 'a', 'doctor', 'about', 'health', 'questions'), 'en', True),
+_SERVICE_PHRASES: tuple[
+    tuple[tuple[str, ...], PolicyLanguage, bool, str | None], ...
+] = (
+    (('Hello',), 'en', False, None),
+    (('Здравствуйте',), 'ru', False, None),
+    (
+        ('I', 'can', 'pass', 'the', 'question', 'to', 'a', 'manager'),
+        'en',
+        True,
+        'handoff',
+    ),
+    (('Могу', 'передать', 'вопрос', 'менеджеру'), 'ru', True, 'handoff'),
+    (
+        ('Please', 'ask', 'a', 'doctor', 'about', 'health', 'questions'),
+        'en',
+        True,
+        'doctor',
+    ),
 )
+_SERVICE_ACTIONS: dict[str, str] = {
+    ' '.join(words): action
+    for words, _language, _any_field, action in _SERVICE_PHRASES
+    if action is not None
+}
 
 
 def _service_claim(
     fragment: str, start: int, field: FieldName, language: PolicyLanguage
 ) -> Claim | None:
     """Parse one service phrase."""
-    for words, phrase_language, any_field in _SERVICE_PHRASES:
+    for words, phrase_language, any_field, _action in _SERVICE_PHRASES:
         if phrase_language != language:
             continue
         if field == 'upsell_hint' and not any_field:
@@ -1109,9 +1144,13 @@ def _disclaimer_ranges(
     return tuple(ranges)
 
 
-def _disclaimer_claim(text: str, policy: SourcePolicy) -> Claim | None:
-    """Check the disclaimer suffix."""
+def _disclaimer_claim(
+    text: str, field: FieldName, policy: SourcePolicy
+) -> Claim | None:
+    """Check the reply disclaimer suffix."""
     disclaimer = policy.disclaimer
+    if field != 'customer_reply':
+        return None
     if policy.stage != 'final_suggestion' or not disclaimer:
         return None
     ends_with = text.endswith(disclaimer)
@@ -1260,7 +1299,9 @@ def assess_field(
     service_claims: list[Claim] = []
     only_service = True
     disclaimer = (
-        _disclaimer_claim(text, source_policy) if source_policy is not None else None
+        _disclaimer_claim(text, field, source_policy)
+        if source_policy is not None
+        else None
     )
     skip_ranges = (
         _disclaimer_ranges(text, source_policy) if disclaimer is not None else ()
@@ -1282,9 +1323,7 @@ def assess_field(
             remainders.append(remainder)
     if only_service:
         claims.extend(service_claims)
-        service_fragments: tuple[Claim, ...] = ()
-    else:
-        service_fragments = tuple(service_claims)
+    service_fragments = tuple(service_claims)
     if disclaimer is not None:
         claims.append(disclaimer)
     return FieldAssessment(
@@ -1294,3 +1333,265 @@ def assess_field(
         service_fragments=service_fragments,
         remainders=tuple(remainders),
     )
+
+
+# === Answer aggregation ===
+
+_OBLIGATION_KINDS: dict[str, frozenset[str]] = {
+    'price': frozenset({'price'}),
+    'form': frozenset({'form'}),
+    'package_quantity': frozenset({'form'}),
+    'form_quantity': frozenset({'form'}),
+    'batch_capacity': frozenset({'batch_capacity', 'form'}),
+    'section_count': frozenset({'form'}),
+    'description': frozenset({'description'}),
+    'goes_with': frozenset({'relation'}),
+}
+_ABSENCE_KINDS: dict[str, str] = {
+    'delivery': 'absence_delivery',
+    'stock': 'absence_stock',
+}
+_DOMAIN_KINDS = frozenset({'stock', 'delivery'})
+
+
+def _field_claims(assessment: FieldAssessment) -> tuple[Claim, ...]:
+    """Collect every field claim."""
+    return (*assessment.claims, *assessment.service_fragments)
+
+
+def _stem_grounds(texts: dict[str, str], stems: tuple[str, ...]) -> list[str]:
+    """Ground matched forbidden stems."""
+    grounds: list[str] = []
+    for text in texts.values():
+        padded = f' {_comparable(text)} '
+        for stem in stems:
+            if _comparable(stem) in padded:
+                grounds.append(f'domain: forbidden stem {stem.strip()}')
+    return grounds
+
+
+def _fully_parsed(assessment: FieldAssessment) -> bool:
+    """Report one complete parse."""
+    return not assessment.protected and not assessment.remainders
+
+
+def _split_claims(
+    obligation: RequiredClaim, assessment: FieldAssessment
+) -> tuple[list[Claim], list[Claim]]:
+    """Split claims by matching."""
+    kinds = _OBLIGATION_KINDS.get(
+        obligation.predicate, frozenset({obligation.predicate})
+    )
+    matching: list[Claim] = []
+    contradicting: list[Claim] = []
+    for claim in assessment.claims:
+        if claim.kind not in kinds:
+            continue
+        if (
+            obligation.product_id is not None
+            and claim.product_id != obligation.product_id
+        ):
+            continue
+        if obligation.predicate == 'goes_with' and (
+            obligation.target_product_id is not None
+            and claim.expected != obligation.target_product_id
+        ):
+            continue
+        if claim.matches:
+            matching.append(claim)
+        else:
+            contradicting.append(claim)
+    return matching, contradicting
+
+
+def _obligation_label(obligation: RequiredClaim) -> str:
+    """Name one claim obligation."""
+    if obligation.product_id is None:
+        return obligation.predicate
+    return f'{obligation.predicate} of {obligation.product_id}'
+
+
+def _action_claim(claim: Claim, kind: str) -> bool:
+    """Match one action claim."""
+    return (
+        claim.kind == 'service'
+        and claim.matches
+        and _SERVICE_ACTIONS.get(claim.expected) == kind
+    )
+
+
+def _phrase_inside_claims(
+    action: RequiredAction,
+    assessment: FieldAssessment,
+    texts: dict[str, str],
+    language: PolicyLanguage,
+) -> bool:
+    """Search spans for one phrase."""
+    text = texts[action.field]
+    for claim in assessment.claims:
+        piece = text[claim.start : claim.end]
+        for start, end in _statements(piece):
+            service = _service_claim(
+                piece[start:end], claim.start + start, action.field, language
+            )
+            if service is not None and _action_claim(service, action.kind):
+                return True
+    return False
+
+
+def _action_satisfied(
+    action: RequiredAction,
+    fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
+) -> bool:
+    """Report one satisfied action."""
+    assessment = fields[action.field]
+    if assessment.protected:
+        return False
+    for claim in (*assessment.claims, *assessment.service_fragments):
+        if _action_claim(claim, action.kind):
+            return True
+    return _phrase_inside_claims(action, assessment, texts, language)
+
+
+def _unknown_satisfied(
+    obligation: RequiredClaim,
+    assessment: FieldAssessment,
+    question: AssessmentQuestion,
+    fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
+) -> bool:
+    """Check one unknown stance."""
+    absence_kind = _ABSENCE_KINDS.get(obligation.predicate)
+    if absence_kind is not None:
+        return any(
+            claim.kind == absence_kind and claim.matches for claim in assessment.claims
+        )
+    return any(
+        _action_satisfied(action, fields, texts, language)
+        for action in question.required_actions
+        if action.field == obligation.field
+    )
+
+
+def _resolve_claim_obligation(
+    obligation: RequiredClaim,
+    question: AssessmentQuestion,
+    fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
+    grounds: list[str],
+    unresolved: list[str],
+) -> None:
+    """Resolve one claim obligation."""
+    assessment = fields[obligation.field]
+    label = _obligation_label(obligation)
+    if assessment.protected:
+        unresolved.append(f'unresolved_obligation: {label}')
+        return
+    if obligation.stance == 'unknown':
+        satisfied = _unknown_satisfied(
+            obligation, assessment, question, fields, texts, language
+        )
+        contradicting: list[Claim] = []
+    else:
+        matching, contradicting = _split_claims(obligation, assessment)
+        satisfied = bool(matching)
+    if satisfied or contradicting:
+        return
+    if _fully_parsed(assessment):
+        grounds.append('incompleteness')
+    else:
+        unresolved.append(f'unresolved_obligation: {label}')
+
+
+def _resolve_action_obligation(
+    action: RequiredAction,
+    fields: dict[str, FieldAssessment],
+    texts: dict[str, str],
+    language: PolicyLanguage,
+    grounds: list[str],
+    unresolved: list[str],
+) -> None:
+    """Resolve one action obligation."""
+    if _action_satisfied(action, fields, texts, language):
+        return
+    assessment = fields[action.field]
+    if _fully_parsed(assessment):
+        grounds.append('incompleteness')
+    else:
+        unresolved.append(f'unresolved_action: {action.kind}')
+
+
+def assess_answer(
+    customer: FieldAssessment,
+    hint: FieldAssessment,
+    question: AssessmentQuestion,
+    answer: Answer,
+    index: VerifiedFactIndex,
+    source_policy: SourcePolicy | None = None,
+) -> AnswerAssessment:
+    """Aggregate one answer verdict."""
+    if source_policy is not None:
+        _check_policy(source_policy)
+    fields = {'customer_reply': customer, 'upsell_hint': hint}
+    texts = {
+        'customer_reply': answer.customer_reply,
+        'upsell_hint': answer.upsell_hint,
+    }
+    language = (
+        source_policy.language if source_policy is not None else question.language
+    )
+    grounds: list[str] = []
+    unresolved: list[str] = []
+    # Step 1: run the forbidden stem filter, then prove claim errors by A02 and A06.
+    if source_policy is not None:
+        grounds.extend(_stem_grounds(texts, source_policy.forbidden_stems))
+    for name, assessment in fields.items():
+        if assessment.protected:
+            unresolved.append(f'protected_context: {name}')
+            continue
+        for claim in _field_claims(assessment):
+            if claim.matches:
+                continue
+            if claim.kind in _DOMAIN_KINDS:
+                grounds.append('domain')
+            else:
+                grounds.append(
+                    f'{claim.kind}_mismatch: expected {claim.expected}, '
+                    f'found {claim.found}'
+                )
+    # Step 2: check the metadata obligations by M01 and M02.
+    if answer.upsell_product_id is not None and (
+        answer.upsell_product_id not in index.products
+    ):
+        grounds.append('metadata_upsell')
+    if answer.kb_match not in question.allowed_kb_matches:
+        grounds.append('metadata_kb_match')
+    # Step 3: resolve the claim obligations by M03 and M04.
+    for obligation in question.required_claims:
+        _resolve_claim_obligation(
+            obligation, question, fields, texts, language, grounds, unresolved
+        )
+    # Step 4: resolve the action obligations.
+    for action in question.required_actions:
+        _resolve_action_obligation(action, fields, texts, language, grounds, unresolved)
+    # Step 5: preserve every unchecked tail by A03.
+    for name, assessment in fields.items():
+        if assessment.protected:
+            continue
+        text = texts[name]
+        for start, end in assessment.remainders:
+            unresolved.append(f'remainder: {name}: {text[start:end]}')
+    # Step 6: a proven error outranks preserved uncertainty by A02.
+    ordered_grounds = tuple(dict.fromkeys(grounds))
+    kept = tuple(dict.fromkeys(unresolved))
+    if ordered_grounds:
+        verdict: Verdict = 'error'
+    elif kept:
+        verdict = 'manual_review'
+    else:
+        verdict = 'confirmed'
+    return AnswerAssessment(verdict=verdict, grounds=ordered_grounds, unresolved=kept)
