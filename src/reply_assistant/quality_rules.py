@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Literal, cast
 
+from reply_assistant.checks import _comparable
 from reply_assistant.quality_facts import (
     PriceValue,
     VerifiedFactIndex,
@@ -50,6 +51,7 @@ class SourcePolicy:
     disclaimer: str | None = None
     stage: Stage | None = None
     language: PolicyLanguage = 'en'
+    forbidden_stems: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1357,6 +1359,17 @@ def _field_claims(assessment: FieldAssessment) -> tuple[Claim, ...]:
     return (*assessment.claims, *assessment.service_fragments)
 
 
+def _stem_grounds(texts: dict[str, str], stems: tuple[str, ...]) -> list[str]:
+    """Ground matched forbidden stems."""
+    grounds: list[str] = []
+    for text in texts.values():
+        padded = f' {_comparable(text)} '
+        for stem in stems:
+            if _comparable(stem) in padded:
+                grounds.append(f'domain: forbidden stem {stem.strip()}')
+    return grounds
+
+
 def _fully_parsed(assessment: FieldAssessment) -> bool:
     """Report one complete parse."""
     return not assessment.protected and not assessment.remainders
@@ -1453,9 +1466,9 @@ def _unknown_satisfied(
     """Check one unknown stance."""
     absence_kind = _ABSENCE_KINDS.get(obligation.predicate)
     if absence_kind is not None:
-        for claim in assessment.claims:
-            if claim.kind == absence_kind and claim.matches:
-                return True
+        return any(
+            claim.kind == absence_kind and claim.matches for claim in assessment.claims
+        )
     return any(
         _action_satisfied(action, fields, texts, language)
         for action in question.required_actions
@@ -1533,7 +1546,9 @@ def assess_answer(
     )
     grounds: list[str] = []
     unresolved: list[str] = []
-    # Step 1: establish proven claim errors by A02 and A06.
+    # Step 1: run the forbidden stem filter, then prove claim errors by A02 and A06.
+    if source_policy is not None:
+        grounds.extend(_stem_grounds(texts, source_policy.forbidden_stems))
     for name, assessment in fields.items():
         if assessment.protected:
             unresolved.append(f'protected_context: {name}')

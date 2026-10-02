@@ -524,6 +524,7 @@ def test_invalid_policy_values_raise(rules: Any, english_index: Any) -> None:
 # === Answer aggregation ===
 
 DISCLAIMER = 'This product is a food supplement and is not a medicine.'
+FORBIDDEN_STEMS = (' cure', 'treats')
 DELIVERY_REPLY = (
     'I do not have information about delivery to Atlantis or delivery '
     'times. I can pass the question to a manager.'
@@ -602,6 +603,13 @@ def aggregate(rules: Any, index: Any, question: Any, answer: Any, policy: Any) -
 def output_policy(rules: Any, language: str = 'en') -> Any:
     """Build one output stage policy."""
     return rules.SourcePolicy(stage='model_output', language=language)
+
+
+def forbidden_policy(rules: Any) -> Any:
+    """Build one stem checking policy."""
+    return rules.SourcePolicy(
+        stage='model_output', language='en', forbidden_stems=FORBIDDEN_STEMS
+    )
 
 
 def test_development_cases_aggregate_to_the_confirmed_labels() -> None:
@@ -958,3 +966,88 @@ def test_service_only_field_emits_its_service_fragment(
     assert combined.remainders == ()
     assert [claim.kind for claim in alone.claims] == ['service']
     assert [claim.kind for claim in alone.service_fragments] == ['service']
+
+
+def test_forbidden_stem_in_reply_is_a_domain_error(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('Zeolite Powder cures spring allergies.')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        forbidden_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert 'domain: forbidden stem cure' in result.grounds
+
+
+def test_forbidden_stem_in_hint_is_a_domain_error(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer(
+        'Zeolite Powder costs 18.00 USD.', hint='It treats spring allergies.'
+    )
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        forbidden_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert 'domain: forbidden stem treats' in result.grounds
+
+
+def test_protected_reply_with_forbidden_stem_is_a_domain_error(
+    rules: Any, english_index: Any
+) -> None:
+    answer = make_answer('"Zeolite Powder cures spring allergies."')
+
+    result = aggregate(
+        rules,
+        english_index,
+        make_question([required_claim()]),
+        answer,
+        forbidden_policy(rules),
+    )
+
+    assert result.verdict == 'error'
+    assert 'domain: forbidden stem cure' in result.grounds
+
+
+def test_forbidden_stem_policy_keeps_the_absence_templates(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='delivery', product_id=None, stance='unknown')],
+        [required_action('handoff')],
+        allowed=('none',),
+    )
+    answer = make_answer(DELIVERY_REPLY, kb_match='none')
+
+    result = aggregate(rules, english_index, question, answer, forbidden_policy(rules))
+
+    assert result.verdict == 'confirmed'
+    assert result.grounds == ()
+
+
+def test_handoff_only_delivery_answer_is_incomplete(
+    rules: Any, english_index: Any
+) -> None:
+    question = make_question(
+        [required_claim(predicate='delivery', product_id=None, stance='unknown')],
+        [required_action('handoff')],
+        allowed=('none',),
+    )
+    answer = make_answer('I can pass the question to a manager.', kb_match='none')
+
+    result = aggregate(rules, english_index, question, answer, output_policy(rules))
+
+    assert result.verdict == 'error'
+    assert 'incompleteness' in result.grounds
