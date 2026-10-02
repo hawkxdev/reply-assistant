@@ -10,7 +10,7 @@ Read the [specification](../../../specs/002-grounded-product-replies/spec.md), [
 | `sources.json` | Catalogue and rule byte hashes |
 | `facts.json` | Source annotations, exact evidence and support states |
 | `questions.json` | Twenty development question obligations fixed before answers |
-| `development.json` | Forty development cases with pending agent proposals |
+| `development.json` | Forty development cases confirmed as the human reference |
 | `examples/questions.json` | Question obligations fixed independently of an answer |
 | `examples/corpus-valid.json` | Structurally valid pending example, partition examples |
 | `examples/corpus-invalid-type.json` | Intentional schema error: boolean version |
