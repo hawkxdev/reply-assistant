@@ -101,9 +101,7 @@ def test_description_confirms_and_foreign_text_stays_outside(
     assert good.claims[0].matches is True
     assert foreign.claims == ()
     covered = ''.join(
-        extract(
-            'Zeolite Powder: A cosmetic clay mask for weekly skin care.', span
-        )
+        extract('Zeolite Powder: A cosmetic clay mask for weekly skin care.', span)
         for span in foreign.remainders
     )
     assert 'A cosmetic clay mask' in covered
@@ -328,9 +326,7 @@ def test_disclaimer_requires_suffix_on_final_suggestion(
     ]
     assert len(missing_disclaimer) == 1
     assert missing_disclaimer[0].matches is False
-    wrong_disclaimer = [
-        claim for claim in wrong.claims if claim.kind == 'disclaimer'
-    ]
+    wrong_disclaimer = [claim for claim in wrong.claims if claim.kind == 'disclaimer']
     assert len(wrong_disclaimer) == 1
     assert wrong_disclaimer[0].matches is False
     assert [claim for claim in output.claims if claim.kind == 'disclaimer'] == []
