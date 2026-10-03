@@ -28,6 +28,16 @@ def _partial_fallback_error() -> ValidationError:
     return ValidationError.from_exception_data('Settings', [line])
 
 
+def _kb_source_error(field: str, code: str, message: str) -> ValidationError:
+    """Error on one knowledge source."""
+    line: InitErrorDetails = {
+        'type': PydanticCustomError(code, message),
+        'loc': (field,),
+        'input': None,
+    }
+    return ValidationError.from_exception_data('Settings', [line])
+
+
 class Settings(BaseSettings):
     """Service deployment settings."""
 
@@ -41,12 +51,33 @@ class Settings(BaseSettings):
     provider_api_key: SecretStr
     provider_base_url: str
     provider_model: str
-    kb_path: Path
+    kb_path: Path | None = None
+    kb_registry: Path | None = None
+    api_token: SecretStr | None = None
     fallback_provider_api_key: SecretStr | None = None
     fallback_provider_base_url: str | None = None
     fallback_provider_model: str | None = None
     fallback_provider_json_mode: bool = True
     provider_max_output_tokens: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode='before')
+    @classmethod
+    def exactly_one_kb_source(cls, data: Any) -> Any:
+        """Require one knowledge source."""
+        if isinstance(data, dict):
+            has_path = data.get('kb_path') is not None
+            has_registry = data.get('kb_registry') is not None
+            if has_path and has_registry:
+                raise _kb_source_error(
+                    'kb_registry',
+                    'both_kb_sources',
+                    'set either kb_path or kb_registry',
+                )
+            if not has_path and not has_registry:
+                raise _kb_source_error(
+                    'kb_path', 'missing_kb_source', 'set kb_path or kb_registry'
+                )
+        return data
 
     @model_validator(mode='before')
     @classmethod
