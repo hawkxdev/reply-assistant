@@ -71,7 +71,6 @@ def prompt_of(fake: FakeModelClient) -> str:
 # === Registry selection ===
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_registered_client_selects_own_base(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -92,7 +91,6 @@ def test_registered_client_selects_own_base(
     assert '890 RUB' in prompt
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_default_base_without_header(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -111,7 +109,6 @@ def test_default_base_without_header(
     assert '18.00 USD' in prompt
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_unknown_client_falls_back_to_default(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -132,7 +129,6 @@ def test_unknown_client_falls_back_to_default(
     assert '18.00 USD' in prompt
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_registry_is_re_read_per_request(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -164,7 +160,6 @@ def test_registry_is_re_read_per_request(
 # === Validation ===
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_invalid_base_is_refused_at_load(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -177,7 +172,6 @@ def test_invalid_base_is_refused_at_load(
         pass
 
 
-@pytest.mark.xfail(strict=True, reason='the registry is not implemented')
 def test_traversal_path_is_rejected(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -191,7 +185,6 @@ def test_traversal_path_is_rejected(
 # === Optional API token ===
 
 
-@pytest.mark.xfail(strict=True, reason='the token is not implemented')
 def test_token_set_requires_the_header(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -224,7 +217,6 @@ def test_token_set_requires_the_header(
     assert right.status_code == 200
 
 
-@pytest.mark.xfail(strict=True, reason='the token is not implemented')
 def test_token_unset_means_no_check(
     kb_directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

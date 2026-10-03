@@ -125,7 +125,6 @@ def test_missing_variable_is_rejected(
     assert rejected_fields(caught.value) == {(field, 'missing')}
 
 
-@pytest.mark.xfail(strict=True, reason='the registry settings are not implemented')
 def test_missing_kb_source_is_rejected(
     settings_class: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -138,7 +137,6 @@ def test_missing_kb_source_is_rejected(
     assert rejected_fields(caught.value) == {('kb_path', 'missing_kb_source')}
 
 
-@pytest.mark.xfail(strict=True, reason='the registry settings are not implemented')
 def test_both_kb_sources_are_rejected(
     settings_class: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:

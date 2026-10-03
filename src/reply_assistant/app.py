@@ -1,26 +1,32 @@
 """HTTP application factory."""
 
 import logging
+import secrets
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from importlib.resources import files
 
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from reply_assistant import __version__
 from reply_assistant.crm_event import CRMEventError, parse_crm_event
-from reply_assistant.knowledge_base import KnowledgeBase, load_knowledge_base
+from reply_assistant.knowledge_base import (
+    KnowledgeBase,
+    KnowledgeBaseError,
+    load_knowledge_base,
+)
 from reply_assistant.model_client import (
     FallbackClient,
     ModelClient,
     OpenAICompatibleClient,
     ProviderError,
 )
+from reply_assistant.registry import Registry, RegistryError, load_registry
 from reply_assistant.service import Suggestion, SuggestionRejectedError, suggest
 from reply_assistant.settings import Settings
 from reply_assistant.suggestion import SuggestionRequest
@@ -55,6 +61,15 @@ def _error(
     """Build one error answer."""
     body = ErrorBody(code=code, message=message)
     return JSONResponse(status_code=status, content=body.model_dump(), headers=headers)
+
+
+class UnauthorizedError(Exception):
+    """Missing or wrong token."""
+
+
+def _tokens_match(given: str, expected: str) -> bool:
+    """Compare two tokens."""
+    return secrets.compare_digest(given.encode('utf-8'), expected.encode('utf-8'))
 
 
 # === Page ===
@@ -123,6 +138,16 @@ class Dependencies:
 
     kb: KnowledgeBase | None = None
     client: ModelClient | None = None
+    registry: Registry | None = None
+    api_token: SecretStr | None = None
+
+    async def select_kb(self, client_id: str | None) -> KnowledgeBase:
+        """Select the serving base."""
+        if self.registry is not None:
+            return await self.registry.select(client_id)
+        if self.kb is None:
+            raise RuntimeError('the application did not start')
+        return self.kb
 
 
 def create_app(
@@ -137,8 +162,17 @@ def create_app(
         owned: list[OpenAICompatibleClient | FallbackClient] = []
         if parts.kb is None or parts.client is None:
             settings = Settings()
+            parts.api_token = settings.api_token
             if parts.kb is None:
-                parts.kb = await load_knowledge_base(settings.kb_path)
+                if settings.kb_registry is not None:
+                    loaded = await load_registry(settings.kb_registry)
+                    parts.registry = loaded
+                    parts.kb = loaded.default_kb
+                else:
+                    kb_path = settings.kb_path
+                    if kb_path is None:
+                        raise RuntimeError('no knowledge base source is configured')
+                    parts.kb = await load_knowledge_base(kb_path)
             if parts.client is None:
                 built: OpenAICompatibleClient | FallbackClient
                 if settings.fallback_provider_base_url is None:
@@ -184,6 +218,21 @@ def create_app(
         """Answer an invalid event."""
         return _error(422, 'invalid_crm_event', 'the CRM message event is invalid')
 
+    @app.exception_handler(UnauthorizedError)
+    async def unauthorized(request: Request, error: UnauthorizedError) -> JSONResponse:
+        """Answer an unauthorized request."""
+        return _error(401, 'unauthorized', 'the API token is missing or wrong')
+
+    @app.exception_handler(RegistryError)
+    async def registry_failed(request: Request, error: RegistryError) -> JSONResponse:
+        """Answer a registry failure."""
+        return _error(500, 'registry_error', 'the knowledge base registry is invalid')
+
+    @app.exception_handler(KnowledgeBaseError)
+    async def invalid_base(request: Request, error: KnowledgeBaseError) -> JSONResponse:
+        """Answer an invalid base."""
+        return _error(500, 'kb_error', 'the knowledge base is invalid')
+
     @app.exception_handler(StarletteHTTPException)
     async def framework_failed(
         request: Request, error: StarletteHTTPException
@@ -219,25 +268,37 @@ def create_app(
         """Report service health."""
         return Health(name='reply-assistant', status='ok', version=__version__)
 
-    @app.post('/api/suggest')
-    async def suggest_answer(request: SuggestionRequest) -> Suggestion:
-        """Return one checked suggestion."""
-        if parts.kb is None or parts.client is None:
-            raise RuntimeError('the application did not start')
-        return await suggest(request, parts.kb, parts.client)
+    async def require_token(request: Request) -> None:
+        """Check the shared token."""
+        token = parts.api_token
+        if token is not None and not _tokens_match(
+            request.headers.get('X-API-Token', ''), token.get_secret_value()
+        ):
+            raise UnauthorizedError()
 
-    @app.post('/webhooks/crm/messages')
+    @app.post('/api/suggest', dependencies=[Depends(require_token)])
+    async def suggest_answer(
+        request: Request, payload: SuggestionRequest
+    ) -> Suggestion:
+        """Return one checked suggestion."""
+        if parts.client is None:
+            raise RuntimeError('the application did not start')
+        kb = await parts.select_kb(request.headers.get('X-Client-Id'))
+        return await suggest(payload, kb, parts.client)
+
+    @app.post('/webhooks/crm/messages', dependencies=[Depends(require_token)])
     async def crm_message(
         request: Request, background: BackgroundTasks
     ) -> JSONResponse:
         """Acknowledge one CRM event."""
-        if parts.kb is None or parts.client is None:
+        if parts.client is None:
             raise RuntimeError('the application did not start')
         if not _is_crm_form(request.headers.get('content-type', '')):
             raise StarletteHTTPException(415)
         body = await _limited_body(request)
         message = parse_crm_event(body)
-        background.add_task(process_crm_message, message, parts.kb, parts.client)
+        kb = await parts.select_kb(request.headers.get('X-Client-Id'))
+        background.add_task(process_crm_message, message, kb, parts.client)
         return JSONResponse(
             status_code=202, content={'accepted': True}, background=background
         )
