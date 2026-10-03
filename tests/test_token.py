@@ -57,6 +57,22 @@ def test_wrong_token_answers_the_unauthorized_envelope(
     }
 
 
+def test_right_token_accepts_the_webhook(monkeypatch: pytest.MonkeyPatch) -> None:
+    token_env(monkeypatch, 'secret-token')
+    model = FakeModelClient([REPLY])
+
+    with TestClient(create_app(client=model)) as client:
+        response = client.post(
+            '/webhooks/crm/messages',
+            headers={'X-API-Token': 'secret-token'},
+            data={'message[add][0][text]': 'Price?'},
+        )
+
+    assert response.status_code == 202
+    assert response.json() == {'accepted': True}
+    assert len(model.calls) == 1
+
+
 def test_token_comparison_is_constant_time(monkeypatch: pytest.MonkeyPatch) -> None:
     token_env(monkeypatch, 'secret-token')
     compared: list[tuple[bytes, bytes]] = []

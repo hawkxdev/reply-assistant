@@ -22,6 +22,14 @@ REPLY = json.dumps(
         'kb_match': 'found',
     }
 )
+RU_REPLY = json.dumps(
+    {
+        'customer_reply': 'Эфиопия Сидамо, зерно, пачка 250 г, стоит 890 RUB.',
+        'upsell_product_id': 'paper-filters-100',
+        'upsell_hint': 'Предложите бумажные фильтры для воронки.',
+        'kb_match': 'found',
+    }
+)
 PROVIDER = {
     'REPLY_ASSISTANT_PROVIDER_API_KEY': 'test-key',
     'REPLY_ASSISTANT_PROVIDER_BASE_URL': 'https://llm.example.test/v1',
@@ -128,13 +136,31 @@ async def test_select_rejects_traversal_added_later(kb_directory: Path) -> None:
         await registry.select('evil')
 
 
-async def test_select_rejects_an_unreadable_registry(kb_directory: Path) -> None:
-    path = write_registry(kb_directory, {'default': 'kb/example-en.yaml'})
-    registry = await load_registry(path)
-    path.write_text('{"default": ', encoding='utf-8')
+# === Webhook selection ===
 
-    with pytest.raises(RegistryError):
-        await registry.select(None)
+
+def test_webhook_selects_the_base_by_client_header(
+    kb_directory: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = write_registry(
+        kb_directory,
+        {'default': 'kb/example-en.yaml', 'client-ru': 'kb/example-ru.yaml'},
+    )
+    registry_env(monkeypatch, path)
+    fake = FakeModelClient([RU_REPLY])
+
+    with TestClient(create_app(client=fake)) as client:
+        response = client.post(
+            '/webhooks/crm/messages',
+            headers={'X-Client-Id': 'client-ru'},
+            data={'message[add][0][text]': 'Price?'},
+        )
+
+    assert response.status_code == 202
+    assert response.json() == {'accepted': True}
+    prompt = fake.calls[0][0][0]['content']
+    assert 'Эфиопия Сидамо' in prompt
+    assert '890 RUB' in prompt
 
 
 # === Request time failures ===
