@@ -22,7 +22,7 @@ DOTENV = {
     'REPLY_ASSISTANT_PROVIDER_MODEL': 'dotenv-model',
     'REPLY_ASSISTANT_KB_PATH': 'dotenv/kb.yaml',
 }
-FIELDS = ['provider_api_key', 'provider_base_url', 'provider_model', 'kb_path']
+FIELDS = ['provider_api_key', 'provider_base_url', 'provider_model']
 ENV_EXAMPLE = Path(__file__).parents[2] / '.env.example'
 
 # === Fixtures and helpers ===
@@ -38,7 +38,11 @@ def settings_class() -> Any:
 def empty_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Remove every settings source."""
     monkeypatch.chdir(tmp_path)
-    for name in ENVIRONMENT:
+    for name in (
+        *ENVIRONMENT,
+        'REPLY_ASSISTANT_KB_REGISTRY',
+        'REPLY_ASSISTANT_API_TOKEN',
+    ):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -121,6 +125,32 @@ def test_missing_variable_is_rejected(
     assert rejected_fields(caught.value) == {(field, 'missing')}
 
 
+@pytest.mark.xfail(strict=True, reason='the registry settings are not implemented')
+def test_missing_kb_source_is_rejected(
+    settings_class: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fill_environment(monkeypatch)
+    monkeypatch.delenv('REPLY_ASSISTANT_KB_PATH')
+
+    with pytest.raises(ValidationError) as caught:
+        settings_class()
+
+    assert rejected_fields(caught.value) == {('kb_path', 'missing_kb_source')}
+
+
+@pytest.mark.xfail(strict=True, reason='the registry settings are not implemented')
+def test_both_kb_sources_are_rejected(
+    settings_class: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fill_environment(monkeypatch)
+    monkeypatch.setenv('REPLY_ASSISTANT_KB_REGISTRY', 'registry.json')
+
+    with pytest.raises(ValidationError) as caught:
+        settings_class()
+
+    assert rejected_fields(caught.value) == {('kb_registry', 'both_kb_sources')}
+
+
 @pytest.mark.parametrize('field', FIELDS)
 def test_empty_variable_is_rejected(
     settings_class: Any, monkeypatch: pytest.MonkeyPatch, field: str
@@ -166,6 +196,16 @@ def test_env_example_names_every_setting(settings_class: Any) -> None:
             'REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL',
             'REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE',
             'REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS',
+        },
+        set(ENVIRONMENT)
+        | {
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_API_KEY',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_BASE_URL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_MODEL',
+            'REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE',
+            'REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS',
+            'REPLY_ASSISTANT_KB_REGISTRY',
+            'REPLY_ASSISTANT_API_TOKEN',
         },
     )
     assert set(env_example_entries()) == expected
