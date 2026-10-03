@@ -52,7 +52,10 @@ async def run(output_dir: Path) -> int:
     """Run the live evaluation."""
     try:
         settings = Settings()
-        kb = await load_knowledge_base(settings.kb_path)
+        kb_path = settings.kb_path
+        if kb_path is None:
+            raise ValueError('the live evaluation needs kb_path and not kb_registry')
+        kb = await load_knowledge_base(kb_path)
         model = _client(settings)
         try:
             report = await evaluate(kb, model)
