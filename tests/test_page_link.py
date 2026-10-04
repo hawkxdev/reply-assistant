@@ -18,6 +18,14 @@ def test_interior_space_credential_is_sent_as_decoded() -> None:
     assert result['reply'] == 'Scripted customer reply.'
 
 
+def test_interior_tab_credential_is_sent_as_decoded() -> None:
+    result = run_page('#token=alpha%09beta', 'alpha\tbeta')
+
+    assert len(result['requests']) == 1
+    assert result['requests'][0]['headers'].get('x-api-token') == 'alpha\tbeta'
+    assert result['reply'] == 'Scripted customer reply.'
+
+
 def test_broken_link_reports_the_access_error_at_load() -> None:
     result = run_page('#token=%ZZ', 'expected-test-token', messages=())
 

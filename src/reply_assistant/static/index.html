@@ -451,7 +451,7 @@ const usageList = document.getElementById('usage');
 let lastReply = '';
 
 function fitsHeaderValue(value) {
-  return /^[\x20-\x7E\xA0-\xFF]+$/.test(value) && !/^ | $/.test(value);
+  return /^[\t\x20-\x7E\xA0-\xFF]+$/.test(value) && !/^[\t ]|[\t ]$/.test(value);
 }
 
 function readLinkToken() {
