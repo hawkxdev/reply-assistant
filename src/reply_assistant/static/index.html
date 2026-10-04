@@ -344,6 +344,8 @@ const I18N = {
     waiting: 'Waiting for a customer message.',
     loading: 'The assistant is thinking…',
     errorWord: 'Error',
+    accessDenied: 'Access denied: check the demo link and the API token.',
+    networkError: 'Error: could not reach the assistant.',
     replyHeading: 'Suggested reply',
     insertReply: 'Insert into the chat',
     hintHeading: 'Upsell hint',
@@ -393,6 +395,8 @@ const I18N = {
     waiting: 'Ждём сообщение от клиента.',
     loading: 'Ассистент думает…',
     errorWord: 'Ошибка',
+    accessDenied: 'Доступ запрещён: проверьте ссылку на демо и API-токен.',
+    networkError: 'Ошибка: не удалось связаться с ассистентом.',
     replyHeading: 'Черновик ответа',
     insertReply: 'Вставить в чат',
     hintHeading: 'Подсказка для допродажи',
@@ -445,6 +449,31 @@ const kbMatch = document.getElementById('kb-match');
 const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
 let lastReply = '';
+
+function readLinkToken() {
+  const raw = location.hash.replace(/^#/, '');
+  let seen = false;
+  let value = '';
+  for (const pair of raw.split('&')) {
+    const eq = pair.indexOf('=');
+    const key = eq === -1 ? pair : pair.slice(0, eq);
+    if (key !== 'token') continue;
+    if (seen) return null;
+    seen = true;
+    value = eq === -1 ? '' : pair.slice(eq + 1);
+  }
+  if (!seen) return undefined;
+  if (!value) return null;
+  try {
+    const decoded = decodeURIComponent(value);
+    return /^[\x21-\x7E]+$/.test(decoded) ? decoded : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+const linkToken = readLinkToken();
+if (linkToken === null) setState(L.accessDenied, 'error');
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -531,20 +560,26 @@ function showSuggestion(suggestion) {
 
 async function askAssistant(text) {
   setState(L.loading, 'loading');
+  const headers = { 'Content-Type': 'application/json' };
+  if (linkToken) headers['X-API-Token'] = linkToken;
   try {
     const response = await fetch('/api/suggest', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ message: text }),
     });
     const payload = await response.json();
     if (!response.ok) {
-      setState(L.errorWord + ': ' + payload.message, 'error');
+      if (response.status === 401) {
+        setState(L.accessDenied, 'error');
+      } else {
+        setState(L.errorWord + ': ' + payload.message, 'error');
+      }
       return;
     }
     showSuggestion(payload);
   } catch (error) {
-    setState(L.errorWord + ': ' + error.message, 'error');
+    setState(L.networkError, 'error');
   }
 }
 
@@ -553,6 +588,10 @@ function receiveCustomerMessage() {
   if (!text) return;
   customerInput.value = '';
   addMessage(L.contactValue, text, 'incoming');
+  if (linkToken === null) {
+    setState(L.accessDenied, 'error');
+    return;
+  }
   askAssistant(text);
 }
 
