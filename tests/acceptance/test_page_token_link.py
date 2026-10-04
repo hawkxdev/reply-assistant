@@ -9,7 +9,6 @@ from tests.acceptance.page_runtime import run_page
 # === Credentials ===
 
 
-@pytest.mark.xfail(strict=True, reason='issue 98: page sends the link token')
 def test_link_token_protects_every_suggestion_request() -> None:
     result = run_page(
         '#token=shared-test-token',
@@ -37,7 +36,6 @@ def test_link_token_protects_every_suggestion_request() -> None:
     assert reloaded['requests'][0]['headers'].get('x-api-token') == 'shared-test-token'
 
 
-@pytest.mark.xfail(strict=True, reason='issue 98: decode the token exactly once')
 def test_encoded_fragment_token_is_decoded_once() -> None:
     result = run_page('#note=ignore&token=alpha%252Bbeta%2Btail', 'alpha%2Bbeta+tail')
 
@@ -50,7 +48,6 @@ def test_encoded_fragment_token_is_decoded_once() -> None:
 
 
 @pytest.mark.parametrize('language', ['en', 'ru'])
-@pytest.mark.xfail(strict=True, reason='issue 98: localized access rejection')
 def test_wrong_token_has_a_localized_access_error(language: str) -> None:
     result = run_page(
         '#token=wrong-test-token', 'expected-test-token', language=language
@@ -80,7 +77,6 @@ def test_wrong_token_has_a_localized_access_error(language: str) -> None:
     ],
     ids=['empty', 'duplicate', 'invalid_escape', 'incomplete_escape', 'utf8', 'header'],
 )
-@pytest.mark.xfail(strict=True, reason='issue 98: reject invalid link credentials')
 def test_invalid_fragment_never_sends_a_suggestion(suffix: str) -> None:
     result = run_page(suffix, 'expected-test-token')
 
@@ -92,7 +88,6 @@ def test_invalid_fragment_never_sends_a_suggestion(suffix: str) -> None:
 
 
 @pytest.mark.parametrize('surface', ['visible', 'logs', 'storage', 'cookies'])
-@pytest.mark.xfail(strict=True, reason='issue 98: keep the token out of other surfaces')
 def test_link_token_is_confined_to_request_headers(surface: str) -> None:
     result = run_page('#token=privacy-test-token', 'privacy-test-token')
 
@@ -104,7 +99,6 @@ def test_link_token_is_confined_to_request_headers(surface: str) -> None:
 # === Compatibility ===
 
 
-@pytest.mark.xfail(strict=True, reason='issue 98: sanitize transport errors')
 def test_transport_error_does_not_disclose_the_link_token() -> None:
     result = run_page(
         '#token=transport-test-token',
