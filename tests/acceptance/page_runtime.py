@@ -47,8 +47,14 @@ class Element {
   focus() {}
 }
 
-for (const match of input.html.matchAll(/\bid="([^"]+)"/g)) {
-  elements.set(match[1], new Element(match[1]));
+for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
+  const attributes = Object.fromEntries(Array.from(
+    match[1].matchAll(/([\w-]+)="([^"]*)"/g), (item) => [item[1], item[2]],
+  ));
+  const id = attributes.id ?? 'anonymous-' + elements.size;
+  const element = new Element(id);
+  element.attributes = attributes;
+  elements.set(id, element);
 }
 const document = {
   documentElement: {getAttribute: () => input.language},
@@ -57,7 +63,12 @@ const document = {
   /** Create detached element. */
   createElement() { return new Element(); },
   /** Read translated elements. */
-  querySelectorAll() { return []; },
+  querySelectorAll(selector) {
+    const attribute = /^\[([\w-]+)\]$/.exec(selector);
+    if (!attribute) throw new Error('Unsupported selector: ' + selector);
+    return Array.from(elements.values())
+      .filter((element) => Object.hasOwn(element.attributes, attribute[1]));
+  },
 };
 Object.defineProperty(document, 'cookie', {
   get: () => '',
@@ -66,11 +77,17 @@ Object.defineProperty(document, 'cookie', {
 
 /** Build recording storage. */
 function recordedStorage(name) {
-  return {
+  return new Proxy({
     getItem: () => null,
     setItem: (key, value) => storage.push([name, String(key), String(value)]),
     removeItem: () => {},
-  };
+  }, {
+    set: (target, key, value) => {
+      storage.push([name, String(key), String(value)]);
+      target[key] = value;
+      return true;
+    },
+  });
 }
 
 const location = new URL('https://demo.example.test/' + input.suffix);
@@ -79,7 +96,8 @@ const context = {
   localStorage: recordedStorage('local'),
   sessionStorage: recordedStorage('session'),
   console: Object.fromEntries(['log', 'error', 'warn', 'info', 'debug']
-    .map((name) => [name, (...values) => logs.push(values.map(String).join(' '))])),
+    .map((name) => [name, (...values) => logs.push(values.map((value) =>
+      typeof value === 'object' ? JSON.stringify(value) : String(value)).join(' '))])),
   history: {replaceState: () => { throw new Error('Token link must survive reload'); }},
   /** Record suggestion request. */
   fetch: async (resource, options = {}) => {
@@ -116,21 +134,24 @@ vm.runInContext(input.script, context, {timeout: 1000});
 /** Read rendered element. */
 function rendered(node) {
   if (typeof node === 'string') return node;
-  return String(node.textContent) + node.children.map(rendered).join('');
+  return String(node.textContent) + String(node.innerHTML ?? '') + String(node.value)
+    + node.children.map(rendered).join('');
 }
 
 (async () => {
+  const visible = [Array.from(elements.values()).map(rendered).join('')];
   for (const message of input.messages) {
     document.getElementById('customer-input').value = message;
     const button = document.getElementById('add-customer');
     if (!button.disabled) button.listeners.click({target: button});
     await new Promise(setImmediate);
+    visible.push(Array.from(elements.values()).map(rendered).join(''));
   }
   process.stdout.write(JSON.stringify({
     requests, logs, storage, cookies,
     state: document.getElementById('assistant-state').textContent,
     reply: document.getElementById('reply').textContent,
-    visible: Array.from(elements.values()).map(rendered).join(''),
+    visible: visible.join(''),
   }));
 })().catch((error) => { process.stderr.write(String(error)); process.exitCode = 1; });
 """
