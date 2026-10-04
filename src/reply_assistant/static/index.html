@@ -450,6 +450,10 @@ const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
 let lastReply = '';
 
+function fitsHeaderValue(value) {
+  return /^[\x20-\x7E\xA0-\xFF]+$/.test(value) && !/^ | $/.test(value);
+}
+
 function readLinkToken() {
   const raw = location.hash.replace(/^#/, '');
   let seen = false;
@@ -466,7 +470,7 @@ function readLinkToken() {
   if (!value) return null;
   try {
     const decoded = decodeURIComponent(value);
-    return /^[\x21-\x7E]+$/.test(decoded) ? decoded : null;
+    return fitsHeaderValue(decoded) ? decoded : null;
   } catch (error) {
     return null;
   }

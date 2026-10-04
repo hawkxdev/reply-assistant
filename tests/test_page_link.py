@@ -10,6 +10,14 @@ def test_fragment_plus_sign_stays_a_plus_in_the_header() -> None:
     assert result['requests'][0]['headers'].get('x-api-token') == 'alpha+beta'
 
 
+def test_interior_space_credential_is_sent_as_decoded() -> None:
+    result = run_page('#token=alpha%20beta', 'alpha beta')
+
+    assert len(result['requests']) == 1
+    assert result['requests'][0]['headers'].get('x-api-token') == 'alpha beta'
+    assert result['reply'] == 'Scripted customer reply.'
+
+
 def test_broken_link_reports_the_access_error_at_load() -> None:
     result = run_page('#token=%ZZ', 'expected-test-token', messages=())
 
