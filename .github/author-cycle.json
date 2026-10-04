@@ -1,0 +1,4 @@
+{
+  "executor": "opencode-agent[bot]",
+  "workflow": ".github/workflows/author-agent.yml"
+}

@@ -26,3 +26,10 @@ The reviewer checks the work of another agent. It does not fix the code and does
 - Not enough evidence: say what could not be verified and why.
 
 The verdict is advice. The lead agent merges.
+
+
+## Bounded review
+
+The lead verifies advice and records confirmed findings against the exact reviewed commit. A reviewer comment does not authorize an author launch. The first review covers the whole contract; the second checks corrections and affected behavior. Supplements and redelivery on the same commit do not create another correction return.
+
+At the third review accept a correct version, or freeze the remaining confirmed findings for the lead. Do not ask the author for a third return or add another mandatory review cycle. Changes made by the lead are self-verified with the same criteria. Handoff is not acceptance; an unfinished remainder needs a specific blocker and recommendation. Procedure: [ADR 0006](../../../docs/adr/0006-bounded-cloud-corrections.md).
