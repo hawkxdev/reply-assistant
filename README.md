@@ -41,6 +41,7 @@ Fill the four required values in `.env` before starting. Keep the keys private; 
 | `REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE` | `true` (default) for JSON mode, `false` for a strict JSON schema |
 | `REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS` | Maximum tokens of one model answer, empty for no cap |
 | `REPLY_ASSISTANT_KB_PATH` | `kb/example-en.yaml` or `kb/example-ru.yaml` |
+| `REPLY_ASSISTANT_API_TOKEN` | Shared access token, empty to keep the demo open |
 
 The provider must support JSON-schema structured output. Requests can incur provider charges. Start the service:
 
@@ -65,6 +66,12 @@ curl http://127.0.0.1:8000/api/suggest \
   -H 'Content-Type: application/json' \
   -d '{"message":"How much is Zeolite Powder?"}'
 ```
+
+## Token link
+
+Set `REPLY_ASSISTANT_API_TOKEN` in `.env` to protect the service: `/api/suggest` and the CRM webhook then require the same value in an `X-API-Token` header, and an empty setting keeps the local demo open. The page reads the token from the fragment of its address, for example `http://127.0.0.1:8000/#token=synthetic-demo-token`, and sends it only in that header, never in the query string or body.
+
+Open the whole demo through such a link; it keeps working after reloads. Share it through a private channel only: the value stays in the link and in page memory, and the page never stores or logs it. A missing or wrong token answers `401 unauthorized` and the page shows an access error in its language. The example token above is synthetic; never publish a link with a real token.
 
 ## Provider fallback
 
@@ -109,7 +116,7 @@ Code validates the output shape, checks that the upsell product ID exists, and r
 
 These checks do not verify every factual claim, price or paraphrase. The prompt tells the model to use the knowledge base, but a manager must still review the draft. Passing checks are not proof that every sentence is supported by the catalogue.
 
-Authentication and deployment are outside this prototype's scope.
+The shared token is a simple access check, not accounts or per-client credentials. Deployment is outside this prototype's scope.
 
 ## How a change is made
 
