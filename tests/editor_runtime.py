@@ -24,16 +24,63 @@ class Element {
   constructor(id = '') {
     this.id = id;
     this.children = [];
-    this.value = '';
+    this._value = '';
     this.textContent = '';
-    this.className = '';
+    this._className = '';
     this.hidden = false;
     this.disabled = false;
-    this.scrollTop = undefined;
+    this._scrollTop = 0;
+    this.inViewport = true;
     this.selectionStart = undefined;
     this.selectionEnd = undefined;
     this.attributes = {};
     this.listeners = {};
+  }
+  /** Read current draft. */
+  get value() { return this._value; }
+  /** Replace native selection. */
+  set value(text) {
+    this._value = text;
+    this.selectionStart = this.selectionEnd = text.length;
+  }
+  /** Read current classes. */
+  get className() { return this._className; }
+  /** Apply fixture layout. */
+  set className(text) {
+    const wasFocused = this._className.includes('editor-focus');
+    this._className = text;
+    if (this.id === 'workspace' && input.geometry) {
+      const editor = elements.get('chat-input');
+      if (editor) {
+        editor.scrollTop = editor.scrollTop;
+        if (input.geometry.relocate && !wasFocused && text.includes('editor-focus')) {
+          editor.inViewport = false;
+        }
+      }
+    }
+  }
+  /** Read fixture height. */
+  get clientHeight() {
+    if (!input.geometry) return 0;
+    const classes = elements.get('workspace').className;
+    const mode = classes.includes('editor-focus') ? 'focused'
+      : classes.includes('editor-expanded') ? 'expanded' : 'normal';
+    return input.geometry[mode];
+  }
+  /** Read fixture content. */
+  get scrollHeight() { return input.geometry ? input.geometry.scrollHeight : 0; }
+  /** Read viewing position. */
+  get scrollTop() { return this._scrollTop; }
+  /** Clamp native scrolling. */
+  set scrollTop(top) {
+    const next = input.geometry && this.id === 'chat-input'
+      ? Math.min(Math.max(0, top), Math.max(0, this.scrollHeight - this.clientHeight))
+      : top;
+    const changed = this._scrollTop !== next;
+    this._scrollTop = next;
+    if (changed && this.listeners.scroll) {
+      setTimeout(() => this.listeners.scroll({target: this}), 0);
+    }
   }
   /** Record appended children. */
   append(...children) { this.children.push(...children); }
@@ -46,7 +93,16 @@ class Element {
   /** Record event listeners. */
   addEventListener(name, callback) { this.listeners[name] = callback; }
   /** Record focus targets. */
-  focus() { focusLog.push(this.id); }
+  focus(options = {}) {
+    focusLog.push(this.id);
+    document.activeElement = this;
+    if (input.geometry && this.id === 'chat-input' && !options.preventScroll
+        && this.selectionStart === this.value.length) {
+      this.scrollTop = this.scrollHeight - this.clientHeight;
+    }
+  }
+  /** Reveal relocated editor. */
+  scrollIntoView() { this.inViewport = true; }
 }
 
 for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
@@ -60,6 +116,7 @@ for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
 }
 
 const document = {
+  activeElement: null,
   documentElement: {getAttribute: () => input.language},
   /** Read page element. */
   getElementById(id) { return elements.get(id) ?? null; },
@@ -91,6 +148,11 @@ function deliver(scripted) {
 
 const context = {
   document, location, URL, URLSearchParams, Headers,
+  listeners: {},
+  /** Register window events. */
+  addEventListener(name, callback) { this.listeners[name] = callback; },
+  /** Schedule native frame. */
+  requestAnimationFrame(callback) { setTimeout(callback, 0); },
   console: Object.fromEntries(['log', 'error', 'warn', 'info', 'debug']
     .map((name) => [name, () => {}])),
   /** Serve scripted suggestions. */
@@ -133,6 +195,7 @@ function snapshot() {
       scrollTop: node.scrollTop,
       selectionStart: node.selectionStart,
       selectionEnd: node.selectionEnd,
+      inViewport: node.inViewport,
       attributes: {...node.attributes},
     };
   }
@@ -150,7 +213,7 @@ function transcript() {
 
 /** Run one scripted step. */
 async function runStep(step, entry) {
-  const node = elements.get(step.id);
+  const node = step.id === 'active' ? document.activeElement : elements.get(step.id);
   if (step.kind === 'set') {
     node.value = step.value;
     if (node.listeners.input) node.listeners.input();
@@ -160,6 +223,7 @@ async function runStep(step, entry) {
   } else if (step.kind === 'scroll') {
     node.scrollTop = step.top;
   } else if (step.kind === 'key') {
+    if (document.activeElement !== node) node.focus();
     const event = {
       key: step.key,
       shiftKey: Boolean(step.shift),
@@ -169,14 +233,25 @@ async function runStep(step, entry) {
       preventDefault() { this.defaultPrevented = true; },
     };
     if (node.listeners.keydown) node.listeners.keydown(event);
+    if (event.key === 'Enter' && !event.defaultPrevented
+        && node.attributes.type === 'button' && node.listeners.click) {
+      node.listeners.click({target: node});
+    }
     entry.defaultPrevented = event.defaultPrevented;
   } else if (step.kind === 'click') {
     if (node.disabled) {
       entry.refused = true;
     } else if (node.listeners.click) {
+      node.focus();
       node.listeners.click({target: node});
     }
   } else if (step.kind === 'wait') {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  } else if (step.kind === 'resize') {
+    Object.assign(input.geometry, step.geometry);
+    const editor = elements.get('chat-input');
+    editor.scrollTop = editor.scrollTop;
+    if (context.listeners.resize) context.listeners.resize();
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
 }
@@ -196,6 +271,7 @@ async function runStep(step, entry) {
     state: elements.get('assistant-state').textContent,
     reply: elements.get('reply').textContent,
     focusLog,
+    activeElement: document.activeElement ? document.activeElement.id : null,
   }));
 })().catch((error) => { process.stderr.write(String(error)); process.exitCode = 1; });
 """
@@ -209,6 +285,7 @@ def run_editor_page(
     *,
     language: str = 'en',
     watch: tuple[str, ...] = (),
+    geometry: dict[str, int | bool] | None = None,
 ) -> dict[str, Any]:
     """Observe editor page steps."""
     node = shutil.which('node')
@@ -224,6 +301,7 @@ def run_editor_page(
         'responses': list(responses),
         'steps': list(steps),
         'watch': list(watch),
+        'geometry': geometry,
     }
     completed = subprocess.run(  # noqa: S603
         [node, '-e', RUNTIME],

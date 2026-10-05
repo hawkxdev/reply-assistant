@@ -26,10 +26,18 @@ CHECKS_NOTE_RU = (
 )
 NETWORK_ERROR_RU = 'Ошибка: не удалось связаться \u0441 ассистентом.'
 DRAFT = 'Draft line one\nDraft line two'
+CLAMPED_DRAFT = '\n'.join(
+    f'Draft line {index} for editing position' for index in range(17)
+)
+LONG_INSERTION = (
+    'Dear customer, this is the first paragraph.\n\n'
+    + 'A detailed draft with product information. ' * 70
+    + '\n\nThis product is a food supplement and is not a medicine.'
+)
 
 
 def page_source() -> str:
-    """Read the served page file."""
+    """Read served page source."""
     return (
         files('reply_assistant')
         .joinpath('static', 'index.html')
@@ -174,6 +182,7 @@ def test_focus_mode_and_escape_keep_the_draft_and_selection() -> None:
     assert focused['assistant']['hidden'] is False
     assert focused['customer-writer']['hidden'] is True
     assert focused['focus-editor']['text'] == 'Exit focus'
+    assert focused['focus-editor']['attributes']['aria-pressed'] == 'true'
     back = result['trace'][4]['watch']
     assert back['workspace']['className'] == 'workspace'
     assert back['deal']['hidden'] is False
@@ -182,6 +191,7 @@ def test_focus_mode_and_escape_keep_the_draft_and_selection() -> None:
     assert back['chat-input']['selectionStart'] == 5
     assert back['chat-input']['selectionEnd'] == 9
     assert back['chat-input']['scrollTop'] == 37
+    assert back['focus-editor']['attributes']['aria-pressed'] == 'false'
 
 
 # === Loading ===
@@ -305,3 +315,158 @@ def test_new_editor_copy_exists_in_both_languages(english: str, russian: str) ->
 
     assert english in source
     assert russian in source
+
+
+# === Native browser regressions ===
+
+
+@pytest.mark.parametrize('button', ['toggle-editor', 'focus-editor'])
+def test_escape_exits_after_keyboard_button_activation(button: str) -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'key', 'id': button, 'key': 'Enter'},
+            {'kind': 'key', 'id': 'active', 'key': 'Escape'},
+        ],
+        responses=[],
+        watch=('workspace',),
+    )
+
+    assert result['trace'][-1]['watch']['workspace']['className'] == 'workspace'
+
+
+def test_insertion_resets_the_native_caret_and_focus_scroll() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'customer-input', 'value': 'Question'},
+            {'kind': 'click', 'id': 'add-customer'},
+            {'kind': 'wait'},
+            {'kind': 'click', 'id': 'insert-reply'},
+            {'kind': 'wait'},
+        ],
+        responses=[{'body': suggestion(LONG_INSERTION)}],
+        watch=('chat-input',),
+        geometry={'normal': 250, 'expanded': 334, 'focused': 358, 'scrollHeight': 645},
+    )
+
+    editor = result['trace'][-1]['watch']['chat-input']
+    assert editor['selectionStart'] == 0
+    assert editor['selectionEnd'] == 0
+    assert editor['scrollTop'] == 0
+
+
+@pytest.mark.parametrize('button', ['toggle-editor', 'focus-editor'])
+def test_mode_round_trip_restores_a_clamped_scroll_anchor(button: str) -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': CLAMPED_DRAFT},
+            {'kind': 'select', 'id': 'chat-input', 'start': 5, 'end': 9},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 110},
+            {'kind': 'wait'},
+            {'kind': 'click', 'id': button},
+            {'kind': 'wait'},
+            {'kind': 'key', 'id': 'chat-input', 'key': 'Escape'},
+            {'kind': 'wait'},
+        ],
+        responses=[],
+        watch=('chat-input',),
+        geometry={'normal': 250, 'expanded': 334, 'focused': 358, 'scrollHeight': 361},
+    )
+
+    editor = result['trace'][-1]['watch']['chat-input']
+    assert editor['value'] == CLAMPED_DRAFT
+    assert editor['selectionStart'] == 5
+    assert editor['selectionEnd'] == 9
+    assert editor['scrollTop'] == 110
+
+
+def test_focus_mode_reveals_the_relocated_editor() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': CLAMPED_DRAFT},
+            {'kind': 'click', 'id': 'focus-editor'},
+        ],
+        responses=[],
+        watch=('chat-input',),
+        geometry={
+            'normal': 250,
+            'expanded': 334,
+            'focused': 358,
+            'scrollHeight': 361,
+            'relocate': True,
+        },
+    )
+
+    assert result['trace'][-1]['watch']['chat-input']['inViewport'] is True
+
+
+def test_resize_round_trip_restores_a_clamped_scroll_anchor() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': CLAMPED_DRAFT},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 110},
+            {'kind': 'wait'},
+            {'kind': 'resize', 'geometry': {'normal': 400}},
+            {'kind': 'resize', 'geometry': {'normal': 250}},
+        ],
+        responses=[],
+        watch=('chat-input',),
+        geometry={'normal': 250, 'expanded': 334, 'focused': 358, 'scrollHeight': 361},
+    )
+
+    assert result['trace'][-1]['watch']['chat-input']['scrollTop'] == 110
+
+
+def test_user_scroll_in_expanded_mode_replaces_the_saved_anchor() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': CLAMPED_DRAFT},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 110},
+            {'kind': 'wait'},
+            {'kind': 'click', 'id': 'toggle-editor'},
+            {'kind': 'wait'},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 10},
+            {'kind': 'wait'},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 27},
+            {'kind': 'wait'},
+            {'kind': 'key', 'id': 'chat-input', 'key': 'Escape'},
+            {'kind': 'wait'},
+        ],
+        responses=[],
+        watch=('chat-input',),
+        geometry={'normal': 250, 'expanded': 334, 'focused': 358, 'scrollHeight': 361},
+    )
+
+    assert result['trace'][-1]['watch']['chat-input']['scrollTop'] == 27
+
+
+@pytest.mark.parametrize(
+    ('language', 'notice', 'plain'),
+    [
+        ('en', 'Usage (Provider fallback)', 'Usage'),
+        ('ru', 'Использование (Переключение провайдера)', 'Использование'),
+    ],
+    ids=['en', 'ru'],
+)
+def test_fallback_notice_survives_details_and_clears_on_next_answer(
+    language: str,
+    notice: str,
+    plain: str,
+) -> None:
+    first = suggestion('First draft.')
+    first['usage']['fallbacks'] = [{'primary': 'primary', 'secondary': 'secondary'}]
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'customer-input', 'value': 'First'},
+            {'kind': 'click', 'id': 'add-customer'},
+            {'kind': 'wait'},
+            {'kind': 'set', 'id': 'customer-input', 'value': 'Second'},
+            {'kind': 'click', 'id': 'add-customer'},
+            {'kind': 'wait'},
+        ],
+        responses=[{'body': first}, {'body': suggestion('Second draft.')}],
+        language=language,
+        watch=('usage-summary',),
+    )
+
+    assert result['trace'][2]['watch']['usage-summary']['text'] == notice
+    assert result['trace'][-1]['watch']['usage-summary']['text'] == plain

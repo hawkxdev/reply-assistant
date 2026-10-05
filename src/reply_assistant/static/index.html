@@ -169,6 +169,10 @@ body {
   outline: var(--focus-ring);
   border-color: var(--accent);
 }
+.writer textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
 .writer .row {
   display: flex;
   flex-wrap: wrap;
@@ -207,7 +211,16 @@ button.ghost {
 button.ghost:hover { background: var(--accent-soft); color: var(--accent-strong); }
 
 #assistant-state { margin: 4px 0 12px; color: var(--muted); }
-#assistant-state.loading { animation: pulse 1.4s ease-in-out infinite; }
+#assistant-state.loading::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
 #assistant-state.error { color: var(--ink); font-weight: 600; }
 @keyframes pulse { 50% { opacity: 0.45; } }
 
@@ -406,7 +419,7 @@ details.usage[open] summary { margin-bottom: 4px; }
         <p class="checks-note" data-i18n="checksNote">Checks show configured validation, not proof of factual accuracy.</p>
       </section>
       <details class="usage" open>
-        <summary data-i18n="usageHeading">Usage</summary>
+        <summary id="usage-summary" data-i18n="usageHeading">Usage</summary>
         <ul id="usage" class="plain"></ul>
       </details>
     </div>
@@ -577,10 +590,14 @@ const hint = document.getElementById('hint');
 const kbMatch = document.getElementById('kb-match');
 const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
+const usageSummary = document.getElementById('usage-summary');
 let lastReply = '';
 let expanded = false;
 let focused = false;
 let asking = false;
+let editorScrollAnchor = 0;
+let editorLayoutRevision = 0;
+let preservingEditorView = false;
 
 function fitsHeaderValue(value) {
   return /^[\t\x20-\x7E\x80-\xFF]+$/.test(value) && !/^[\t ]|[\t ]$/.test(value);
@@ -670,15 +687,62 @@ function setEditorModes() {
   fitEditor();
 }
 
+/** Capture editor selection. */
+function captureEditorView(captureScroll = true) {
+  const top = Number(chatInput.scrollTop) || 0;
+  const maximum = Math.max(0,
+    (chatInput.scrollHeight || 0) - (chatInput.clientHeight || 0));
+  if (captureScroll && !preservingEditorView
+      && (editorScrollAnchor <= maximum || top < maximum)) {
+    editorScrollAnchor = top;
+  }
+  return {
+    start: Number(chatInput.selectionStart) || 0,
+    end: Number(chatInput.selectionEnd) || 0,
+    direction: chatInput.selectionDirection || 'none',
+  };
+}
+
+/** Restore editor viewport. */
+function restoreEditorView(view, focusEditor, revealEditor) {
+  preservingEditorView = true;
+  const revision = ++editorLayoutRevision;
+  if (focusEditor) chatInput.focus({ preventScroll: true });
+  chatInput.selectionStart = view.start;
+  chatInput.selectionEnd = view.end;
+  chatInput.selectionDirection = view.direction;
+  if (revealEditor && typeof chatInput.scrollIntoView === 'function') {
+    chatInput.scrollIntoView({ block: 'nearest' });
+  }
+  chatInput.scrollTop = editorScrollAnchor;
+  const settled = () => {
+    if (revision !== editorLayoutRevision) return;
+    chatInput.scrollTop = editorScrollAnchor;
+    preservingEditorView = false;
+  };
+  // Workaround: script based DOM fixtures have no native frame scheduler.
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(settled));
+  } else {
+    settled();
+  }
+}
+
 function setExpanded(next) {
+  const view = captureEditorView();
+  preservingEditorView = true;
   expanded = next;
   setEditorModes();
+  restoreEditorView(view, true, true);
 }
 
 function setFocused(next) {
+  const view = captureEditorView();
+  preservingEditorView = true;
   focused = next;
   if (focused) expanded = false;
   setEditorModes();
+  restoreEditorView(view, true, true);
 }
 
 function showChecks(report) {
@@ -704,6 +768,7 @@ function showChecks(report) {
 }
 
 function showUsage(report) {
+  usageSummary.textContent = L.usageHeading;
   const rows = [
     [L.inputTokens, String(report.input_tokens)],
     [L.outputTokens, String(report.output_tokens)],
@@ -711,6 +776,7 @@ function showUsage(report) {
     [L.attempts, String(report.attempts)],
   ];
   if (report.fallbacks && report.fallbacks.length) {
+    usageSummary.textContent += ' (' + L.providerFallback + ')';
     const switches = report.fallbacks
       .map((item) => item.primary + ' \u2192 ' + item.secondary)
       .join(', ');
@@ -806,9 +872,9 @@ addCustomerButton.addEventListener('click', receiveCustomerMessage);
 document.getElementById('add-manager').addEventListener('click', addManagerMessage);
 document.getElementById('insert-reply').addEventListener('click', () => {
   chatInput.value = lastReply;
+  editorScrollAnchor = 0;
   fitEditor();
-  chatInput.scrollTop = 0;
-  chatInput.focus();
+  restoreEditorView({ start: 0, end: 0, direction: 'none' }, true, true);
 });
 toggleEditorButton.addEventListener('click', () => setExpanded(!expanded));
 focusButton.addEventListener('click', () => setFocused(!focused));
@@ -819,7 +885,21 @@ customerInput.addEventListener('keydown', (event) => {
     receiveCustomerMessage();
   }
 });
-chatInput.addEventListener('input', fitEditor);
+chatInput.addEventListener('input', () => {
+  editorLayoutRevision += 1;
+  preservingEditorView = false;
+  fitEditor();
+  editorScrollAnchor = Number(chatInput.scrollTop) || 0;
+});
+chatInput.addEventListener('scroll', () => {
+  if (!preservingEditorView) editorScrollAnchor = Number(chatInput.scrollTop) || 0;
+});
+if (typeof window.addEventListener === 'function') {
+  window.addEventListener('resize', () => {
+    const view = captureEditorView(false);
+    restoreEditorView(view, document.activeElement === chatInput, false);
+  });
+}
 chatInput.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
