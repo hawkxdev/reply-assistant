@@ -32,3 +32,10 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 - Edit a path from **Boundaries**, apart from removing the `xfail` marker of the acceptance test of this issue together with an import the removal leaves unused.
 - Add a dependency the issue does not name.
 - Report a check as passed without running it.
+
+
+## Correction and transfer
+
+A correction starts only after the author workflow admits the owner's current-head request. Preserve the branch selected by the tool. The first and second reviews may return confirmed findings to the author; the third belongs to the lead for acceptance or bounded completion. Supplements on one commit share the same return.
+
+The workflow records the actual published commit and remaining work. A successful job without preserved work is not delivery. For a takeover request finish or checkpoint the current operation, stop writing, and identify the saved commit and cloud run. Do not restart yourself or create another PR to reset the limit. Follow [ADR 0006](../../../docs/adr/0006-bounded-cloud-corrections.md); an unavailable checkpoint requires reconciliation.
