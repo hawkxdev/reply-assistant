@@ -73,6 +73,10 @@ curl http://127.0.0.1:8000/api/suggest \
   -d '{"message":"How much is Zeolite Powder?"}'
 ```
 
+## Interface language
+
+The selector in the page header switches the interface between English and Russian at any time. Headings, controls, placeholders, statuses, checks and usage labels change immediately; unsent texts, the draft with its selection and scroll position, the conversation, the editor mode and the answer with its hint stay as they are, and switching repeats no request. The choice is kept in the browser storage of the address and reused at the next opening; with no valid stored choice the page takes the language of the knowledge base, and unavailable storage changes nothing. The selector translates only the interface: catalogue facts, existing messages and model content remain in their own language, and the language of replies stays the contract of the knowledge base.
+
 ## Token link
 
 Set `REPLY_ASSISTANT_API_TOKEN` in `.env` to protect the service: `/api/suggest` and the CRM webhook then require the same value in an `X-API-Token` header, and an empty setting keeps the local demo open. The page reads the token from the fragment of its address, for example `http://127.0.0.1:8000/#token=synthetic-demo-token`, and sends it only in that header, never in the query string or body.

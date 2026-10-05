@@ -54,6 +54,26 @@ body {
 }
 #mock-notice span { display: block; }
 
+.lang-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.lang-picker select {
+  min-height: var(--min-touch);
+  min-width: 0;
+  border: 1px solid #d5dce2;
+  border-radius: var(--radius-field);
+  padding: 6px 28px 6px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--card);
+  cursor: pointer;
+}
+
 #workspace {
   flex: 1;
   min-height: 0;
@@ -336,6 +356,13 @@ details.usage[open] summary { margin-bottom: 4px; }
 
 <header id="top">
   <h1 data-i18n="appTitle">Reply Assistant</h1>
+  <label class="lang-picker" for="language-select">
+    <span data-i18n="languageLabel">Interface language</span>
+    <select id="language-select">
+      <option value="en">English</option>
+      <option value="ru">Русский</option>
+    </select>
+  </label>
   <p id="mock-notice">
     <span>Mock of a CRM dialog window. Nothing is sent anywhere.</span>
     <span>Макет окна диалога CRM. Ничего никуда не отправляется.</span>
@@ -420,7 +447,7 @@ details.usage[open] summary { margin-bottom: 4px; }
         <ul id="checks" class="plain"></ul>
         <p class="checks-note" data-i18n="checksNote">Checks show configured validation, not proof of factual accuracy.</p>
       </section>
-      <details class="usage" open>
+      <details class="usage" id="usage-details" open>
         <summary id="usage-summary" data-i18n="usageHeading">Usage</summary>
         <ul id="usage" class="plain"></ul>
       </details>
@@ -435,6 +462,7 @@ const I18N = {
   en: {
     pageTitle: 'Reply Assistant',
     appTitle: 'Reply Assistant',
+    languageLabel: 'Interface language',
     dealHeading: 'Deal',
     dealName: 'Zeolite for a daily course',
     stageLabel: 'Stage',
@@ -497,6 +525,7 @@ const I18N = {
   ru: {
     pageTitle: 'Помощник ответов',
     appTitle: 'Помощник ответов',
+    languageLabel: 'Язык интерфейса',
     dealHeading: 'Сделка',
     dealName: 'Цеолит для ежедневного курса',
     stageLabel: 'Этап',
@@ -560,21 +589,50 @@ const I18N = {
 
 const attr = document.documentElement.getAttribute('lang');
 const own = Object.prototype.hasOwnProperty;
-const lang = own.call(I18N, attr) ? attr : 'en';
-const L = I18N[lang];
+const LANGUAGE_KEY = 'interface-language';
 
-for (const node of document.querySelectorAll('[data-i18n]')) {
-  const key = node.getAttribute('data-i18n');
-  if (own.call(L, key)) node.textContent = L[key];
+/** Read a stored language choice. */
+function readStoredLanguage() {
+  try {
+    const raw = window.localStorage.getItem(LANGUAGE_KEY);
+    return raw === 'en' || raw === 'ru' ? raw : null;
+  } catch (error) {
+    return null;
+  }
 }
-for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
-  const key = node.getAttribute('data-i18n-placeholder');
-  if (own.call(L, key)) node.setAttribute('placeholder', L[key]);
+
+/** Keep a language choice. */
+function storeLanguage(value) {
+  try {
+    window.localStorage.setItem(LANGUAGE_KEY, value);
+  } catch (error) {
+    return;
+  }
 }
-for (const node of document.querySelectorAll('[data-i18n-title]')) {
-  const key = node.getAttribute('data-i18n-title');
-  if (own.call(L, key)) node.setAttribute('title', L[key]);
+
+const storedLanguage = readStoredLanguage();
+let lang = storedLanguage !== null
+  ? storedLanguage
+  : own.call(I18N, attr) ? attr : 'en';
+let L = I18N[lang];
+
+/** Translate the static page copy. */
+function applyTranslations() {
+  for (const node of document.querySelectorAll('[data-i18n]')) {
+    const key = node.getAttribute('data-i18n');
+    if (own.call(L, key)) node.textContent = L[key];
+  }
+  for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
+    const key = node.getAttribute('data-i18n-placeholder');
+    if (own.call(L, key)) node.setAttribute('placeholder', L[key]);
+  }
+  for (const node of document.querySelectorAll('[data-i18n-title]')) {
+    const key = node.getAttribute('data-i18n-title');
+    if (own.call(L, key)) node.setAttribute('title', L[key]);
+  }
 }
+
+applyTranslations();
 
 const messages = document.getElementById('messages');
 const workspace = document.getElementById('workspace');
@@ -585,6 +643,7 @@ const chatInput = document.getElementById('chat-input');
 const addCustomerButton = document.getElementById('add-customer');
 const toggleEditorButton = document.getElementById('toggle-editor');
 const focusButton = document.getElementById('focus-editor');
+const languageSelect = document.getElementById('language-select');
 const state = document.getElementById('assistant-state');
 const result = document.getElementById('assistant-result');
 const reply = document.getElementById('reply');
@@ -594,6 +653,9 @@ const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
 const usageSummary = document.getElementById('usage-summary');
 let lastReply = '';
+let lastSuggestion = null;
+let stateKind = 'waiting';
+let stateDetail = '';
 let expanded = false;
 let focused = false;
 let asking = false;
@@ -628,7 +690,7 @@ function readLinkToken() {
 }
 
 const linkToken = readLinkToken();
-if (linkToken === null) setState(L.accessDenied, 'error');
+if (linkToken === null) setState('denied');
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -644,8 +706,24 @@ function addMessage(author, text, direction) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-function setState(text, mode) {
-  state.textContent = text;
+function setState(kind, detail) {
+  stateKind = kind;
+  stateDetail = detail;
+  renderState();
+}
+
+/** Render the current assistant state. */
+function renderState() {
+  const texts = {
+    waiting: L.waiting,
+    loading: L.loading,
+    denied: L.accessDenied,
+    network: L.networkError,
+    failed: L.errorWord + ': ' + stateDetail,
+  };
+  const mode = stateKind === 'loading' ? 'loading'
+    : stateKind === 'waiting' ? '' : 'error';
+  state.textContent = texts[stateKind];
   state.className = mode;
   state.hidden = false;
   result.hidden = true;
@@ -748,6 +826,24 @@ function setFocused(next) {
   restoreEditorView(view, true, true);
 }
 
+/** Switch the interface language. */
+function setLanguage(next) {
+  lang = next;
+  L = I18N[lang];
+  if (document.documentElement.getAttribute('lang') !== lang) {
+    document.documentElement.setAttribute('lang', lang);
+  }
+  applyTranslations();
+  languageSelect.value = lang;
+  setEditorModes();
+  if (lastSuggestion !== null && !result.hidden) {
+    showSuggestion(lastSuggestion);
+  } else {
+    renderState();
+  }
+  storeLanguage(lang);
+}
+
 function showChecks(report) {
   const names = [
     ['shape', 'checkShape'],
@@ -797,6 +893,7 @@ function showUsage(report) {
 
 function showSuggestion(suggestion) {
   lastReply = suggestion.customer_reply;
+  lastSuggestion = suggestion;
   reply.textContent = suggestion.customer_reply;
   hint.replaceChildren();
   if (suggestion.upsell_product_id) {
@@ -822,7 +919,7 @@ async function askAssistant(text) {
   if (asking) return;
   asking = true;
   addCustomerButton.disabled = true;
-  setState(L.loading, 'loading');
+  setState('loading');
   const headers = { 'Content-Type': 'application/json' };
   if (linkToken) headers['X-API-Token'] = linkToken;
   try {
@@ -834,15 +931,15 @@ async function askAssistant(text) {
     const payload = await response.json();
     if (!response.ok) {
       if (response.status === 401) {
-        setState(L.accessDenied, 'error');
+        setState('denied');
       } else {
-        setState(L.errorWord + ': ' + payload.message, 'error');
+        setState('failed', payload.message);
       }
       return;
     }
     showSuggestion(payload);
   } catch (error) {
-    setState(L.networkError, 'error');
+    setState('network');
   } finally {
     asking = false;
     addCustomerButton.disabled = false;
@@ -857,7 +954,7 @@ function receiveCustomerMessage() {
   fitCustomer();
   addMessage(L.contactValue, text, 'incoming');
   if (linkToken === null) {
-    setState(L.accessDenied, 'error');
+    setState('denied');
     return;
   }
   askAssistant(text);
@@ -917,6 +1014,15 @@ chatInput.addEventListener('keydown', (event) => {
     event.preventDefault();
     setExpanded(false);
   }
+});
+
+languageSelect.value = lang;
+if (lang !== attr) {
+  document.documentElement.setAttribute('lang', lang);
+}
+languageSelect.addEventListener('change', () => {
+  const next = languageSelect.value;
+  if (next !== lang && own.call(I18N, next)) setLanguage(next);
 });
 
 addMessage(L.contactValue, L.firstIncoming, 'incoming');
