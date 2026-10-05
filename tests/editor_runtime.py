@@ -15,8 +15,26 @@ const fs = require('node:fs');
 const input = JSON.parse(fs.readFileSync(0, 'utf8'));
 const requests = [];
 const focusLog = [];
+const storageWrites = [];
 const elements = new Map();
 let nextResponse = 0;
+
+/** Record one browser storage. */
+function storageArea(initial) {
+  const data = new Map(Object.entries(initial));
+  return {
+    getItem: (key) => (data.has(String(key)) ? data.get(String(key)) : null),
+    setItem: (key, value) => {
+      data.set(String(key), String(value));
+      storageWrites.push([String(key), String(value)]);
+    },
+    removeItem: (key) => {
+      data.delete(String(key));
+    },
+  };
+}
+
+const pageStorage = storageArea(input.storage ?? {});
 
 /** Represent page elements. */
 class Element {
@@ -107,7 +125,7 @@ class Element {
 
 for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
   const attributes = Object.fromEntries(Array.from(
-    match[1].matchAll(/([\w-]+)="([^"]*)"/g), (item) => [item[1], item[2]],
+    match[1].matchAll(/([\w-]+)(?:="([^"]*)")?/g), (item) => [item[1], item[2] ?? ''],
   ));
   const id = attributes.id ?? 'anonymous-' + elements.size;
   const element = new Element(id);
@@ -117,7 +135,13 @@ for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
 
 const document = {
   activeElement: null,
-  documentElement: {getAttribute: () => input.language},
+  documentElement: {
+    attributes: {lang: input.language},
+    /** Read a document attribute. */
+    getAttribute(name) { return this.attributes[name] ?? null; },
+    /** Write a document attribute. */
+    setAttribute(name, value) { this.attributes[name] = String(value); },
+  },
   /** Read page element. */
   getElementById(id) { return elements.get(id) ?? null; },
   /** Create detached element. */
@@ -173,6 +197,12 @@ const context = {
     });
   },
 };
+Object.defineProperty(context, 'localStorage', {
+  get: () => {
+    if (input.storageBlocked) throw new Error('Storage is blocked');
+    return pageStorage;
+  },
+});
 context.window = context;
 vm.createContext(context);
 vm.runInContext(input.script, context, {timeout: 1000});
@@ -211,6 +241,28 @@ function transcript() {
   }));
 }
 
+/** Read rendered inline text. */
+function inlineText(node) {
+  return node.children.map((child) =>
+    typeof child === 'string' ? child : child.textContent).join('');
+}
+
+/** Read rendered check rows. */
+function checkRows() {
+  return Array.from(elements.get('checks').children).map((row) => ({
+    name: row.children[0] ? row.children[0].textContent : '',
+    status: row.children[1] ? row.children[1].textContent : '',
+  }));
+}
+
+/** Read rendered usage rows. */
+function usageRows() {
+  return Array.from(elements.get('usage').children).map((row) => ({
+    label: row.children[0] ? row.children[0].textContent : '',
+    value: row.children[1] ? row.children[1].textContent : '',
+  }));
+}
+
 /** Run one scripted step. */
 async function runStep(step, entry) {
   const node = step.id === 'active' ? document.activeElement : elements.get(step.id);
@@ -238,6 +290,9 @@ async function runStep(step, entry) {
       node.listeners.click({target: node});
     }
     entry.defaultPrevented = event.defaultPrevented;
+  } else if (step.kind === 'change') {
+    node.value = step.value;
+    if (node.listeners.change) node.listeners.change({target: node});
   } else if (step.kind === 'click') {
     if (node.disabled) {
       entry.refused = true;
@@ -262,6 +317,7 @@ async function runStep(step, entry) {
     const entry = {step: step.kind, id: step.id ?? null};
     await runStep(step, entry);
     entry.watch = snapshot();
+    entry.documentLang = document.documentElement.attributes.lang;
     trace.push(entry);
   }
   process.stdout.write(JSON.stringify({
@@ -270,6 +326,11 @@ async function runStep(step, entry) {
     messages: transcript(),
     state: elements.get('assistant-state').textContent,
     reply: elements.get('reply').textContent,
+    hint: inlineText(elements.get('hint')),
+    checks: checkRows(),
+    usage: usageRows(),
+    storage: storageWrites,
+    documentLang: document.documentElement.attributes.lang,
     focusLog,
     activeElement: document.activeElement ? document.activeElement.id : null,
   }));
@@ -286,6 +347,8 @@ def run_editor_page(
     language: str = 'en',
     watch: tuple[str, ...] = (),
     geometry: dict[str, int | bool] | None = None,
+    storage: dict[str, str] | None = None,
+    storage_blocked: bool = False,
 ) -> dict[str, Any]:
     """Observe editor page steps."""
     node = shutil.which('node')
@@ -302,6 +365,8 @@ def run_editor_page(
         'steps': list(steps),
         'watch': list(watch),
         'geometry': geometry,
+        'storage': dict(storage or {}),
+        'storageBlocked': storage_blocked,
     }
     completed = subprocess.run(  # noqa: S603
         [node, '-e', RUNTIME],
