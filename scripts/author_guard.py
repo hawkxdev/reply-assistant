@@ -4,22 +4,26 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import re
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import quote
 
+from scripts.author_diagnostics import collect
 from scripts.review_handoff import (
     DispatchClaim,
     DispatchState,
     ReleaseProof,
+    WorkEvidence,
     dispatch_decision,
     lead_write_allowed,
     signals,
+    work_outcome,
 )
 
 # === Source access ===
@@ -88,7 +92,11 @@ def record(message: dict[str, Any], marker: str) -> dict[str, Any] | None:
     if len(matches) != 1 or message.get('created_at') != message.get('updated_at'):
         raise ValueError('Ambiguous or edited execution receipt')
     value = json.loads(matches[0])
-    if not isinstance(value, dict) or value.get('schema') != 1:
+    if (
+        not isinstance(value, dict)
+        or type(value.get('schema')) is not int
+        or value.get('schema') not in (1, 2)
+    ):
         raise ValueError('Unsupported execution receipt')
     return value
 
@@ -121,6 +129,7 @@ class Context:
     pr: int | None
     head: str
     event: str
+    recovery_run: int | None = None
 
 
 async def resolve(source: Source, event: dict[str, Any]) -> Context:
@@ -164,6 +173,12 @@ async def resolve(source: Source, event: dict[str, Any]) -> Context:
     issue = await source.request(f'repos/{repo}/issues/{task}')
     if 'pull_request' in issue:
         raise ValueError('The task binding must name an issue')
+    words = comment['body'].split()
+    recovery_run = None
+    if len(words) > 1 and words[1] == 'recover':
+        if len(words) < 3 or not re.fullmatch(r'[1-9][0-9]*', words[2]):
+            raise ValueError('Recovery needs the stopped run identifier')
+        recovery_run = int(words[2])
     return Context(
         repo,
         owner,
@@ -173,6 +188,7 @@ async def resolve(source: Source, event: dict[str, Any]) -> Context:
         pr,
         head,
         str(comment['id']),
+        recovery_run,
     )
 
 
@@ -256,18 +272,38 @@ async def observe(
             bindings.append(value)
     if set(results) - {binding['run'] for binding in bindings}:
         raise ValueError('Execution result has no trusted reservation')
+    resolutions = await read_resolutions(
+        source, context, comments, bindings, results, runs
+    )
     for binding in bindings:
         run_id = binding['run']
+        if binding.get('kind') not in ('initial', 'correction', 'recovery'):
+            raise ValueError('Unknown execution reservation kind')
         result = results.get(run_id)
         run = runs[run_id]
         if result is not None and (
             result.get('event') != binding.get('event')
             or result['created_at'] < binding['created_at']
+            or result.get('checkout_head') != binding.get('checkout_head')
         ):
             raise ValueError('Result does not match its reservation')
         status = run['status']
         if status == 'completed' and result is None:
             status = 'unknown'
+        resolution = resolutions.get(run_id)
+        outcome = (result or {}).get('outcome', 'legacy')
+        preserved = bool(
+            result
+            and result.get('preserved', result.get('saved')) is True
+            and result.get('worktree_clean') is True
+        )
+        reconciled = False
+        if resolution is not None:
+            outcome = (
+                'delivered' if resolution['operation'] == 'publish' else 'no_progress'
+            )
+            preserved = True
+            reconciled = True
         claims.append(
             DispatchClaim(
                 str(binding['event']),
@@ -275,26 +311,38 @@ async def observe(
                 binding['kind'],
                 run_id,
                 status,
-                bool(
-                    result
-                    and result.get('saved') is True
-                    and result.get('worktree_clean') is True
-                ),
+                preserved,
+                outcome,
+                reconciled,
+                resolution['resume_head']
+                if resolution and resolution['operation'] == 'resume'
+                else None,
             )
         )
     if len({claim.run for claim in claims}) != len(claims):
         raise ValueError('Duplicate run reservations')
+    latest = max(bindings, key=lambda item: item['run'], default={})
+    if context.recovery_run is not None and context.pr is None and latest.get('pr'):
+        raise ValueError('Recover a PR execution through its bound PR')
     opened = issue['state'] == 'open'
     reviews: list[str] = []
     accepted = False
-    takeover = False
+    takeover = any(value['operation'] == 'lead' for value in resolutions.values())
     if context.pr is not None:
         pull = await source.request(f'{prefix}/pulls/{context.pr}')
         if pull['head']['sha'] != context.head:
             raise ValueError('PR head changed during observation')
-        if pull['user']['id'] != executor['id']:
+        recovered_pr = any(
+            value.get('pr') == context.pr and value['operation'] == 'publish'
+            for value in resolutions.values()
+        )
+        if pull['user']['id'] != executor['id'] and not (
+            recovered_pr and pull['user']['id'] == context.owner
+        ):
             raise ValueError('PR author is not the selected executor')
-        if not any(result.get('pr') == context.pr for result in results.values()):
+        if not recovered_pr and not any(
+            result.get('pr') == context.pr for result in results.values()
+        ):
             raise ValueError('PR is not bound to a recorded execution')
         opened = opened and pull['state'] == 'open'
         review_records = await pages(source, f'{prefix}/pulls/{context.pr}/reviews')
@@ -341,10 +389,238 @@ async def observe(
         takeover,
         tuple(reviews),
         tuple(claims),
+        context.recovery_run,
     ), list(results.values())
 
 
 # === Reservation and result ===
+
+
+def checkpoint_digest(value: dict[str, Any]) -> str:
+    """Bind immutable checkpoint facts."""
+    data = {key: item for key, item in value.items() if key != 'created_at'}
+    raw = json.dumps(data, sort_keys=True, separators=(',', ':')).encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
+def work_baselines(binding: dict[str, Any]) -> tuple[str, ...]:
+    """Separate checkout and target."""
+    heads: tuple[Any, ...] = (binding['head'],)
+    if binding.get('schema') == 2:
+        heads += (binding.get('checkout_head'),)
+    if not all(
+        isinstance(head, str) and re.fullmatch(r'[0-9a-f]{40}', head) for head in heads
+    ):
+        raise ValueError('Reservation lacks valid checkout evidence')
+    return heads
+
+
+def verify_empty_checkpoint(
+    checkpoint: dict[str, Any],
+    binding: dict[str, Any],
+    resolution: dict[str, Any],
+    repo: str,
+) -> None:
+    """Verify absence of output."""
+    if (
+        checkpoint.get('head') not in work_baselines(binding)
+        or checkpoint.get('worktree_clean') is not True
+    ):
+        raise ValueError('Checkpoint does not establish an empty execution')
+    if checkpoint.get('schema') == 2:
+        if (
+            checkpoint.get('outcome') != 'no_progress'
+            or checkpoint.get('other_work') is not False
+            or checkpoint.get('checkout_head') != binding.get('checkout_head')
+        ):
+            raise ValueError('Checkpoint contains work or uncertainty')
+    elif (
+        resolution.get('legacy_audit') is not True
+        or checkpoint.get('pr') is not None
+        or resolution.get('evidence')
+        != f'https://github.com/{repo}/actions/runs/{binding["run"]}'
+    ):
+        raise ValueError('Legacy checkpoint requires an explicit run evidence audit')
+
+
+async def read_resolutions(
+    source: Source,
+    context: Context,
+    comments: list[dict[str, Any]],
+    bindings: list[dict[str, Any]],
+    results: dict[int, dict[str, Any]],
+    runs: dict[int, dict[str, Any]],
+) -> dict[int, dict[str, Any]]:
+    """Verify append only resolutions."""
+    found: dict[int, dict[str, Any]] = {}
+    reserved = {item['run']: item for item in bindings}
+    for message in sorted(comments, key=lambda item: item['created_at']):
+        if message.get('user', {}).get('id') != context.owner:
+            continue
+        value = record(message, 'author-resolution')
+        if value is None:
+            continue
+        run_id = value.get('run')
+        if (
+            value.get('schema') != 2
+            or value.get('task') != context.task
+            or run_id not in results
+        ):
+            raise ValueError('Resolution lacks its task checkpoint')
+        run = runs[run_id]
+        checkpoint = results[run_id]
+        if (
+            run['status'] != 'completed'
+            or message['created_at'] <= run['updated_at']
+            or value.get('result_digest') != checkpoint_digest(checkpoint)
+            or not re.fullmatch(r'[0-9a-f]{40}', str(value.get('resume_head', '')))
+        ):
+            raise ValueError('Resolution is stale or does not match terminal evidence')
+        operation = value.get('operation')
+        if operation in ('resume', 'lead'):
+            verify_empty_checkpoint(checkpoint, reserved[run_id], value, context.repo)
+        elif operation == 'publish':
+            pr = value.get('pr')
+            if (
+                type(pr) is not int
+                or pr < 1
+                or checkpoint.get('outcome') != 'remote_commit'
+            ):
+                raise ValueError('Publication resolution lacks preserved work')
+            pull = await source.request(f'repos/{context.repo}/pulls/{pr}')
+            if (
+                pull['head']['repo']['id'] != context.repository
+                or pull['head']['ref'] != checkpoint.get('branch')
+                or value.get('resume_head') != checkpoint.get('head')
+            ):
+                raise ValueError('Publication resolution names another branch')
+        else:
+            raise ValueError('Unknown resolution operation')
+        previous = found.get(run_id)
+        if previous and previous['operation'] == 'lead' and operation != 'lead':
+            raise ValueError('Cannot replace a lead transfer with another operation')
+        if previous is None or message['created_at'] > previous['created_at']:
+            found[run_id] = dict(value, created_at=message['created_at'])
+        elif message['created_at'] == previous['created_at'] and value != {
+            key: item for key, item in previous.items() if key != 'created_at'
+        }:
+            raise ValueError('Conflicting simultaneous resolutions')
+    return found
+
+
+async def reconcile(
+    source: Source,
+    context: Context,
+    settings: dict[str, str],
+    run: int,
+    operation: str,
+    head: str,
+    *,
+    legacy_audit: bool = False,
+    evidence: str = '',
+    pr: int | None = None,
+) -> dict[str, Any]:
+    """Resolve verified terminal outcomes."""
+    user = await source.request('user')
+    if user['id'] != context.owner:
+        raise ValueError('Only the owner reconciles execution')
+    state, checkpoints = await observe(
+        source,
+        replace(context, pr=None if operation == 'publish' else pr, recovery_run=None),
+        settings,
+    )
+    if not state.opened or state.accepted:
+        raise ValueError('Closed or accepted tasks cannot resume')
+    if not state.claims or max(item.run for item in state.claims) != run:
+        raise ValueError('Reconcile only the latest execution')
+    if any(item.status != 'completed' for item in state.claims):
+        raise ValueError('Execution is active or its outcome is unknown')
+    current_run = await verify_run(source, context, run, settings['workflow'])
+    if current_run['status'] != 'completed':
+        raise ValueError('Current workflow attempt has not completed')
+    checkpoint = next(item for item in checkpoints if item['run'] == run)
+    if checkpoint.get('pr') is not None and pr != checkpoint['pr']:
+        raise ValueError('Reconciliation needs the bound PR')
+    claim = next(item for item in state.claims if item.run == run)
+    value = {
+        'schema': 2,
+        'task': context.task,
+        'run': run,
+        'result_digest': checkpoint_digest(checkpoint),
+        'operation': operation,
+        'resume_head': head,
+        'legacy_audit': legacy_audit,
+        'evidence': evidence,
+        'observed_attempt': current_run['run_attempt'],
+    }
+    target_pr = pr or checkpoint.get('pr')
+    if target_pr is not None:
+        pull = await source.request(f'repos/{context.repo}/pulls/{target_pr}')
+        if pull['state'] != 'open' or pull['head']['repo']['id'] != context.repository:
+            raise ValueError('Recovery requires an open same repository PR')
+        live_head = pull['head']['sha']
+    else:
+        tip = await source.request(
+            f'repos/{context.repo}/git/ref/heads/{quote(context.branch, safe="")}'
+        )
+        live_head = tip['object']['sha']
+    if head != live_head:
+        raise ValueError('Recovery target changed before reconciliation')
+    if operation in ('resume', 'lead'):
+        verify_empty_checkpoint(
+            checkpoint, dict(checkpoint, head=claim.head), value, context.repo
+        )
+        if head != claim.head:
+            comparison = await source.request(
+                f'repos/{context.repo}/compare/{claim.head}...{head}'
+            )
+            if comparison['status'] not in ('ahead', 'identical'):
+                raise ValueError('Recovery base does not preserve the original history')
+        if operation == 'resume':
+            reconciled = replace(
+                claim,
+                saved=True,
+                outcome='no_progress',
+                reconciled=True,
+                recovery_head=head,
+            )
+            proposed = replace(
+                state,
+                head=head,
+                recovery_run=run,
+                claims=tuple(
+                    reconciled if item.run == run else item for item in state.claims
+                ),
+            )
+            decision = dispatch_decision(proposed, 'reconciliation')
+            if not decision.allowed:
+                raise ValueError('Recovery denied: ' + decision.reason)
+    elif operation == 'publish':
+        if (
+            target_pr is None
+            or checkpoint.get('outcome') != 'remote_commit'
+            or checkpoint.get('worktree_clean') is not True
+            or checkpoint.get('head') != head
+            or pull['head']['ref'] != checkpoint.get('branch')
+        ):
+            raise ValueError('Publication requires the exact preserved checkpoint')
+        executor = await source.request(f'users/{quote(settings["executor"], safe="")}')
+        if pull['user']['id'] not in (context.owner, executor['id']):
+            raise ValueError('Publication participant is not authorized')
+        value['pr'] = target_pr
+    else:
+        raise ValueError('Unknown reconciliation operation')
+    comments = await pages(
+        source, f'repos/{context.repo}/issues/{context.task}/comments'
+    )
+    for message in reversed(comments):
+        if (
+            owner_message(message, context.owner)
+            and record(message, 'author-resolution') == value
+        ):
+            return dict(value, changed=False)
+    await append(source, context, 'author-resolution', value)
+    return dict(value, changed=True)
 
 
 async def append(
@@ -359,26 +635,54 @@ async def append(
 
 
 async def reserve(
-    source: Source, context: Context, settings: dict[str, str], run: int, attempt: int
+    source: Source,
+    context: Context,
+    settings: dict[str, str],
+    run: int,
+    attempt: int,
+    *,
+    checkout_head: str,
+    base_refs: dict[str, str] | None = None,
+    requested_model: str = 'unspecified',
+    requested_variant: str = 'provider-default',
 ) -> dict[str, Any]:
     """Persist before allowing execution."""
+    if not re.fullmatch(r'[0-9a-f]{40}', checkout_head):
+        raise ValueError('Invalid initial checkout commit')
+    if not all(
+        re.fullmatch(r'[A-Za-z0-9_./:-]{1,120}', item)
+        for item in (requested_model, requested_variant)
+    ):
+        raise ValueError('Invalid model configuration metadata')
     state, _ = await observe(source, context, settings)
     decision = dispatch_decision(state, context.event)
     output = asdict(decision)
     if not decision.allowed:
         return output
     await verify_run(source, context, run, settings['workflow'])
-    value = {
-        'schema': 1,
+    value: dict[str, Any] = {
+        'schema': 2,
         'task': context.task,
         'pr': context.pr,
         'head': context.head,
+        'checkout_head': checkout_head,
         'event': context.event,
         'run': run,
         'attempt': attempt,
-        'kind': 'correction' if context.pr else 'initial',
+        'kind': 'recovery'
+        if decision.reason == 'RECOVERY'
+        else 'correction'
+        if context.pr
+        else 'initial',
         'return_number': decision.return_number,
+        'started_ms': int(time.time() * 1000),
+        'requested_model': requested_model,
+        'requested_variant': requested_variant,
     }
+    if context.recovery_run is not None:
+        value['recovery_of'] = context.recovery_run
+    if base_refs is not None:
+        value['base_refs'] = base_refs
     await append(source, context, 'author-dispatch', value)
     return dict(output, reservation=value)
 
@@ -395,6 +699,94 @@ async def command(arguments: list[str], root: Path) -> str:
     if process.returncode:
         raise RuntimeError('Checkout evidence is unavailable')
     return stdout.decode().strip()
+
+
+async def local_refs(root: Path) -> dict[str, str]:
+    """Capture local branch checkpoints."""
+    text = await command(
+        [
+            'git',
+            'for-each-ref',
+            '--format=%(refname) %(objectname)',
+            'refs/heads',
+            'refs/stash',
+        ],
+        root,
+    )
+    refs = {}
+    for line in text.splitlines():
+        name, sha = line.split()
+        if (
+            not name.startswith('refs/heads/') and name != 'refs/stash'
+        ) or not re.fullmatch(r'[0-9a-f]{40}', sha):
+            raise ValueError('Invalid branch checkpoint')
+        refs[name] = sha
+    return refs
+
+
+async def trusted_reservation(
+    source: Source,
+    repo: str,
+    task: int,
+    event: str,
+    run_id: int,
+    attempt: int,
+    settings: dict[str, str],
+) -> tuple[Context, dict[str, Any]]:
+    """Reload original workflow reservation."""
+    repository = await source.request(f'repos/{repo}')
+    context = Context(
+        repo,
+        repository['owner']['id'],
+        repository['id'],
+        repository['default_branch'],
+        task,
+        None,
+        '',
+        event,
+    )
+    run = await verify_run(source, context, run_id, settings['workflow'], attempt)
+    writer = await source.request('users/github-actions%5Bbot%5D')
+    comments = await pages(source, f'repos/{repo}/issues/{task}/comments')
+    matches = []
+    for message in comments:
+        if message.get('user', {}).get('id') != writer['id']:
+            continue
+        value = record(message, 'author-dispatch')
+        if value is None or value.get('run') != run_id:
+            continue
+        if (
+            value.get('task') != task
+            or value.get('event') != event
+            or value.get('attempt') != attempt
+            or value.get('schema') != 2
+            or message['created_at'] < run['created_at']
+            or (
+                run['status'] == 'completed'
+                and message['created_at'] > run['updated_at']
+            )
+        ):
+            raise ValueError('Finalizer reservation binding changed')
+        matches.append(value)
+    if len(matches) != 1:
+        raise ValueError('Finalizer needs exactly one trusted reservation')
+    value = matches[0]
+    return replace(context, pr=value['pr'], head=value['head']), value
+
+
+async def published_head(source: Source, repo: str, branch: str) -> str | None:
+    """Read exact published branch."""
+    if not branch:
+        return None
+    refs = await source.request(
+        f'repos/{repo}/git/matching-refs/heads/{quote(branch, safe="")}'
+    )
+    matched = [
+        item['object']['sha'] for item in refs if item['ref'] == 'refs/heads/' + branch
+    ]
+    if len(matched) > 1:
+        raise ValueError('Ambiguous published branch')
+    return matched[0] if matched else None
 
 
 async def finish(
@@ -428,6 +820,42 @@ async def finish(
         saved=saved,
         worktree_clean=clean,
     )
+    if reservation.get('schema') == 2:
+        before = reservation.get('base_refs')
+        if not isinstance(before, dict):
+            raise ValueError('Reservation lacks original branch evidence')
+        refs = await local_refs(root)
+        other_work = any(
+            sha not in (reservation['head'], head, before.get(ref))
+            for ref, sha in refs.items()
+        ) or any(ref not in refs for ref in before)
+        discarded = await command(
+            [
+                'git',
+                'rev-list',
+                '--reflog',
+                '--all',
+                '--not',
+                head,
+                *set(before.values()),
+            ],
+            root,
+        )
+        other_work |= bool(discarded)
+        remote = await published_head(source, context.repo, branch)
+        pr_head = pull['head']['sha'] if pull and saved else None
+        baselines = work_baselines(reservation)
+        baseline = head if head in baselines else baselines[-1]
+        outcome = work_outcome(
+            WorkEvidence(baseline, head, clean, other_work, remote, pr_head)
+        )
+        value.update(
+            branch=branch,
+            remote_head=remote,
+            other_work=other_work,
+            outcome=outcome,
+            preserved=outcome in ('no_progress', 'remote_commit', 'delivered'),
+        )
     if saved and pull is not None:
         messages = await pages(
             source, f'repos/{context.repo}/issues/{pull["number"]}/comments'
@@ -444,6 +872,8 @@ async def finish(
         ]
         if requests:
             value['handoff'] = requests[-1]['handoff']
+    if type(reservation.get('started_ms')) is int:
+        value['diagnostics'] = await collect(root, reservation['started_ms'])
     await append(source, context, 'author-result', value)
     return value
 
@@ -456,6 +886,46 @@ async def handoff_check(
 ) -> bool:
     """Verify before lead writing."""
     state, checkpoints = await observe(source, context, settings)
+    last = max(state.claims, key=lambda item: item.run, default=None)
+    if context.pr is None or (last and last.outcome == 'no_progress'):
+        if not state.takeover or last is None:
+            return False
+        comments = await pages(
+            source, f'repos/{context.repo}/issues/{context.task}/comments'
+        )
+        transfers = [
+            dict(value, created_at=item['created_at'])
+            for item in comments
+            if owner_message(item, context.owner)
+            if (value := record(item, 'author-resolution')) is not None
+            and value.get('run') == last.run
+        ]
+        latest = max(transfers, key=lambda item: item['created_at'], default={})
+        cloud = await verify_run(source, context, last.run, settings['workflow'])
+        matching = (
+            latest.get('operation') == 'lead'
+            and latest.get('resume_head') == context.head
+            and latest.get('observed_attempt') == cloud['run_attempt']
+            and latest['created_at'] > cloud['updated_at']
+        )
+        if context.pr is None:
+            tip = await source.request(
+                f'repos/{context.repo}/git/ref/heads/{quote(context.branch, safe="")}'
+            )
+            remote_head = tip['object']['sha']
+        else:
+            pull = await source.request(f'repos/{context.repo}/pulls/{context.pr}')
+            remote_head = pull['head']['sha']
+        proof = ReleaseProof(
+            str(last.run),
+            str(last.run) if matching else '',
+            context.head,
+            remote_head,
+            matching,
+            last.status == 'completed' and cloud['status'] == 'completed',
+            last.saved,
+        )
+        return lead_write_allowed(state, proof)
     executor = await source.request(f'users/{quote(settings["executor"], safe="")}')
     messages = await pages(source, f'repos/{context.repo}/issues/{context.pr}/comments')
     requests: list[dict[str, Any]] = []
@@ -520,11 +990,17 @@ async def main() -> None:
     """Run the selected operation."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        'phase', choices=['resolve', 'claim', 'finish', 'handoff-check']
+        'phase',
+        choices=['resolve', 'claim', 'finish', 'handoff-check', 'inspect', 'reconcile'],
     )
     parser.add_argument('--repo')
     parser.add_argument('--task', type=int)
     parser.add_argument('--pr', type=int)
+    parser.add_argument('--run', type=int)
+    parser.add_argument('--head')
+    parser.add_argument('--operation', choices=['resume', 'lead', 'publish'])
+    parser.add_argument('--legacy-no-work-audit', action='store_true')
+    parser.add_argument('--evidence', default='')
     args = parser.parse_args()
     root = await asyncio.to_thread(
         Path(os.environ.get('GITHUB_WORKSPACE', '.')).resolve
@@ -534,14 +1010,72 @@ async def main() -> None:
         os.environ.get('AUTHOR_CYCLE_CONFIG', root / '.github/author-cycle.json')
     )
     settings = json.loads(await asyncio.to_thread(settings_file.read_text))
+    if args.phase in ('inspect', 'reconcile'):
+        if not args.repo or not args.task:
+            parser.error('Observation needs repository and task')
+        repository = await source.request(f'repos/{args.repo}')
+        default_branch = quote(repository['default_branch'], safe='')
+        tip = await source.request(f'repos/{args.repo}/git/ref/heads/{default_branch}')
+        head = args.head or tip['object']['sha']
+        if args.phase == 'inspect' and args.pr:
+            pull = await source.request(f'repos/{args.repo}/pulls/{args.pr}')
+            head = args.head or pull['head']['sha']
+        context = Context(
+            args.repo,
+            repository['owner']['id'],
+            repository['id'],
+            repository['default_branch'],
+            args.task,
+            args.pr if args.phase == 'inspect' else None,
+            head,
+            'inspection',
+        )
+        if args.phase == 'reconcile':
+            if not args.run or not args.operation or not args.head:
+                parser.error('Reconciliation needs run, operation and exact head')
+            result = await reconcile(
+                source,
+                context,
+                settings,
+                args.run,
+                args.operation,
+                args.head,
+                legacy_audit=args.legacy_no_work_audit,
+                evidence=args.evidence,
+                pr=args.pr,
+            )
+        else:
+            state, checkpoints = await observe(source, context, settings)
+            last = max(state.claims, key=lambda item: item.run, default=None)
+            recovery = dispatch_decision(
+                replace(state, recovery_run=last.run if last else None),
+                'inspection-recovery',
+            )
+            result = {
+                'task': args.task,
+                'claims': [asdict(item) for item in state.claims],
+                'checkpoints': checkpoints,
+                'admission': asdict(dispatch_decision(state, 'inspection')),
+                'recovery': asdict(recovery),
+            }
+        print(json.dumps(result))
+        return
     if args.phase == 'handoff-check':
-        if not args.repo or not args.task or not args.pr:
-            parser.error('Handoff check needs repository, task and PR')
+        if not args.repo or not args.task:
+            parser.error('Handoff check needs repository and task')
         repository = await source.request(f'repos/{args.repo}')
         user = await source.request('user')
         if user['id'] != repository['owner']['id']:
             raise ValueError('Only the owner checks lead write authority')
-        pull = await source.request(f'repos/{args.repo}/pulls/{args.pr}')
+        if args.pr:
+            pull = await source.request(f'repos/{args.repo}/pulls/{args.pr}')
+            checked_head = pull['head']['sha']
+        else:
+            default_branch = quote(repository['default_branch'], safe='')
+            tip = await source.request(
+                f'repos/{args.repo}/git/ref/heads/{default_branch}'
+            )
+            checked_head = tip['object']['sha']
         context = Context(
             args.repo,
             repository['owner']['id'],
@@ -549,7 +1083,7 @@ async def main() -> None:
             repository['default_branch'],
             args.task,
             args.pr,
-            pull['head']['sha'],
+            checked_head,
             'handoff-check',
         )
         allowed = await handoff_check(source, context, settings)
@@ -562,24 +1096,34 @@ async def main() -> None:
     saved_file = Path(os.environ['RUNNER_TEMP']) / 'author-dispatch.json'
     output_file = Path(os.environ['GITHUB_OUTPUT'])
     if args.phase == 'finish':
-        data = json.loads(await asyncio.to_thread(saved_file.read_text))
-        context = Context(**data['context'])
-        result = await finish(source, context, data['reservation'], root)
+        context, reservation = await trusted_reservation(
+            source,
+            os.environ['GITHUB_REPOSITORY'],
+            int(os.environ['AUTHOR_TASK']),
+            os.environ['AUTHOR_EVENT'],
+            int(os.environ['GITHUB_RUN_ID']),
+            int(os.environ['GITHUB_RUN_ATTEMPT']),
+            settings,
+        )
+        result = await finish(source, context, reservation, root)
     else:
         context = await resolve(source, event)
         if args.phase == 'resolve':
             result = {'task': context.task}
         else:
-            if context.pr is None:
-                local_head = await command(['git', 'rev-parse', 'HEAD'], root)
-                if local_head != context.head:
-                    raise ValueError('Initial base changed before reservation')
+            local_head = await command(['git', 'rev-parse', 'HEAD'], root)
+            if context.pr is None and local_head != context.head:
+                raise ValueError('Initial base changed before reservation')
             result = await reserve(
                 source,
                 context,
                 settings,
                 int(os.environ['GITHUB_RUN_ID']),
                 int(os.environ['GITHUB_RUN_ATTEMPT']),
+                checkout_head=local_head,
+                base_refs=await local_refs(root),
+                requested_model=os.environ.get('MODEL') or 'unspecified',
+                requested_variant=os.environ.get('VARIANT') or 'provider-default',
             )
             if result.get('allowed'):
                 data = {
@@ -598,6 +1142,8 @@ async def main() -> None:
             {key: value for key, value in result.items() if key != 'reservation'}
         )
     )
+    if args.phase == 'finish' and result.get('outcome') != 'delivered':
+        raise SystemExit(2)
 
 
 def write_output(path: Path, text: str) -> None:

@@ -70,6 +70,8 @@ No secret is available to the whole repository. The checks that run on every pul
 
 **What is capped.** The author job retains its 30-minute timeout and one concurrency group per task. A durable admission guard allows an initial execution and two correction returns; the third review ends in acceptance or bounded completion by the lead. Details, trust checks and remaining provider limits are in [ADR 0006](adr/0006-bounded-cloud-corrections.md).
 
+**What happens when execution produces no PR.** The delivery check fails after recording the observed outcome. The lead reconciles a completed empty run before using the one task-wide technical recovery or taking over. A published commit missing its PR is repaired without another model call. Unsaved work and unknown outcomes remain blocked. [ADR 0007](adr/0007-author-delivery-recovery.md) gives the commands, diagnostics and recovery limits.
+
 ## What the author tool decides by itself
 
 The author action names the branch and writes the pull request title, and it does not apply labels. The agent states the correct title in the pull request body. The lead agent sets the title and the label.

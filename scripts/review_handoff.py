@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 MAX_EXECUTOR_RETURNS = 2
+MAX_TECHNICAL_RECOVERIES = 1
 
 
 def signals(message: dict[str, Any], issue: int) -> list[dict[str, Any]]:
@@ -183,6 +184,35 @@ def classify(
 
 
 @dataclass(frozen=True)
+class WorkEvidence:
+    """Separate execution delivery facts."""
+
+    base: str
+    head: str
+    clean: bool
+    other_work: bool
+    remote_head: str | None = None
+    pr_head: str | None = None
+
+
+def work_outcome(evidence: WorkEvidence) -> str:
+    """Classify observable work delivery."""
+    if not all(
+        re.fullmatch(r'[0-9a-f]{40}', head) for head in (evidence.base, evidence.head)
+    ):
+        raise ValueError('Invalid work checkpoint')
+    if not evidence.clean or evidence.other_work:
+        return 'local_changes'
+    if evidence.head == evidence.base:
+        return 'no_progress'
+    if evidence.remote_head != evidence.head:
+        return 'local_changes'
+    if evidence.pr_head == evidence.head:
+        return 'delivered'
+    return 'remote_commit'
+
+
+@dataclass(frozen=True)
 class DispatchClaim:
     """One verified execution reservation."""
 
@@ -192,6 +222,9 @@ class DispatchClaim:
     run: int
     status: str
     saved: bool
+    outcome: str = 'legacy'
+    reconciled: bool = False
+    recovery_head: str | None = None
 
 
 @dataclass(frozen=True)
@@ -206,6 +239,7 @@ class DispatchState:
     takeover: bool
     reviews: tuple[str, ...]
     claims: tuple[DispatchClaim, ...]
+    recovery_run: int | None = None
 
 
 @dataclass(frozen=True)
@@ -221,6 +255,10 @@ def dispatch_decision(state: DispatchState, event: str) -> DispatchDecision:
     """Decide before reserving execution."""
     if state.task < 1 or not event or not re.fullmatch(r'[0-9a-f]{40}', state.head):
         raise ValueError('Invalid task identity or commit')
+    if state.recovery_run is not None and (
+        type(state.recovery_run) is not int or state.recovery_run < 1
+    ):
+        raise ValueError('Invalid recovery run')
     if not state.opened:
         return DispatchDecision(False, 'CLOSED')
     if state.accepted:
@@ -238,7 +276,30 @@ def dispatch_decision(state: DispatchState, event: str) -> DispatchDecision:
         return DispatchDecision(False, 'RECONCILE_REQUIRED')
     if any(not claim.saved for claim in state.claims):
         return DispatchDecision(False, 'WORK_NOT_PRESERVED')
+    if any(
+        claim.outcome == 'no_progress' and not claim.reconciled
+        for claim in state.claims
+    ):
+        return DispatchDecision(False, 'RECONCILE_REQUIRED')
     returned = {claim.head for claim in state.claims if claim.kind == 'correction'}
+    if len(set(state.reviews)) > MAX_EXECUTOR_RETURNS:
+        return DispatchDecision(False, 'LEAD_COMPLETION')
+    if state.recovery_run is not None:
+        if (
+            sum(claim.kind == 'recovery' for claim in state.claims)
+            >= MAX_TECHNICAL_RECOVERIES
+        ):
+            return DispatchDecision(False, 'RECOVERY_EXHAUSTED')
+        parent = max(state.claims, key=lambda claim: claim.run, default=None)
+        if (
+            parent is None
+            or parent.run != state.recovery_run
+            or parent.outcome != 'no_progress'
+            or not parent.reconciled
+            or parent.recovery_head != state.head
+        ):
+            return DispatchDecision(False, 'RECOVERY_NOT_ELIGIBLE')
+        return DispatchDecision(True, 'RECOVERY', len(returned))
     if (
         len(returned) >= MAX_EXECUTOR_RETURNS
         or len(set(state.reviews)) > MAX_EXECUTOR_RETURNS
@@ -282,4 +343,7 @@ def lead_write_allowed(state: DispatchState, proof: ReleaseProof) -> bool:
         and proof.completed
         and proof.saved
         and all(claim.status == 'completed' and claim.saved for claim in state.claims)
+        and all(
+            claim.outcome != 'no_progress' or claim.reconciled for claim in state.claims
+        )
     )
