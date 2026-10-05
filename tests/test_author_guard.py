@@ -588,6 +588,12 @@ async def test_cli_does_not_publish_permission_before_durable_receipt(
     monkeypatch.setenv('GITHUB_RUN_ID', '2')
     monkeypatch.setenv('GITHUB_RUN_ATTEMPT', '1')
     monkeypatch.setattr('scripts.author_guard.GitHub', lambda: source)
+
+    async def branch_evidence(root: Path) -> dict[str, str]:
+        """Return original checkout refs."""
+        return {'refs/heads/main': HEAD_A}
+
+    monkeypatch.setattr('scripts.author_guard.local_refs', branch_evidence)
     monkeypatch.setattr(sys, 'argv', ['author_guard', 'claim'])
     if write_fails:
         with pytest.raises(RuntimeError, match='Synthetic uncertain write'):

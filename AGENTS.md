@@ -41,6 +41,8 @@ Before lead changes, verify that the cloud run ended and all work is preserved a
 
 The executable procedure and provider limits are in [ADR 0006](docs/adr/0006-bounded-cloud-corrections.md). Merge authority, protected paths and deployment permissions remain as defined elsewhere in this file.
 
+An empty completed execution is a failed delivery, not completed implementation. The lead reconciles its immutable checkpoint before choosing recovery or takeover. [ADR 0007](docs/adr/0007-author-delivery-recovery.md) permits one technical recovery per task, separately from the two correction returns. Published work missing a PR is repaired without another model execution; unknown or unsaved work stays blocked. Preserve the branch prepared by OpenCode and finish the issue contract rather than ending with a plan.
+
 ## Boundaries
 
 These paths belong to the owner. Do not create, change or delete anything in them:
