@@ -8,6 +8,8 @@ An author run can exit successfully after reading and planning without publishin
 
 The existing guard records four outcomes: `no_progress`, `local_changes`, `remote_commit` and `delivered`. Its finalizer checks the checkout, branch refs, stash, reflog, published branch and PR. It retrieves the original reservation from authenticated issue records, not the local file writable by the author. Any outcome except `delivered` fails the delivery step after recording evidence. A delivered result still requires review and acceptance.
 
+The reservation stores both the reviewed task commit and the actual initial checkout commit. An issue-comment workflow can start on the default branch before OpenCode switches to the PR. An unchanged checkout before that switch and an unchanged PR after it are both no progress, provided the worktree and other-work evidence are clean. Recovery and transfer remain bound to the task commit, not the temporary checkout. Missing or inconsistent checkout evidence is rejected.
+
 The owner may append an `author-resolution` record through the guard. It binds the original checkpoint digest, completed workflow run, task and exact next commit. Original records remain unchanged. Resolutions from other actors, edited records, missing evidence and changed target commits cannot authorize execution.
 
 One technical recovery is available for the latest verified empty execution. This is a task-wide budget in `review_handoff.py`, independent of the two correction returns. Changing models or sessions does not reset either budget. A third rejected review still requires lead completion. An uncertain launch is inspected before any retry; an active executor or unpreserved work stays blocked.
@@ -32,7 +34,7 @@ A schema 1 checkpoint additionally requires `--legacy-no-work-audit --evidence h
 
 Only after successful reconciliation, comment `/oc recover RUN` on the original issue. For an existing PR, reconcile with `--pr PR` and use that PR for the recovery comment, retaining the current-head task marker required by ADR 0006. A repeated command cannot create another admitted recovery.
 
-If the commit was published but the PR is missing, locate or create the PR at that exact branch and commit, then use `--operation publish --pr PR`. This calls no model. If taking over a verified empty issue instead, use `--operation lead`, followed by `handoff-check --repo OWNER/REPO --task ISSUE`. For a PR retain the explicit takeover request and PR handoff check. Stop the task observer before lead product writes. Transfer is not acceptance.
+If the commit was published but the PR is missing, locate or create the PR at that exact branch and commit, then use `--operation publish --pr PR`. This calls no model. If taking over a verified empty execution instead, use `--operation lead`, followed by `handoff-check --repo OWNER/REPO --task ISSUE`; add `--pr PR` to both commands for a PR execution. That authenticated resolution is the explicit empty-work transfer. For delivered work retain the takeover procedure in ADR 0006. Stop the task observer before lead product writes. Transfer is not acceptance.
 
 ## Diagnostics and limits
 

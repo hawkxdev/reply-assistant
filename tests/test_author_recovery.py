@@ -82,7 +82,9 @@ async def test_owner_can_reconcile_audited_legacy_without_rewriting_history() ->
         evidence='https://github.com/owner/repo/actions/runs/1',
     )
     accept_owner_write(source)
-    admission = await reserve(source, source.context, SETTINGS, 2, 1)
+    admission = await reserve(
+        source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A
+    )
 
     assert result['operation'] == 'resume'
     assert (
@@ -129,9 +131,11 @@ async def test_untrusted_or_stale_resolution_does_not_admit_recovery(
 
     if defect in ('edited', 'digest', 'early'):
         with pytest.raises(ValueError, match=r'edited|stale'):
-            await reserve(source, source.context, SETTINGS, 2, 1)
+            await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
     else:
-        result = await reserve(source, source.context, SETTINGS, 2, 1)
+        result = await reserve(
+            source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A
+        )
         assert result['allowed'] is False
 
 
@@ -218,7 +222,7 @@ async def test_finalizer_uses_the_authenticated_reservation(defect: str) -> None
     value = json.loads(
         messages[0]['body'].split('author-dispatch ')[1].split(' -->')[0]
     )
-    value.update(schema=2, base_refs={'refs/heads/main': HEAD_A})
+    value.update(schema=2, checkout_head=HEAD_A, base_refs={'refs/heads/main': HEAD_A})
     if defect == 'event':
         value['event'] = '999'
     messages[0] = receipt('author-dispatch', value, '2026-01-01T00:01:00Z')
@@ -284,6 +288,7 @@ async def test_finalizer_records_delivery_and_abandoned_work(
         {
             'schema': 2,
             'head': HEAD_A,
+            'checkout_head': HEAD_A,
             'run': 1,
             'task': 1,
             'base_refs': {'refs/heads/main': HEAD_A},
@@ -365,7 +370,7 @@ async def test_published_checkpoint_binds_owner_pr_without_regeneration() -> Non
     accept_owner_write(source)
     context = replace(source.context, pr=2, head=HEAD_B, recovery_run=None)
     state, _ = await observe(source, context, SETTINGS)
-    admission = await reserve(source, context, SETTINGS, 2, 1)
+    admission = await reserve(source, context, SETTINGS, 2, 1, checkout_head=HEAD_A)
 
     assert result['pr'] == 2
     assert state.claims[0].outcome == 'delivered'

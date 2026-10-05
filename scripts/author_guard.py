@@ -284,6 +284,7 @@ async def observe(
         if result is not None and (
             result.get('event') != binding.get('event')
             or result['created_at'] < binding['created_at']
+            or result.get('checkout_head') != binding.get('checkout_head')
         ):
             raise ValueError('Result does not match its reservation')
         status = run['status']
@@ -402,6 +403,18 @@ def checkpoint_digest(value: dict[str, Any]) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def work_baselines(binding: dict[str, Any]) -> tuple[str, ...]:
+    """Separate checkout and target."""
+    heads: tuple[Any, ...] = (binding['head'],)
+    if binding.get('schema') == 2:
+        heads += (binding.get('checkout_head'),)
+    if not all(
+        isinstance(head, str) and re.fullmatch(r'[0-9a-f]{40}', head) for head in heads
+    ):
+        raise ValueError('Reservation lacks valid checkout evidence')
+    return heads
+
+
 def verify_empty_checkpoint(
     checkpoint: dict[str, Any],
     binding: dict[str, Any],
@@ -410,7 +423,7 @@ def verify_empty_checkpoint(
 ) -> None:
     """Verify absence of output."""
     if (
-        checkpoint.get('head') != binding['head']
+        checkpoint.get('head') not in work_baselines(binding)
         or checkpoint.get('worktree_clean') is not True
     ):
         raise ValueError('Checkpoint does not establish an empty execution')
@@ -418,6 +431,7 @@ def verify_empty_checkpoint(
         if (
             checkpoint.get('outcome') != 'no_progress'
             or checkpoint.get('other_work') is not False
+            or checkpoint.get('checkout_head') != binding.get('checkout_head')
         ):
             raise ValueError('Checkpoint contains work or uncertainty')
     elif (
@@ -554,11 +568,11 @@ async def reconcile(
         raise ValueError('Recovery target changed before reconciliation')
     if operation in ('resume', 'lead'):
         verify_empty_checkpoint(
-            checkpoint, {'head': claim.head, 'run': run}, value, context.repo
+            checkpoint, dict(checkpoint, head=claim.head), value, context.repo
         )
-        if head != checkpoint['head']:
+        if head != claim.head:
             comparison = await source.request(
-                f'repos/{context.repo}/compare/{checkpoint["head"]}...{head}'
+                f'repos/{context.repo}/compare/{claim.head}...{head}'
             )
             if comparison['status'] not in ('ahead', 'identical'):
                 raise ValueError('Recovery base does not preserve the original history')
@@ -627,11 +641,14 @@ async def reserve(
     run: int,
     attempt: int,
     *,
+    checkout_head: str,
     base_refs: dict[str, str] | None = None,
     requested_model: str = 'unspecified',
     requested_variant: str = 'provider-default',
 ) -> dict[str, Any]:
     """Persist before allowing execution."""
+    if not re.fullmatch(r'[0-9a-f]{40}', checkout_head):
+        raise ValueError('Invalid initial checkout commit')
     if not all(
         re.fullmatch(r'[A-Za-z0-9_./:-]{1,120}', item)
         for item in (requested_model, requested_variant)
@@ -648,6 +665,7 @@ async def reserve(
         'task': context.task,
         'pr': context.pr,
         'head': context.head,
+        'checkout_head': checkout_head,
         'event': context.event,
         'run': run,
         'attempt': attempt,
@@ -826,8 +844,10 @@ async def finish(
         other_work |= bool(discarded)
         remote = await published_head(source, context.repo, branch)
         pr_head = pull['head']['sha'] if pull and saved else None
+        baselines = work_baselines(reservation)
+        baseline = head if head in baselines else baselines[-1]
         outcome = work_outcome(
-            WorkEvidence(reservation['head'], head, clean, other_work, remote, pr_head)
+            WorkEvidence(baseline, head, clean, other_work, remote, pr_head)
         )
         value.update(
             branch=branch,
@@ -866,11 +886,10 @@ async def handoff_check(
 ) -> bool:
     """Verify before lead writing."""
     state, checkpoints = await observe(source, context, settings)
-    if context.pr is None:
-        if not state.takeover or not state.claims:
+    last = max(state.claims, key=lambda item: item.run, default=None)
+    if context.pr is None or (last and last.outcome == 'no_progress'):
+        if not state.takeover or last is None:
             return False
-        last = max(state.claims, key=lambda item: item.run)
-        checkpoint = next(item for item in checkpoints if item['run'] == last.run)
         comments = await pages(
             source, f'repos/{context.repo}/issues/{context.task}/comments'
         )
@@ -889,19 +908,24 @@ async def handoff_check(
             and latest.get('observed_attempt') == cloud['run_attempt']
             and latest['created_at'] > cloud['updated_at']
         )
-        tip = await source.request(
-            f'repos/{context.repo}/git/ref/heads/{quote(context.branch, safe="")}'
-        )
+        if context.pr is None:
+            tip = await source.request(
+                f'repos/{context.repo}/git/ref/heads/{quote(context.branch, safe="")}'
+            )
+            remote_head = tip['object']['sha']
+        else:
+            pull = await source.request(f'repos/{context.repo}/pulls/{context.pr}')
+            remote_head = pull['head']['sha']
         proof = ReleaseProof(
             str(last.run),
             str(last.run) if matching else '',
             context.head,
-            tip['object']['sha'],
+            remote_head,
             matching,
             last.status == 'completed' and cloud['status'] == 'completed',
             last.saved,
         )
-        return checkpoint['head'] == last.head and lead_write_allowed(state, proof)
+        return lead_write_allowed(state, proof)
     executor = await source.request(f'users/{quote(settings["executor"], safe="")}')
     messages = await pages(source, f'repos/{context.repo}/issues/{context.pr}/comments')
     requests: list[dict[str, Any]] = []
@@ -1087,16 +1111,16 @@ async def main() -> None:
         if args.phase == 'resolve':
             result = {'task': context.task}
         else:
-            if context.pr is None:
-                local_head = await command(['git', 'rev-parse', 'HEAD'], root)
-                if local_head != context.head:
-                    raise ValueError('Initial base changed before reservation')
+            local_head = await command(['git', 'rev-parse', 'HEAD'], root)
+            if context.pr is None and local_head != context.head:
+                raise ValueError('Initial base changed before reservation')
             result = await reserve(
                 source,
                 context,
                 settings,
                 int(os.environ['GITHUB_RUN_ID']),
                 int(os.environ['GITHUB_RUN_ATTEMPT']),
+                checkout_head=local_head,
                 base_refs=await local_refs(root),
                 requested_model=os.environ.get('MODEL') or 'unspecified',
                 requested_variant=os.environ.get('VARIANT') or 'provider-default',

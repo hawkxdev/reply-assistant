@@ -265,8 +265,8 @@ def test_admission_reconstructs_bounded_task_state(
 
 async def test_reservation_is_durable_before_another_run_can_start() -> None:
     source = FakeSource()
-    result = await reserve(source, source.context, SETTINGS, 2, 1)
-    replay = await reserve(source, source.context, SETTINGS, 3, 1)
+    result = await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
+    replay = await reserve(source, source.context, SETTINGS, 3, 1, checkout_head=HEAD_A)
 
     assert result['allowed'] is True
     assert replay['reason'] == 'DUPLICATE_EVENT'
@@ -278,7 +278,7 @@ async def test_reviewer_cannot_authorize_a_correction() -> None:
     source.responses['repos/owner/repo/pulls/2/reviews?per_page=100&page=1'][0]['user'][
         'id'
     ] = 77
-    result = await reserve(source, source.context, SETTINGS, 2, 1)
+    result = await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
 
     assert result['reason'] == 'REVIEW_REQUIRED'
     assert source.writes == []
@@ -320,7 +320,7 @@ async def test_forged_workflow_receipt_cannot_change_budget(field: str) -> None:
     else:
         messages[0]['updated_at'] = '2026-01-01T00:02:00Z'
     with pytest.raises(ValueError, match=r'(?i)receipt'):
-        await reserve(source, source.context, SETTINGS, 2, 1)
+        await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
 
     assert source.writes == []
 
@@ -329,7 +329,7 @@ async def test_unknown_reservation_write_never_returns_permission() -> None:
     source = FakeSource()
     source.fail_write = True
     with pytest.raises(RuntimeError, match='Synthetic uncertain write'):
-        await reserve(source, source.context, SETTINGS, 2, 1)
+        await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
 
     assert source.writes == []
 
@@ -337,7 +337,9 @@ async def test_unknown_reservation_write_never_returns_permission() -> None:
 async def test_completed_run_without_result_requires_reconciliation() -> None:
     source = FakeSource()
     source.responses['repos/owner/repo/issues/1/comments?per_page=100&page=1'].pop()
-    result = await reserve(source, replace(source.context, pr=None), SETTINGS, 2, 1)
+    result = await reserve(
+        source, replace(source.context, pr=None), SETTINGS, 2, 1, checkout_head=HEAD_A
+    )
 
     assert result['reason'] == 'RECONCILE_REQUIRED'
     assert source.writes == []
@@ -348,7 +350,7 @@ async def test_third_accepted_version_does_not_invoke_an_executor() -> None:
     source.responses['repos/owner/repo/issues/2/comments?per_page=100&page=1'] = [
         owner_signal('technically-accepted')
     ]
-    result = await reserve(source, source.context, SETTINGS, 2, 1)
+    result = await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
 
     assert result['reason'] == 'ACCEPTED'
     assert source.writes == []
@@ -356,11 +358,16 @@ async def test_third_accepted_version_does_not_invoke_an_executor() -> None:
 
 async def test_controller_restart_reuses_the_server_reservation() -> None:
     source = FakeSource()
-    await reserve(source, source.context, SETTINGS, 2, 1)
+    await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
     restarted = FakeSource()
     restarted.responses = copy.deepcopy(source.responses)
     result = await reserve(
-        restarted, replace(source.context, event='103'), SETTINGS, 3, 1
+        restarted,
+        replace(source.context, event='103'),
+        SETTINGS,
+        3,
+        1,
+        checkout_head=HEAD_A,
     )
 
     assert result['reason'] == 'EXECUTOR_BUSY'
@@ -482,17 +489,18 @@ async def test_checkpoint_at_another_head_cannot_release_current_work() -> None:
 
 async def test_rerun_reads_the_original_attempt_before_rejecting_replay() -> None:
     source = FakeSource()
-    await reserve(source, source.context, SETTINGS, 2, 1)
+    await reserve(source, source.context, SETTINGS, 2, 1, checkout_head=HEAD_A)
     historical = source.responses['repos/owner/repo/actions/runs/2/attempts/1']
     historical.update(status='completed', updated_at='2026-01-01T00:07:00Z')
     source.responses['repos/owner/repo/actions/runs/2'] = dict(
         historical, run_attempt=2, status='in_progress'
     )
     value = {
-        'schema': 1,
+        'schema': 2,
         'task': 1,
         'pr': 2,
         'head': HEAD_B,
+        'checkout_head': HEAD_A,
         'event': '102',
         'run': 2,
         'attempt': 1,
@@ -503,7 +511,7 @@ async def test_rerun_reads_the_original_attempt_before_rejecting_replay() -> Non
     source.responses['repos/owner/repo/issues/1/comments?per_page=100&page=1'].append(
         receipt('author-result', value, '2026-01-01T00:06:00Z')
     )
-    result = await reserve(source, source.context, SETTINGS, 2, 2)
+    result = await reserve(source, source.context, SETTINGS, 2, 2, checkout_head=HEAD_A)
 
     assert result['reason'] == 'DUPLICATE_EVENT'
     assert len(source.writes) == 1
@@ -524,7 +532,9 @@ async def test_untrusted_cross_reference_cannot_claim_execution() -> None:
             },
         }
     ]
-    result = await reserve(source, replace(source.context, pr=None), SETTINGS, 2, 1)
+    result = await reserve(
+        source, replace(source.context, pr=None), SETTINGS, 2, 1, checkout_head=HEAD_A
+    )
 
     assert result['allowed'] is True
     assert len(source.writes) == 1
@@ -594,6 +604,12 @@ async def test_cli_does_not_publish_permission_before_durable_receipt(
         return {'refs/heads/main': HEAD_A}
 
     monkeypatch.setattr('scripts.author_guard.local_refs', branch_evidence)
+
+    async def checkout_evidence(arguments: list[str], root: Path) -> str:
+        """Return observed checkout commit."""
+        return HEAD_A
+
+    monkeypatch.setattr('scripts.author_guard.command', checkout_evidence)
     monkeypatch.setattr(sys, 'argv', ['author_guard', 'claim'])
     if write_fails:
         with pytest.raises(RuntimeError, match='Synthetic uncertain write'):
@@ -604,6 +620,9 @@ async def test_cli_does_not_publish_permission_before_durable_receipt(
         assert 'allowed=true' in await asyncio.to_thread(output.read_text)
         assert len(source.writes) == 1
         assert await asyncio.to_thread((tmp_path / 'author-dispatch.json').exists)
+        binding = json.loads((tmp_path / 'author-dispatch.json').read_text())
+        assert binding['reservation']['checkout_head'] == HEAD_A
+        assert binding['reservation']['head'] == HEAD_B
 
 
 def test_confirmed_reviews_keep_budget_when_a_reservation_disappears() -> None:
