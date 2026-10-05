@@ -19,11 +19,11 @@ Code in this repository is written and reviewed by agents that run on GitHub. A 
 
 | Role | Agent | Model vendor | Where it runs | Credential in this repository |
 |---|---|---|---|---|
-| Lead | Claude Code | Anthropic | The owner's machine, under the owner's account | None |
+| Lead | Local coding agent | Owner selected | The owner's machine, under the owner's account | None |
 | Author | OpenCode | Z.AI | A workflow in this repository | One key, in a protected environment |
 | Reviewer | Codex | OpenAI | The vendor's cloud, through its GitHub App | None |
 
-The three agents come from different vendors on purpose: a model is a weak judge of its own work.
+The author and reviewer use different vendors. The owner selects the local lead and its authority.
 
 The author and the reviewer read [`AGENTS.md`](../AGENTS.md). The reviewer follows its section **Code Review Rules**.
 
@@ -66,9 +66,9 @@ No secret is available to the whole repository. The checks that run on every pul
 
 **What pull requests from forks get.** No secrets. The author agent and the agent review do not run on them. The checks do.
 
-**What is pinned.** Every action is pinned by commit hash. The author action downloads its agent at run time, which a pinned action cannot prevent; this is why its job holds nothing beyond its own model key.
+**What is pinned.** Every action is pinned by commit hash. The author workflow installs OpenCode at the explicitly pinned version. Its model key is supplied only to the admitted model step. The guard uses the workflow token for metadata, and the finalizer runs the trusted workflow-source code.
 
-**What is capped.** Every agent job has a time limit and a concurrency group per issue.
+**What is capped.** The author job retains its 30-minute timeout and one concurrency group per task. A durable admission guard allows an initial execution and two correction returns; the third review ends in acceptance or bounded completion by the lead. Details, trust checks and remaining provider limits are in [ADR 0006](adr/0006-bounded-cloud-corrections.md).
 
 ## What the author tool decides by itself
 

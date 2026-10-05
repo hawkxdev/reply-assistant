@@ -6,13 +6,35 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: author-agent-${{ github.event.issue.number }}
-  cancel-in-progress: false
-
 jobs:
+  resolve:
+    name: Resolve author task
+    if: >-
+      github.event.comment.user.login == github.repository_owner &&
+      github.event.comment.author_association == 'OWNER' &&
+      (startsWith(github.event.comment.body, '/oc') ||
+      startsWith(github.event.comment.body, '/opencode'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      task: ${{ steps.resolve.outputs.task }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Authenticate and resolve task
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -m scripts.author_guard resolve
+
   author:
     name: Author
+    needs: resolve
     if: >-
       github.event.comment.user.login == github.repository_owner &&
       github.event.comment.author_association == 'OWNER' &&
@@ -21,9 +43,15 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: author-agent
+    concurrency:
+      group: author-agent-${{ needs.resolve.outputs.task }}
+      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
+      actions: read
+      issues: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -42,9 +70,29 @@ jobs:
           echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
           "$HOME/.opencode/bin/opencode" --version
 
+      - name: Reserve permitted author execution
+        id: admission
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -m scripts.author_guard claim
       - name: Author
+        if: steps.admission.outputs.allowed == 'true'
         run: opencode github run
         env:
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
           MODEL: ${{ vars.AUTHOR_MODEL }}
           SHARE: 'false'
+      - name: Record published work
+        if: always() && steps.admission.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GUARD_SOURCE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/author-finalizer/scripts" "$RUNNER_TEMP/author-finalizer/.github"
+          git show "${GUARD_SOURCE_SHA}:scripts/author_guard.py" > "$RUNNER_TEMP/author-finalizer/scripts/author_guard.py"
+          git show "${GUARD_SOURCE_SHA}:scripts/review_handoff.py" > "$RUNNER_TEMP/author-finalizer/scripts/review_handoff.py"
+          git show "${GUARD_SOURCE_SHA}:scripts/__init__.py" > "$RUNNER_TEMP/author-finalizer/scripts/__init__.py"
+          git show "${GUARD_SOURCE_SHA}:.github/author-cycle.json" > "$RUNNER_TEMP/author-finalizer/.github/author-cycle.json"
+          export AUTHOR_CYCLE_CONFIG="$RUNNER_TEMP/author-finalizer/.github/author-cycle.json"
+          cd "$RUNNER_TEMP/author-finalizer"
+          python3 -m scripts.author_guard finish

@@ -31,6 +31,16 @@ All six must pass before a pull request is opened. Report the real output. A che
 6. The pull request body states what changed, how it was verified, and ends with `Closes #<number>`.
 7. A finding outside the issue goes into the pull request body under **Out of scope**. Do not fix it.
 
+## Cloud correction cycle
+
+The existing author workflow admits one initial execution and two correction returns. The lead confirms findings for the current commit. Supplements and repeated deliveries on the same commit do not create another return. After the third review the lead accepts a correct version or completes the verified remainder; no third executor return is permitted.
+
+A trusted reservation is required before the model step. State is retained in the task discussion and verified against actual workflow runs. Closed tasks, stale reviews, duplicate events, uncertain results and unsaved work never authorize another run. An arbitrary comment or marker grants no authority.
+
+Before lead changes, verify that the cloud run ended and all work is preserved at the matching remote commit. Request and verify explicit transfer from a working executor. An already ended worker can be transferred from its verified checkpoint without a new model call. Lead changes receive the same checks and are reported as self-verification, not independent review. Transfer does not mean acceptance; an unresolved remainder gets a concrete blocker and recommendation.
+
+The executable procedure and provider limits are in [ADR 0006](docs/adr/0006-bounded-cloud-corrections.md). Merge authority, protected paths and deployment permissions remain as defined elsewhere in this file.
+
 ## Boundaries
 
 These paths belong to the owner. Do not create, change or delete anything in them:
