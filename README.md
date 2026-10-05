@@ -54,10 +54,16 @@ Open the [web page](http://127.0.0.1:8000/), [API documentation](http://127.0.0.
 ## Try it
 
 1. Enter a customer message and click **Receive**. The assistant panel shows the reply, product hint, knowledge-base match, checks and usage.
-2. Review the draft and click **Insert into the chat**. This fills the manager's input without sending anything.
-3. **Add** places the manager's text in the local conversation only. The page is a mock, with an invented deal and opening conversation.
+2. Review the draft and click **Insert into the chat**. This fills the manager's editor without sending anything; the editor grows so the first paragraph stays visible.
+3. **Add to demo** places the manager's text in the local conversation only. The page is a mock, with an invented deal and opening conversation.
 
 The customer message and knowledge base go to the configured model provider. The page does not send manager replies to a customer or CRM, and the service does not store the conversation.
+
+## Reply workspace
+
+The reply editor grows with its content within the available space and can also be resized by hand. **Enter** and **Shift+Enter** insert new lines, **Ctrl+Enter** (or **Cmd+Enter**) adds the finished reply to the demo transcript, and **Escape** leaves an enlarged editor. The draft, selection and scroll position survive every change of mode.
+
+**Expand** temporarily hides the customer-message form and gives the editor more room; **Focus** gives it most of the workspace while the assistant panel stays reachable beside it. The customer-message field accepts pasted multiline text up to the 2000-character API limit. On wide screens the deal, conversation and assistant sit in three columns; medium widths move the compact deal card above them, and narrow screens stack the three areas. While the assistant is thinking, **Receive** is blocked so a question cannot be sent twice, and the next typed question waits in the field.
 
 An API request in Bash:
 
@@ -78,6 +84,8 @@ Open the whole demo through such a link; it keeps working after reloads. Share i
 Fill the three `REPLY_ASSISTANT_FALLBACK_PROVIDER_*` values in `.env` to add a secondary model provider; leave all three empty to run without one. A partial configuration stops the service with an error.
 
 When the primary provider fails with a timeout, a connection error, a rate limit or a server error, the service calls the secondary once with the same request. Each switch writes one warning to the log, for example `Fallback from primary.example after timeout`, and the reply keeps the token counts of the secondary. The `usage.fallbacks` field of the answer lists every switch of the request, and the page shows it under Usage next to the provider.
+
+The Usage summary keeps a provider-fallback notice visible when the details are collapsed.
 
 The primary provider must support strict structured output by JSON schema. The secondary may support only JSON mode; that is the default. Set `REPLY_ASSISTANT_FALLBACK_PROVIDER_JSON_MODE=false` when the secondary also supports strict output. Both answers pass the same validation, and a rejected answer is retried once on the same client. The rejection itself does not switch providers, but a recoverable failure of the primary during that retry does.
 
