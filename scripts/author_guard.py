@@ -521,6 +521,9 @@ async def reconcile(
         raise ValueError('Reconcile only the latest execution')
     if any(item.status != 'completed' for item in state.claims):
         raise ValueError('Execution is active or its outcome is unknown')
+    current_run = await verify_run(source, context, run, settings['workflow'])
+    if current_run['status'] != 'completed':
+        raise ValueError('Current workflow attempt has not completed')
     checkpoint = next(item for item in checkpoints if item['run'] == run)
     if checkpoint.get('pr') is not None and pr != checkpoint['pr']:
         raise ValueError('Reconciliation needs the bound PR')
@@ -534,6 +537,7 @@ async def reconcile(
         'resume_head': head,
         'legacy_audit': legacy_audit,
         'evidence': evidence,
+        'observed_attempt': current_run['run_attempt'],
     }
     target_pr = pr or checkpoint.get('pr')
     if target_pr is not None:
@@ -878,9 +882,12 @@ async def handoff_check(
             and value.get('run') == last.run
         ]
         latest = max(transfers, key=lambda item: item['created_at'], default={})
+        cloud = await verify_run(source, context, last.run, settings['workflow'])
         matching = (
             latest.get('operation') == 'lead'
             and latest.get('resume_head') == context.head
+            and latest.get('observed_attempt') == cloud['run_attempt']
+            and latest['created_at'] > cloud['updated_at']
         )
         tip = await source.request(
             f'repos/{context.repo}/git/ref/heads/{quote(context.branch, safe="")}'
@@ -891,7 +898,7 @@ async def handoff_check(
             context.head,
             tip['object']['sha'],
             matching,
-            last.status == 'completed',
+            last.status == 'completed' and cloud['status'] == 'completed',
             last.saved,
         )
         return checkpoint['head'] == last.head and lead_write_allowed(state, proof)

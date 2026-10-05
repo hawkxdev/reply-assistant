@@ -397,3 +397,48 @@ async def test_lead_handoff_uses_the_latest_resolution_only() -> None:
     messages.append(later)
 
     assert await handoff_check(source, source.context, SETTINGS) is False
+
+
+async def test_empty_handoff_waits_for_a_running_workflow_rerun() -> None:
+    source = empty_source()
+    await reconcile(
+        source,
+        source.context,
+        SETTINGS,
+        1,
+        'lead',
+        HEAD_A,
+        legacy_audit=True,
+        evidence='https://github.com/owner/repo/actions/runs/1',
+    )
+    accept_owner_write(source)
+    source.responses['repos/owner/repo/actions/runs/1'] = dict(
+        source.responses['repos/owner/repo/actions/runs/1'],
+        status='in_progress',
+        run_attempt=2,
+    )
+
+    assert await handoff_check(source, source.context, SETTINGS) is False
+
+
+async def test_reconciliation_cannot_ignore_a_newer_running_attempt() -> None:
+    source = empty_source()
+    source.responses['repos/owner/repo/actions/runs/1'] = dict(
+        source.responses['repos/owner/repo/actions/runs/1'],
+        status='in_progress',
+        run_attempt=2,
+    )
+
+    with pytest.raises(ValueError, match='Current workflow attempt'):
+        await reconcile(
+            source,
+            source.context,
+            SETTINGS,
+            1,
+            'lead',
+            HEAD_A,
+            legacy_audit=True,
+            evidence='https://github.com/owner/repo/actions/runs/1',
+        )
+
+    assert source.writes == []
