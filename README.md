@@ -54,10 +54,16 @@ Open the [web page](http://127.0.0.1:8000/), [API documentation](http://127.0.0.
 ## Try it
 
 1. Enter a customer message and click **Receive**. The assistant panel shows the reply, product hint, knowledge-base match, checks and usage.
-2. Review the draft and click **Insert into the chat**. This fills the manager's input without sending anything.
-3. **Add** places the manager's text in the local conversation only. The page is a mock, with an invented deal and opening conversation.
+2. Review the draft and click **Insert into the chat**. This fills the manager's editor without sending anything; the editor grows so the first paragraph stays visible.
+3. **Add to demo** places the manager's text in the local conversation only. The page is a mock, with an invented deal and opening conversation.
 
 The customer message and knowledge base go to the configured model provider. The page does not send manager replies to a customer or CRM, and the service does not store the conversation.
+
+## Reply workspace
+
+The reply editor grows with its content within the available space and can also be resized by hand. **Enter** and **Shift+Enter** insert new lines, **Ctrl+Enter** (or **Cmd+Enter**) adds the finished reply to the demo transcript, and **Escape** leaves an enlarged editor. The draft, selection and scroll position survive every change of mode.
+
+**Expand** temporarily hides the customer-message form and gives the editor more room; **Focus** gives it most of the workspace while the assistant panel stays reachable beside it. The customer-message field accepts pasted multiline text up to the 2000-character API limit. On wide screens the deal, conversation and assistant sit in three columns; medium widths move the compact deal card above them, and narrow screens stack the three areas. While the assistant is thinking, **Receive** is blocked so a question cannot be sent twice, and the next typed question waits in the field.
 
 An API request in Bash:
 

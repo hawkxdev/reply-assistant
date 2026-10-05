@@ -10,18 +10,23 @@
   --card: #ffffff;
   --line: #e4e8ec;
   --ink: #24313f;
-  --muted: #7b8794;
+  --muted: #5b6773;
   --accent: #2563eb;
+  --accent-strong: #1c50c8;
   --accent-soft: #e3edff;
+  --radius-card: 12px;
+  --radius-field: 8px;
+  --min-touch: 44px;
+  --focus-ring: 2px solid var(--accent);
 }
 * { box-sizing: border-box; }
 html { height: 100%; }
 body {
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -29,12 +34,14 @@ body {
   line-height: 1.45;
 }
 [hidden] { display: none; }
+:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
 
 #top {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   padding: 12px 18px 0;
 }
 #top h1 { margin: 0; font-size: 16px; }
@@ -47,13 +54,14 @@ body {
 }
 #mock-notice span { display: block; }
 
-main {
+#workspace {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  grid-template-areas: 'deal chat assistant';
   gap: 14px;
-  padding: 12px 18px 16px;
+  padding: 12px 18px 18px;
 }
 
 .column {
@@ -63,7 +71,7 @@ main {
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   padding: 14px 16px;
 }
 .column h2 {
@@ -75,7 +83,16 @@ main {
   color: var(--muted);
 }
 
-#deal .deal-name { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+#deal { grid-area: deal; }
+#chat { grid-area: chat; }
+#assistant { grid-area: assistant; }
+
+#deal .deal-name {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
 .field {
   display: flex;
   justify-content: space-between;
@@ -84,7 +101,7 @@ main {
   border-top: 1px solid #f0f3f5;
 }
 .field .label { color: var(--muted); }
-.field .value { font-weight: 600; text-align: right; }
+.field .value { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
 
 #chat-header {
   display: flex;
@@ -93,12 +110,12 @@ main {
   padding: 0 2px 10px;
   border-bottom: 1px solid var(--line);
 }
-#chat-header .name { font-size: 15px; font-weight: 600; }
+#chat-header .name { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
 #chat-header .role { color: var(--muted); font-size: 12px; }
 
 #messages {
   flex: 1;
-  min-height: 0;
+  min-height: 160px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -126,34 +143,53 @@ main {
   border-bottom-right-radius: 4px;
 }
 
-.writer { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
-.writer .caption {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 5px;
+.writer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+  padding-top: 10px;
 }
-.writer .row { display: flex; gap: 8px; align-items: stretch; }
-.writer input, .writer textarea {
-  flex: 1;
+.writer .caption { font-size: 11px; color: var(--muted); }
+.writer textarea {
+  width: 100%;
   min-width: 0;
   border: 1px solid #d5dce2;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 8px 10px;
   font: inherit;
   color: inherit;
   background: #fbfcfd;
   resize: none;
+  field-sizing: content;
+  overflow-y: auto;
 }
-.writer input:focus, .writer textarea:focus {
-  outline: 2px solid var(--accent-soft);
+.writer textarea:focus {
+  outline: var(--focus-ring);
   border-color: var(--accent);
 }
+.writer .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.keys { color: var(--muted); font-size: 11px; flex: 1 1 160px; margin: 0; }
+#customer-input { max-height: 132px; }
+#chat-input {
+  min-height: 76px;
+  max-height: 42vh;
+  resize: vertical;
+}
+#workspace.editor-expanded #chat-input { max-height: 56vh; }
+#workspace.editor-focus #chat-input { min-height: 34vh; max-height: 60vh; }
 
 button {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 8px 14px;
+  min-height: var(--min-touch);
   background: var(--accent);
   color: #ffffff;
   font: inherit;
@@ -161,14 +197,14 @@ button {
   cursor: pointer;
   white-space: nowrap;
 }
-button:hover { background: #1c50c8; }
+button:hover { background: var(--accent-strong); }
 button:active { transform: translateY(1px); }
 button.ghost {
   background: var(--card);
   color: var(--accent);
   border: 1px solid var(--accent);
 }
-button.ghost:hover { background: var(--accent-soft); }
+button.ghost:hover { background: var(--accent-soft); color: var(--accent-strong); }
 
 #assistant-state { margin: 4px 0 12px; color: var(--muted); }
 #assistant-state.loading { animation: pulse 1.4s ease-in-out infinite; }
@@ -192,23 +228,24 @@ button.ghost:hover { background: var(--accent-soft); }
   overflow-wrap: anywhere;
   background: #f7f9fc;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 10px 12px;
 }
-#hint { margin: 0 0 8px; }
+#hint { margin: 0 0 8px; overflow-wrap: anywhere; }
 #hint .product-id {
   display: inline-block;
   margin-right: 6px;
   padding: 1px 7px;
   border-radius: 6px;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-strong);
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   font-size: 12px;
 }
 .kv { display: flex; justify-content: space-between; gap: 10px; margin: 0; }
 .kv .label { color: var(--muted); }
-.kv .value { font-weight: 600; }
+.kv .value { font-weight: 600; overflow-wrap: anywhere; }
+#kb-match.warn { font-weight: 700; }
 ul.plain { list-style: none; margin: 0; padding: 0; }
 #checks li {
   display: flex;
@@ -224,9 +261,60 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
   font-size: 12px;
   font-style: italic;
 }
+.checks-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+}
+details.usage {
+  border-top: 1px solid var(--line);
+  padding: 10px 0 12px;
+}
+details.usage summary {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  cursor: pointer;
+}
+details.usage[open] summary { margin-bottom: 4px; }
 #usage li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 #usage .label { color: var(--muted); }
-#usage .value { font-weight: 600; }
+#usage .value { font-weight: 600; overflow-wrap: anywhere; }
+
+#workspace.editor-expanded #customer-writer,
+#workspace.editor-focus #customer-writer,
+#workspace.editor-focus #deal { display: none; }
+#workspace.editor-focus {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-areas: 'chat assistant';
+}
+#workspace.editor-focus #messages { flex: 0 1 auto; max-height: 26vh; min-height: 120px; }
+
+@media (max-width: 1279px) {
+  #workspace {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-areas: 'deal deal' 'chat assistant';
+  }
+  #deal { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; }
+  #deal h2 { width: 100%; margin: 0 0 4px; }
+  #deal .deal-name { width: 100%; margin: 0 0 2px; }
+  #deal .field { border-top: none; padding: 2px 0; }
+}
+@media (max-width: 767px) {
+  #workspace,
+  #workspace.editor-focus {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'deal' 'chat' 'assistant';
+  }
+  #deal { flex-direction: column; gap: 0; }
+  #deal h2 { width: auto; margin: 0 0 10px; }
+  #deal .deal-name { width: auto; margin: 0 0 12px; }
+  #deal .field { border-top: 1px solid #f0f3f5; padding: 7px 0; }
+}
 </style>
 </head>
 <body>
@@ -239,7 +327,7 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
   </p>
 </header>
 
-<main>
+<main id="workspace" class="workspace">
   <section id="deal" class="column">
     <h2 data-i18n="dealHeading">Deal</h2>
     <p class="deal-name" data-i18n="dealName">Zeolite for a daily course</p>
@@ -267,22 +355,30 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
       <span class="role" data-i18n="chatRole">Customer</span>
     </header>
     <div id="messages" aria-live="polite"></div>
-    <div class="writer">
+    <div class="writer customer" id="customer-writer">
       <label class="caption" for="customer-input" data-i18n="customerCaption">The customer writes</label>
+      <textarea id="customer-input" maxlength="2000" rows="1" autocomplete="off"
+                placeholder="New message from the customer"
+                data-i18n-placeholder="customerPlaceholder"></textarea>
       <div class="row">
-        <input id="customer-input" autocomplete="off"
-               placeholder="New message from the customer"
-               data-i18n-placeholder="customerPlaceholder">
         <button id="add-customer" type="button" data-i18n="customerButton">Receive</button>
+        <p class="keys" data-i18n="customerKeys">Paste or type the customer message. Ctrl+Enter receives it.</p>
       </div>
     </div>
-    <div class="writer">
+    <div class="writer editor">
       <label class="caption" for="chat-input" data-i18n="managerCaption">Reply to the customer</label>
+      <textarea id="chat-input" rows="3"
+                placeholder="Write a reply to the customer"
+                data-i18n-placeholder="managerPlaceholder"></textarea>
       <div class="row">
-        <textarea id="chat-input" rows="2"
-                  placeholder="Write a reply to the customer"
-                  data-i18n-placeholder="managerPlaceholder"></textarea>
-        <button id="add-manager" type="button" data-i18n="managerButton">Add</button>
+        <button id="add-manager" type="button" data-i18n="managerButton">Add to demo</button>
+        <button id="toggle-editor" type="button" class="ghost" aria-expanded="false"
+                aria-controls="chat-input" data-i18n="expand"
+                data-i18n-title="expandTitle">Expand</button>
+        <button id="focus-editor" type="button" class="ghost" aria-pressed="false"
+                aria-controls="chat-input" data-i18n="focusOn"
+                data-i18n-title="focusTitle">Focus</button>
+        <p class="keys" data-i18n="editorKeys">Enter adds a line, Ctrl+Enter adds the reply to the demo transcript.</p>
       </div>
     </div>
   </section>
@@ -307,11 +403,12 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
       <section>
         <h3 data-i18n="checksHeading">Checks</h3>
         <ul id="checks" class="plain"></ul>
+        <p class="checks-note" data-i18n="checksNote">Checks show configured validation, not proof of factual accuracy.</p>
       </section>
-      <section>
-        <h3 data-i18n="usageHeading">Usage</h3>
+      <details class="usage" open>
+        <summary data-i18n="usageHeading">Usage</summary>
         <ul id="usage" class="plain"></ul>
-      </section>
+      </details>
     </div>
   </section>
 </main>
@@ -336,9 +433,19 @@ const I18N = {
     customerCaption: 'The customer writes',
     customerPlaceholder: 'New message from the customer',
     customerButton: 'Receive',
+    customerKeys: 'Paste or type the customer message. Ctrl+Enter receives it.',
     managerCaption: 'Reply to the customer',
     managerPlaceholder: 'Write a reply to the customer',
-    managerButton: 'Add',
+    managerButton: 'Add to demo',
+    editorKeys: 'Enter adds a line, Ctrl+Enter adds the reply to the demo transcript.',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    expandTitle: 'Expand the reply editor',
+    collapseTitle: 'Collapse the reply editor',
+    focusOn: 'Focus',
+    focusOff: 'Exit focus',
+    focusTitle: 'Focus on the reply, the assistant stays available',
+    focusOffTitle: 'Return to the workspace',
     you: 'You',
     assistantHeading: 'Assistant',
     waiting: 'Waiting for a customer message.',
@@ -351,6 +458,7 @@ const I18N = {
     hintHeading: 'Upsell hint',
     kbMatchLabel: 'Knowledge base match',
     checksHeading: 'Checks',
+    checksNote: 'Checks show configured validation, not proof of factual accuracy.',
     checkShape: 'Shape',
     checkProduct: 'Product exists',
     checkClaim: 'No forbidden claim',
@@ -387,9 +495,19 @@ const I18N = {
     customerCaption: 'Пишет клиент',
     customerPlaceholder: 'Новое сообщение от клиента',
     customerButton: 'Принять',
+    customerKeys: 'Вставьте или введите сообщение клиента. Ctrl+Enter принимает его.',
     managerCaption: 'Ответ клиенту',
     managerPlaceholder: 'Напишите ответ клиенту',
-    managerButton: 'Добавить',
+    managerButton: 'Добавить в демо',
+    editorKeys: 'Enter добавляет строку, Ctrl+Enter добавляет ответ в демо-переписку.',
+    expand: 'Развернуть',
+    collapse: 'Свернуть',
+    expandTitle: 'Развернуть редактор ответа',
+    collapseTitle: 'Свернуть редактор ответа',
+    focusOn: 'Фокус',
+    focusOff: 'Выйти из фокуса',
+    focusTitle: 'Фокус на ответе, ассистент остаётся доступным',
+    focusOffTitle: 'Вернуться к рабочей области',
     you: 'Вы',
     assistantHeading: 'Ассистент',
     waiting: 'Ждём сообщение от клиента.',
@@ -402,6 +520,7 @@ const I18N = {
     hintHeading: 'Подсказка для допродажи',
     kbMatchLabel: 'Совпадение с базой знаний',
     checksHeading: 'Проверки',
+    checksNote: 'Проверки показывают настроенную валидацию, но не доказательство фактической точности.',
     checkShape: 'Форма',
     checkProduct: 'Товар существует',
     checkClaim: 'Нет запрещённых обещаний',
@@ -437,10 +556,20 @@ for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
   const key = node.getAttribute('data-i18n-placeholder');
   if (own.call(L, key)) node.setAttribute('placeholder', L[key]);
 }
+for (const node of document.querySelectorAll('[data-i18n-title]')) {
+  const key = node.getAttribute('data-i18n-title');
+  if (own.call(L, key)) node.setAttribute('title', L[key]);
+}
 
 const messages = document.getElementById('messages');
+const workspace = document.getElementById('workspace');
+const customerWriter = document.getElementById('customer-writer');
+const dealSection = document.getElementById('deal');
 const customerInput = document.getElementById('customer-input');
 const chatInput = document.getElementById('chat-input');
+const addCustomerButton = document.getElementById('add-customer');
+const toggleEditorButton = document.getElementById('toggle-editor');
+const focusButton = document.getElementById('focus-editor');
 const state = document.getElementById('assistant-state');
 const result = document.getElementById('assistant-result');
 const reply = document.getElementById('reply');
@@ -449,6 +578,9 @@ const kbMatch = document.getElementById('kb-match');
 const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
 let lastReply = '';
+let expanded = false;
+let focused = false;
+let asking = false;
 
 function fitsHeaderValue(value) {
   return /^[\t\x20-\x7E\x80-\xFF]+$/.test(value) && !/^[\t ]|[\t ]$/.test(value);
@@ -500,6 +632,55 @@ function setState(text, mode) {
   result.hidden = true;
 }
 
+function lineCount(text) {
+  let total = 0;
+  for (const line of text.split('\n')) {
+    total += Math.max(1, Math.ceil((line.length + 59) / 60));
+  }
+  return total;
+}
+
+function fitArea(area, minRows, maxRows) {
+  const rows = Math.min(maxRows, Math.max(minRows, lineCount(area.value)));
+  area.setAttribute('rows', String(rows));
+}
+
+function fitCustomer() {
+  fitArea(customerInput, 1, 4);
+}
+
+function fitEditor() {
+  const cap = focused ? 26 : expanded ? 14 : 8;
+  fitArea(chatInput, 3, cap);
+}
+
+function setEditorModes() {
+  let classes = 'workspace';
+  if (expanded) classes += ' editor-expanded';
+  if (focused) classes += ' editor-focus';
+  workspace.className = classes;
+  customerWriter.hidden = expanded || focused;
+  dealSection.hidden = focused;
+  toggleEditorButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  toggleEditorButton.textContent = expanded ? L.collapse : L.expand;
+  toggleEditorButton.setAttribute('title', expanded ? L.collapseTitle : L.expandTitle);
+  focusButton.setAttribute('aria-pressed', focused ? 'true' : 'false');
+  focusButton.textContent = focused ? L.focusOff : L.focusOn;
+  focusButton.setAttribute('title', focused ? L.focusOffTitle : L.focusTitle);
+  fitEditor();
+}
+
+function setExpanded(next) {
+  expanded = next;
+  setEditorModes();
+}
+
+function setFocused(next) {
+  focused = next;
+  if (focused) expanded = false;
+  setEditorModes();
+}
+
 function showChecks(report) {
   const names = [
     ['shape', 'checkShape'],
@@ -538,7 +719,9 @@ function showUsage(report) {
   usageList.replaceChildren();
   for (const row of rows) {
     const line = el('li');
-    line.append(el('span', 'label', row[0]), el('span', 'value', row[1]));
+    const value = el('span', 'value', row[1]);
+    value.setAttribute('title', row[1]);
+    line.append(el('span', 'label', row[0]), value);
     usageList.append(line);
   }
 }
@@ -548,13 +731,17 @@ function showSuggestion(suggestion) {
   reply.textContent = suggestion.customer_reply;
   hint.replaceChildren();
   if (suggestion.upsell_product_id) {
-    hint.append(el('span', 'product-id', suggestion.upsell_product_id), ' ');
+    const chip = el('span', 'product-id', suggestion.upsell_product_id);
+    chip.setAttribute('title', suggestion.upsell_product_id);
+    hint.append(chip, ' ');
   }
   hint.append(suggestion.upsell_hint);
   const words = { found: L.matchFound, partial: L.matchPartial, none: L.matchNone };
   kbMatch.textContent = own.call(words, suggestion.kb_match)
     ? words[suggestion.kb_match]
     : suggestion.kb_match;
+  kbMatch.setAttribute('title', kbMatch.textContent);
+  kbMatch.className = suggestion.kb_match === 'found' ? '' : 'warn';
   showChecks(suggestion.checks);
   showUsage(suggestion.usage);
   state.hidden = true;
@@ -563,6 +750,9 @@ function showSuggestion(suggestion) {
 }
 
 async function askAssistant(text) {
+  if (asking) return;
+  asking = true;
+  addCustomerButton.disabled = true;
   setState(L.loading, 'loading');
   const headers = { 'Content-Type': 'application/json' };
   if (linkToken) headers['X-API-Token'] = linkToken;
@@ -584,13 +774,18 @@ async function askAssistant(text) {
     showSuggestion(payload);
   } catch (error) {
     setState(L.networkError, 'error');
+  } finally {
+    asking = false;
+    addCustomerButton.disabled = false;
   }
 }
 
 function receiveCustomerMessage() {
+  if (asking) return;
   const text = customerInput.value.trim();
   if (!text) return;
   customerInput.value = '';
+  fitCustomer();
   addMessage(L.contactValue, text, 'incoming');
   if (linkToken === null) {
     setState(L.accessDenied, 'error');
@@ -604,29 +799,47 @@ function addManagerMessage() {
   if (!text) return;
   chatInput.value = '';
   addMessage(L.you, text, 'outgoing');
+  fitEditor();
 }
 
-document.getElementById('add-customer').addEventListener('click', receiveCustomerMessage);
+addCustomerButton.addEventListener('click', receiveCustomerMessage);
 document.getElementById('add-manager').addEventListener('click', addManagerMessage);
 document.getElementById('insert-reply').addEventListener('click', () => {
   chatInput.value = lastReply;
+  fitEditor();
+  chatInput.scrollTop = 0;
   chatInput.focus();
 });
+toggleEditorButton.addEventListener('click', () => setExpanded(!expanded));
+focusButton.addEventListener('click', () => setFocused(!focused));
+customerInput.addEventListener('input', fitCustomer);
 customerInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     receiveCustomerMessage();
   }
 });
+chatInput.addEventListener('input', fitEditor);
 chatInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     addManagerMessage();
+    return;
+  }
+  if (event.key !== 'Escape') return;
+  if (focused) {
+    event.preventDefault();
+    setFocused(false);
+  } else if (expanded) {
+    event.preventDefault();
+    setExpanded(false);
   }
 });
 
 addMessage(L.contactValue, L.firstIncoming, 'incoming');
 addMessage(L.you, L.firstOutgoing, 'outgoing');
+setEditorModes();
+fitCustomer();
 </script>
 </body>
 </html>
