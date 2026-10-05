@@ -320,6 +320,61 @@ def test_new_editor_copy_exists_in_both_languages(english: str, russian: str) ->
 # === Native browser regressions ===
 
 
+@pytest.mark.parametrize(
+    ('first', 'second', 'mode', 'expanded', 'focused'),
+    [
+        ('focus-editor', 'toggle-editor', 'workspace editor-expanded', 'true', 'false'),
+        ('toggle-editor', 'focus-editor', 'workspace editor-focus', 'false', 'true'),
+    ],
+    ids=['focus-to-expand', 'expand-to-focus'],
+)
+def test_mode_switch_excludes_the_previous_mode_and_escape_restores_the_draft(
+    first: str,
+    second: str,
+    mode: str,
+    expanded: str,
+    focused: str,
+) -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'customer-input', 'value': 'Unsent question'},
+            {'kind': 'set', 'id': 'chat-input', 'value': CLAMPED_DRAFT},
+            {'kind': 'select', 'id': 'chat-input', 'start': 5, 'end': 9},
+            {'kind': 'scroll', 'id': 'chat-input', 'top': 110},
+            {'kind': 'wait'},
+            {'kind': 'click', 'id': first},
+            {'kind': 'wait'},
+            {'kind': 'click', 'id': second},
+            {'kind': 'wait'},
+            {'kind': 'key', 'id': 'active', 'key': 'Escape'},
+            {'kind': 'wait'},
+        ],
+        responses=[],
+        watch=(
+            'workspace',
+            'chat-input',
+            'customer-writer',
+            'customer-input',
+            'toggle-editor',
+            'focus-editor',
+        ),
+        geometry={'normal': 250, 'expanded': 334, 'focused': 358, 'scrollHeight': 361},
+    )
+
+    switched = result['trace'][8]['watch']
+    assert switched['workspace']['className'] == mode
+    assert switched['toggle-editor']['attributes']['aria-expanded'] == expanded
+    assert switched['focus-editor']['attributes']['aria-pressed'] == focused
+    returned = result['trace'][-1]['watch']
+    assert returned['workspace']['className'] == 'workspace'
+    assert returned['customer-writer']['hidden'] is False
+    assert returned['customer-input']['value'] == 'Unsent question'
+    assert returned['chat-input']['value'] == CLAMPED_DRAFT
+    assert returned['chat-input']['selectionStart'] == 5
+    assert returned['chat-input']['selectionEnd'] == 9
+    assert returned['chat-input']['scrollTop'] == 110
+
+
 @pytest.mark.parametrize('button', ['toggle-editor', 'focus-editor'])
 def test_escape_exits_after_keyboard_button_activation(button: str) -> None:
     result = run_editor_page(
