@@ -90,3 +90,32 @@ def test_initial_workspace_has_no_generated_reply() -> None:
     assert result['reply'] == ''
     assert result['trace'][0]['watch']['assistant-result']['hidden'] is True
     assert result['trace'][0]['watch']['ready-status']['hidden'] is True
+
+
+@pytest.mark.parametrize(
+    ('target', 'english', 'russian'),
+    [
+        ('examples', 'Example questions', 'Примеры вопросов'),
+        ('deal', 'Customer details', '\u041e клиенте'),
+    ],
+)
+def test_landmark_names_follow_interface_language(
+    target: str,
+    english: str,
+    russian: str,
+) -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'wait'},
+            {'kind': 'change', 'id': 'language-select', 'value': 'ru'},
+            {'kind': 'change', 'id': 'language-select', 'value': 'en'},
+        ],
+        responses=[],
+        watch=(target,),
+    )
+
+    assert [step['watch'][target]['accessibleName'] for step in result['trace']] == [
+        english,
+        russian,
+        english,
+    ]

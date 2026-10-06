@@ -222,6 +222,10 @@ function snapshot() {
     }
     watch[id] = {
       value: node.value,
+      accessibleName: node.attributes['aria-labelledby']
+        ? node.attributes['aria-labelledby'].split(/\s+/)
+          .map((id) => elements.get(id)?.textContent ?? '').join(' ')
+        : node.attributes['aria-label'] ?? '',
       text: node.textContent,
       className: node.className,
       hidden: node.hidden,

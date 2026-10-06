@@ -379,7 +379,6 @@ button.ghost { border-color: var(--line); color: var(--ink); }
 #examples > span { margin-right: 8px; font-size: 14px; color: var(--muted); }
 .scenario { background: var(--card); color: var(--ink); border: 1px solid var(--line); font-size: 14px; font-weight: 500; }
 .scenario:hover { background: var(--surface-soft); }
-.scenario[aria-pressed=true] { border-color: #bbdcd5; color: var(--accent-strong); background: var(--accent-soft); }
 #mock-notice { color: var(--muted); font-size: 12px; margin: 10px 0 18px; text-align: right; }
 #workspace { padding: 0; gap: 18px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: 'deal deal' 'chat assistant'; grid-template-rows: auto 1fr; align-items: start; }
 .column { padding: 22px; box-shadow: var(--shadow); }
@@ -468,10 +467,10 @@ body { font-family: 'Onest', system-ui, sans-serif; }
   <div class="brand"><span class="brand-mark" aria-hidden="true">••</span><h1 data-i18n="appTitle">Помощник в переписке</h1></div>
   <div class="top-actions"><span class="demo-badge" data-i18n="demoBadge">Демо</span><label class="lang-picker" for="language-select"><span class="sr-only" data-i18n="languageLabel">Язык интерфейса</span><select id="language-select"><option value="ru">Русский</option><option value="en">English</option></select></label></div>
 </header>
-<nav id="examples" aria-label="Example questions"><span data-i18n="tryScenario">Примеры вопросов</span><button type="button" id="question-selection" class="scenario" aria-pressed="false" data-i18n="scenarioSelection">Подбор товара</button><button type="button" id="question-upsell" class="scenario" aria-pressed="false" data-i18n="scenarioUpsell">Допродажа</button><button type="button" id="question-unknown" class="scenario" aria-pressed="false" data-i18n="scenarioUnknown">Нет ответа в базе</button></nav>
+<nav id="examples" aria-labelledby="examples-label"><span id="examples-label" data-i18n="tryScenario">Примеры вопросов</span><button type="button" id="question-selection" class="scenario" data-i18n="scenarioSelection">Подбор товара</button><button type="button" id="question-upsell" class="scenario" data-i18n="scenarioUpsell">Допродажа</button><button type="button" id="question-unknown" class="scenario" data-i18n="scenarioUnknown">Нет ответа в базе</button></nav>
 <p id="mock-notice" data-i18n="mockNotice">Демо с моделью · вопрос отправляется для подготовки ответа · клиенту ничего не отправляется</p>
 <main id="workspace" class="workspace">
-  <section id="deal" class="column" aria-label="Карточка клиента"><div class="avatar" aria-hidden="true">АП</div><strong data-i18n="contactValue">Анна Петрова</strong><span class="deal-name" data-i18n="dealName">Кофе для фильтра</span><span class="request-badge" data-i18n="stageValue">Новый запрос</span><details class="customer-details"><summary data-i18n="dealDetails">О клиенте</summary><div class="customer-popover"><p><span data-i18n="phoneLabel">Телефон</span>: +000 00 000-00-00</p><p data-i18n="sampleCustomer">Демонстрационная карточка клиента</p></div></details></section>
+  <section id="deal" class="column" aria-labelledby="deal-label"><div class="avatar" aria-hidden="true">АП</div><strong data-i18n="contactValue">Анна Петрова</strong><span class="deal-name" data-i18n="dealName">Кофе для фильтра</span><span class="request-badge" data-i18n="stageValue">Новый запрос</span><details class="customer-details"><summary id="deal-label" data-i18n="dealDetails">О клиенте</summary><div class="customer-popover"><p><span data-i18n="phoneLabel">Телефон</span>: +000 00 000-00-00</p><p data-i18n="sampleCustomer">Демонстрационная карточка клиента</p></div></details></section>
 
   <section id="chat" class="column">
     <header id="chat-header">
