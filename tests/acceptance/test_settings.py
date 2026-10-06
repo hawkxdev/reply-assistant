@@ -204,6 +204,7 @@ def test_env_example_names_every_setting(settings_class: Any) -> None:
             'REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS',
             'REPLY_ASSISTANT_KB_REGISTRY',
             'REPLY_ASSISTANT_API_TOKEN',
+            'REPLY_ASSISTANT_DEMO_CATALOGUES',
         },
     )
     assert set(env_example_entries()) == expected

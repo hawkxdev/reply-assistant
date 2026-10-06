@@ -58,9 +58,16 @@ class Registry:
     path: Path
     default_kb: KnowledgeBase
 
-    async def select(self, client_id: str | None) -> KnowledgeBase:
+    async def select(
+        self,
+        client_id: str | None,
+        *,
+        required: bool = False,
+    ) -> KnowledgeBase:
         """Select one client base."""
         mapping = await asyncio.to_thread(_read_mapping, self.path)
+        if required and client_id not in mapping:
+            raise RegistryError('the required catalogue is not registered')
         key = client_id if client_id is not None and client_id in mapping else 'default'
         path = _resolve(self.path, key, mapping[key])
         return await load_knowledge_base(path)

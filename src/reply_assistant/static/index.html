@@ -513,6 +513,7 @@ body { font-family: 'Onest', system-ui, sans-serif; }
     <div id="assistant-result" hidden>
       <section>
         <h3 data-i18n="replyHeading">Suggested reply</h3>
+        <p id="reply-language" class="keys" aria-live="polite"></p>
         <p id="reply"></p>
         <button id="insert-reply" type="button" data-i18n="insertReply">Insert into the chat</button>
       </section>
@@ -602,6 +603,10 @@ const I18N = {
     rejectedEarlier: 'rejected an earlier answer',
     yes: 'yes',
     no: 'no',
+    replyLanguage: 'Reply language',
+    languageEnglish: 'English',
+    languageRussian: 'Russian',
+    catalogueUnavailable: 'The catalogue for this language is not configured.',
     usageHeading: 'Technical details',
     inputTokens: 'Input tokens',
     outputTokens: 'Output tokens',
@@ -674,6 +679,10 @@ const I18N = {
     rejectedEarlier: 'отклонила более ранний ответ',
     yes: 'да',
     no: 'нет',
+    replyLanguage: 'Язык ответа',
+    languageEnglish: 'английский',
+    languageRussian: 'русский',
+    catalogueUnavailable: 'Каталог для этого языка не настроен.',
     usageHeading: 'Технические детали',
     inputTokens: 'Входные токены',
     outputTokens: 'Выходные токены',
@@ -753,6 +762,7 @@ const usageList = document.getElementById('usage');
 const usageSummary = document.getElementById('usage-summary');
 const readyStatus = document.getElementById('ready-status');
 let lastReply = '';
+let lastReplyLanguage = null;
 let lastSuggestion = null;
 let stateKind = 'waiting';
 let stateDetail = '';
@@ -820,6 +830,7 @@ function renderState() {
     loading: L.loading,
     denied: L.accessDenied,
     network: L.networkError,
+    catalogue: L.catalogueUnavailable,
     failed: L.errorWord + ': ' + stateDetail,
   };
   const mode = stateKind === 'loading' ? 'loading'
@@ -993,7 +1004,10 @@ function showUsage(report) {
   }
 }
 
-function showSuggestion(suggestion) {
+function showSuggestion(suggestion, sourceLanguage = lastReplyLanguage) {
+  lastReplyLanguage = sourceLanguage;
+  const languageName = sourceLanguage === 'ru' ? L.languageRussian : L.languageEnglish;
+  document.getElementById('reply-language').textContent = L.replyLanguage + ': ' + languageName;
   readyStatus.hidden = false;
   lastReply = suggestion.customer_reply;
   lastSuggestion = suggestion;
@@ -1023,7 +1037,8 @@ async function askAssistant(text) {
   asking = true;
   addCustomerButton.disabled = true;
   setState('loading');
-  const headers = { 'Content-Type': 'application/json' };
+  const requestedLanguage = lang;
+  const headers = { 'Content-Type': 'application/json', 'X-Catalogue-Language': requestedLanguage };
   if (linkToken) headers['X-API-Token'] = linkToken;
   try {
     const response = await fetch('/api/suggest', {
@@ -1033,14 +1048,16 @@ async function askAssistant(text) {
     });
     const payload = await response.json();
     if (!response.ok) {
-      if (response.status === 401) {
+      if (payload.code === 'catalogue_unavailable') {
+        setState('catalogue');
+      } else if (response.status === 401) {
         setState('denied');
       } else {
         setState('failed', payload.message);
       }
       return;
     }
-    showSuggestion(payload);
+    showSuggestion(payload, requestedLanguage);
   } catch (error) {
     setState('network');
   } finally {

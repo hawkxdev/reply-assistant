@@ -35,3 +35,7 @@ R11. All new failure paths use the existing JSON error envelope with a code and 
 4. With the token set, requests without or with a wrong token get 401; with the right token they pass.
 5. With the token unset, the same requests pass without any header.
 6. All existing behaviour (specifications 001 and 002) is unchanged.
+
+## Demo language selection
+
+The demo page sends X-Catalogue-Language with en or ru for new suggestion requests. REPLY_ASSISTANT_DEMO_CATALOGUES optionally maps both languages to registered client identifiers. Configured aliases are validated at startup and selected strictly per request; a missing alias or mismatched catalogue language is refused without a model call. The language header cannot be combined with X-Client-Id. Without the language header, existing default/client selection and webhook behaviour are unchanged. A pending request retains its submitted language; switching the interface sends no extra request and does not translate prior results.
