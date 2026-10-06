@@ -130,6 +130,7 @@ for (const match of input.html.matchAll(/<[a-z][a-z0-9]*\b([^>]*)>/gi)) {
   const id = attributes.id ?? 'anonymous-' + elements.size;
   const element = new Element(id);
   element.attributes = attributes;
+  element.hidden = Object.hasOwn(attributes, 'hidden');
   elements.set(id, element);
 }
 
@@ -303,6 +304,10 @@ async function runStep(step, entry) {
       node.focus();
       node.listeners.click({target: node});
     }
+  } else if (step.kind === 'disclose') {
+    node.open = Boolean(step.open);
+    if (node.open) node.attributes.open = '';
+    else delete node.attributes.open;
   } else if (step.kind === 'wait') {
     await new Promise((resolve) => setTimeout(resolve, 20));
   } else if (step.kind === 'resize') {

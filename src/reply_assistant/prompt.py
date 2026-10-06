@@ -13,6 +13,10 @@ ANSWER_RULES = (
     'customer_reply is the text for the customer, in the language of the '
     'knowledge base. Follow reply_rules and state only facts from the '
     'knowledge base.',
+    'Include only product facts useful to the question, '
+    'rather than repeating the entire product card. '
+    'Use natural, concise language and avoid formulaic greetings '
+    'unless the customer message calls for one.',
     'Never write a stem from forbidden_claims in customer_reply or '
     'upsell_hint, in any form, not even in a negation and not when repeating '
     'the words of the customer. Say what the product is instead.',
