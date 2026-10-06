@@ -168,6 +168,9 @@ function deliver(scripted) {
       json: async () => ({code: 'unauthorized', message: 'the token is wrong'}),
     };
   }
+  if (scripted.status && scripted.status !== 200) {
+    return {ok: false, status: scripted.status, json: async () => scripted.body};
+  }
   return {ok: true, status: 200, json: async () => scripted.body};
 }
 

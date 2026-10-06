@@ -1,7 +1,7 @@
 """Settings from the environment."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from pydantic import Field, SecretStr, ValidationError, model_validator
 from pydantic_core import InitErrorDetails, PydanticCustomError
@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     provider_model: str
     kb_path: Path | None = None
     kb_registry: Path | None = None
+    demo_catalogues: dict[str, str] = Field(default_factory=dict)
     api_token: SecretStr | None = None
     fallback_provider_api_key: SecretStr | None = None
     fallback_provider_base_url: str | None = None
@@ -88,3 +89,21 @@ class Settings(BaseSettings):
             if any(given) and not all(given):
                 raise _partial_fallback_error()
         return data
+
+    @model_validator(mode='after')
+    def complete_demo_catalogues(self) -> Self:
+        """Validate demo language mappings."""
+        if self.demo_catalogues and (
+            set(self.demo_catalogues) != {'en', 'ru'}
+            or self.kb_registry is None
+            or any(
+                not value or value.strip() != value
+                for value in self.demo_catalogues.values()
+            )
+        ):
+            raise _kb_source_error(
+                'demo_catalogues',
+                'invalid_demo_catalogues',
+                'demo catalogues require both language mappings and a registry',
+            )
+        return self

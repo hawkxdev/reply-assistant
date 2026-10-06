@@ -4,7 +4,7 @@ import logging
 import secrets
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.resources import files
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Request
@@ -65,6 +65,14 @@ def _error(
 
 class UnauthorizedError(Exception):
     """Missing or wrong token."""
+
+
+class CatalogueSelectionError(Exception):
+    """Invalid demo catalogue selection."""
+
+
+class CatalogueUnavailableError(Exception):
+    """Unavailable demo language catalogue."""
 
 
 def _tokens_match(given: str, expected: str) -> bool:
@@ -140,9 +148,32 @@ class Dependencies:
     client: ModelClient | None = None
     registry: Registry | None = None
     api_token: SecretStr | None = None
+    demo_catalogues: dict[str, str] = field(default_factory=dict)
 
-    async def select_kb(self, client_id: str | None) -> KnowledgeBase:
+    async def select_kb(
+        self,
+        client_id: str | None,
+        catalogue_language: str | None = None,
+    ) -> KnowledgeBase:
         """Select the serving base."""
+        if catalogue_language is not None:
+            if catalogue_language not in {'en', 'ru'} or client_id is not None:
+                raise CatalogueSelectionError()
+            if self.demo_catalogues:
+                if self.registry is None:
+                    raise CatalogueUnavailableError()
+                try:
+                    selected = await self.registry.select(
+                        self.demo_catalogues[catalogue_language],
+                        required=True,
+                    )
+                except RegistryError as error:
+                    raise CatalogueUnavailableError() from error
+            else:
+                selected = await self.select_kb(None)
+            if selected.language != catalogue_language:
+                raise CatalogueUnavailableError()
+            return selected
         if self.registry is not None:
             return await self.registry.select(client_id)
         if self.kb is None:
@@ -163,11 +194,18 @@ def create_app(
         if parts.kb is None or parts.client is None:
             settings = Settings()
             parts.api_token = settings.api_token
+            parts.demo_catalogues = settings.demo_catalogues
             if parts.kb is None:
                 if settings.kb_registry is not None:
                     loaded = await load_registry(settings.kb_registry)
                     parts.registry = loaded
                     parts.kb = loaded.default_kb
+                    for language, alias in parts.demo_catalogues.items():
+                        selected = await loaded.select(alias, required=True)
+                        if selected.language != language:
+                            raise RegistryError(
+                                'the demo catalogue language is invalid'
+                            )
                 else:
                     kb_path = settings.kb_path
                     if kb_path is None:
@@ -228,6 +266,26 @@ def create_app(
         """Answer a registry failure."""
         return _error(500, 'registry_error', 'the knowledge base registry is invalid')
 
+    @app.exception_handler(CatalogueSelectionError)
+    async def invalid_catalogue_selection(
+        request: Request,
+        error: CatalogueSelectionError,
+    ) -> JSONResponse:
+        """Reject invalid catalogue selection."""
+        return _error(
+            400, 'invalid_catalogue_selection', 'the catalogue selection is invalid'
+        )
+
+    @app.exception_handler(CatalogueUnavailableError)
+    async def unavailable_catalogue(
+        request: Request,
+        error: CatalogueUnavailableError,
+    ) -> JSONResponse:
+        """Refuse unavailable language catalogue."""
+        return _error(
+            503, 'catalogue_unavailable', 'the selected catalogue is unavailable'
+        )
+
     @app.exception_handler(KnowledgeBaseError)
     async def invalid_base(request: Request, error: KnowledgeBaseError) -> JSONResponse:
         """Answer an invalid base."""
@@ -283,7 +341,10 @@ def create_app(
         """Return one checked suggestion."""
         if parts.client is None:
             raise RuntimeError('the application did not start')
-        kb = await parts.select_kb(request.headers.get('X-Client-Id'))
+        kb = await parts.select_kb(
+            request.headers.get('X-Client-Id'),
+            request.headers.get('X-Catalogue-Language'),
+        )
         return await suggest(payload, kb, parts.client)
 
     @app.post('/webhooks/crm/messages', dependencies=[Depends(require_token)])

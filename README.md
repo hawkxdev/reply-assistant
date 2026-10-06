@@ -81,7 +81,13 @@ The page embeds the Cyrillic-capable Onest font, licensed under the bundled [SIL
 
 ## Interface language
 
-The selector in the page header switches the interface between English and Russian at any time. Headings, controls, placeholders, statuses, checks and usage labels change immediately; unsent texts, the draft with its selection and scroll position, the conversation, the editor mode and the answer with its hint stay as they are, and switching repeats no request. The choice is kept in the browser storage of the address and reused at the next opening; with no valid stored choice the page takes the language of the knowledge base, and unavailable storage changes nothing. The selector translates only the interface: catalogue facts, existing messages and model content remain in their own language, and the language of replies stays the contract of the knowledge base.
+The selector in the page header switches the interface between English and Russian at any time. Headings, controls, placeholders, statuses, checks and usage labels change immediately; unsent texts, the draft with its selection and scroll position, the conversation, the editor mode and the answer with its hint stay as they are, and switching repeats no request. The choice is kept in the browser storage of the address and reused at the next opening; with no valid stored choice the page takes the language of the knowledge base, and unavailable storage changes nothing. New demo requests also select the catalogue corresponding to the chosen language. A request already in progress keeps its original catalogue, and the answer shows its source language. Existing messages and answers are never translated or regenerated.
+
+## Demo catalogue configuration
+
+To enable both languages, register two catalogue aliases and set `REPLY_ASSISTANT_DEMO_CATALOGUES` to a JSON map such as `{"en":"demo-en","ru":"demo-ru"}` together with `REPLY_ASSISTANT_KB_REGISTRY`. Each alias must exist and its catalogue must declare the corresponding language; startup validates the pair, and changes to the registry are checked again per request. The existing public example catalogues are valid inputs for local tests; deployment may use separate serving files outside Git.
+
+The page sends `X-Catalogue-Language: en` or `ru` at submission time. It cannot be combined with `X-Client-Id`; an invalid selection returns 400, and an unavailable or mismatched demo catalogue returns 503. Requests without the language header, including existing webhook clients, retain their previous default/client selection. In single-base mode only a request matching the base language can use the demo page; configuring both mappings enables the other language without a fallback to the wrong base.
 
 ## Token link
 
