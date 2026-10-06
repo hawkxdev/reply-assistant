@@ -21,6 +21,8 @@ uv run python scripts/check_conventions.py
 
 All six must pass before a pull request is opened. Report the real output. A check that was not run is reported as not run.
 
+The complete local entry is `bash scripts/check-local.sh --base <base-commit> --title '<PR title>'`. It also checks title format, deleted tests and changed dependencies. Use a clean committed tree and retain its exact commit and exit receipts. Dependency changes need a published branch for the read-only GitHub dependency comparison; this query does not start Actions. See [the local workflow](docs/local-workflow.md).
+
 ## How to work on an issue
 
 1. The issue is the contract. Implement its acceptance criteria and nothing beyond them.
@@ -31,7 +33,17 @@ All six must pass before a pull request is opened. Report the real output. A che
 6. The pull request body states what changed, how it was verified, and ends with `Closes #<number>`.
 7. A finding outside the issue goes into the pull request body under **Out of scope**. Do not fix it.
 
-## Cloud correction cycle
+## Local execution and review
+
+Implementation, checks, build preparation and separately authorized deployment run from the selected local harness. Repository Actions execution is disabled, including manual and generated jobs. Do not launch OpenCode through GitHub or restore a workflow to obtain green checks. Do not install a local CI service or another executor as an inferred replacement.
+
+The configured Codex GitHub reviewer remains a provider-managed service outside Actions. The lead assesses findings against the issue and exact submitted commit, corrects confirmed defects locally and retains other branch protections. Author checks are self-verification. Model calls, production changes and merge use only their actual owner authorization. Private access material never enters public comments or release archives.
+
+Code, test, dependency or checking-script changes require fresh affected verification. For documentation-only corrections, reuse a saved full run only after proving that every other tracked input and file mode is unchanged; record both commits and the separate document check. Do not claim the earlier run executed on a newer commit.
+
+## Historical cloud correction cycle
+
+The archived workflow sources in `scripts/archived-workflows/` and the following rules preserve prior execution receipts and recovery behavior. They do not authorize a new cloud run. Restoring that route requires a new owner decision and verification of its current permissions and dependencies.
 
 The existing author workflow admits one initial execution and two correction returns. The lead confirms findings for the current commit. Supplements and repeated deliveries on the same commit do not create another return. After the third review the lead accepts a correct version or completes the verified remainder; no third executor return is permitted.
 

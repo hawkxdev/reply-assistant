@@ -441,7 +441,9 @@ async def test_arbitrary_bot_text_does_not_restore_a_budget() -> None:
 
 
 def test_every_model_step_requires_persisted_admission() -> None:
-    workflow = yaml.safe_load(Path('.github/workflows/author-agent.yml').read_text())
+    workflow = yaml.safe_load(
+        Path('scripts/archived-workflows/author-agent.yml.disabled').read_text()
+    )
     job = workflow['jobs']['author']
     model_steps = [
         step for step in job['steps'] if 'ZHIPU_API_KEY' in step.get('env', {})

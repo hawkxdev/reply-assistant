@@ -12,7 +12,7 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 ## Steps
 
 1. Read the issue: goal, acceptance criteria, files in scope, files out of scope. Read the specification sections and supporting contracts the issue links to.
-2. Stop and comment on the issue when a criterion cannot be verified by a command or an observation, or when the work needs a path from **Boundaries** in `AGENTS.md`.
+2. Stop and comment on the issue when a criterion cannot be verified or the work needs a protected path without the repository owner exception in **Boundaries**. Preserve explicit owner authority for an owner-prepared PR.
 3. Work in a branch created from `main`. When the tool does not name it, use `feat/issue-<number>` or `fix/issue-<number>`.
 4. The acceptance tests of the issue already cover its criteria. Write a new test only for behaviour they do not cover, and let it fail for the right reason before the code exists. A test that fails only together with an acceptance test is a duplicate: do not add it.
 5. Write the smallest code that makes the test pass.
@@ -20,6 +20,8 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 7. For each new test break the code it guards, run the tests, confirm that this test fails, and restore the code. Note the defect for the pull request body.
 8. Open the pull request. The title follows Conventional Commits; when the tool writes the title itself, put the correct title on the first line of the body. The body has four parts: **What changed**, **How verified** with the real output of the commands and, for each new test, the defect that makes it fail, **Out of scope** with findings that were not fixed, and `Closes #<number>`.
 9. Add the label `agent-authored` when the tool allows it.
+
+Implementation and checks run in the selected local harness. Use `scripts/check-local.sh` on the exact committed version and keep its result receipts. Read-only dependency comparison uses GitHub metadata, not Actions execution. Preserve configured provider-managed Codex review, assess each finding, and correct locally. Follow the owner-selected acceptance and merge authority without asking for routine steps again. The local workflow is defined in [local-workflow.md](../../../docs/local-workflow.md).
 
 ## Stop conditions
 
@@ -29,12 +31,14 @@ The issue is the contract. `AGENTS.md` holds the rules; this skill holds the ord
 ## Never
 
 - Commit to `main`.
-- Edit a path from **Boundaries**, apart from removing the `xfail` marker of the acceptance test of this issue together with an import the removal leaves unused.
+- Edit a path from **Boundaries** without its stated owner exception or the narrowly permitted `xfail` removal.
 - Add a dependency the issue does not name.
 - Report a check as passed without running it.
 
 
-## Correction and transfer
+## Historical cloud correction and transfer
+
+This section describes preserved cloud executions only. It does not select the archived author workflow or authorize new runner or model activity.
 
 A correction starts only after the author workflow admits the owner's current-head request. Preserve the branch selected by the tool. The first and second reviews may return confirmed findings to the author; the third belongs to the lead for acceptance or bounded completion. Supplements on one commit share the same return.
 

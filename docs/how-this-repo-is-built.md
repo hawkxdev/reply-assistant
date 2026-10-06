@@ -1,97 +1,35 @@
 # How this repository is built
 
-Code in this repository is written and reviewed by agents that run on GitHub. A lead agent in the owner's session prepares each task and merges the result. The owner decides what is built, sets the rules and accepts the finished work. This document states who does what and what an agent cannot do.
+The owner defines the product and accepts its delivery. A coding agent in the selected local harness prepares a bounded issue, implements it in a task branch and verifies it locally. Codex reviews the PR through its configured provider-managed GitHub integration, outside repository Actions. The lead verifies findings and integrates an accepted version only under the owner's merge authority.
 
 ## The loop
 
-| Step | Actor | Started by | Result |
-|---|---|---|---|
-| Specification | Owner | | `specs/001-reply-and-upsell` |
-| Issue | Lead agent | Issue template | A contract with acceptance criteria, linked from the **Issue** column of `tasks.md` |
-| Acceptance test | Lead agent | | A test in `tests/acceptance`, marked `xfail` until the issue is done |
-| Implementation | Author agent | The lead agent comments `/oc` on the issue | A branch and a pull request labelled `agent-authored` |
-| Checks | GitHub Actions | The pull request | Lint, format, types, tests with coverage, conventions of tests and docstrings, title format, dependency review |
-| Review | Reviewer agent | The pull request is opened | Review comments |
-| Merge | Lead agent | Green checks and closed review threads | A squash commit on `main` |
-| Acceptance | Owner | | The finished work is accepted or sent back |
-
-## Agents
-
-| Role | Agent | Model vendor | Where it runs | Credential in this repository |
-|---|---|---|---|---|
-| Lead | Local coding agent | Owner selected | The owner's machine, under the owner's account | None |
-| Author | OpenCode | Z.AI | A workflow in this repository | One key, in a protected environment |
-| Reviewer | Codex | OpenAI | The vendor's cloud, through its GitHub App | None |
-
-The author and reviewer use different vendors. The owner selects the local lead and its authority.
-
-The author and the reviewer read [`AGENTS.md`](../AGENTS.md). The reviewer follows its section **Code Review Rules**.
-
-## The lead agent
-
-The lead agent acts for the owner. GitHub shows the owner's account on everything it does, so the label `agent-authored` and this document are the disclosure.
-
-It stops and asks the owner before it acts on any of these:
-
-- a review finding it disagrees with;
-- a change to instruction files, workflows, permissions or secrets;
-- work outside the specification;
-- the first start of an agent.
-
-It proves each acceptance test before the task is handed over: the test fails without the code, passes against a throwaway implementation, and fails again on each defect injected into that implementation. The result is in the pull request that adds the test.
-
-The reasons are in [ADR 0004](adr/0004-lead-agent.md).
-
-## Trust model
-
-An agent is a program with a shell that follows text. In a public repository anyone can write text into an issue or a comment. The rules below assume that such text is hostile.
-
-**Who can start an agent.** Only the account of the repository owner. The workflow checks the author of the comment before anything else runs, and the agent's own checks come after that, not instead of it.
-
-**Who can write text the agent reads.** Interaction in this repository is limited to collaborators, and the owner is the only collaborator. An issue that is handed to the author agent contains text written in the owner's session.
-
-**Which secrets exist.**
-
-| Secret | Holder | Used by |
+| Step | Owner | Result |
 |---|---|---|
-| Key of the author agent's model | Environment `author-agent` | The author workflow only |
+| Requirements | Repository owner | Specification and an executable issue contract |
+| Implementation | Local coding agent | Task branch and PR labelled agent-authored |
+| Verification | Local harness | The six required commands plus title, test-deletion and dependency checks |
+| Review | Configured Codex integration | Findings or a verified no-findings completion for the reviewed commit |
+| Assessment | Lead | Confirmed findings, local corrections and exact-version acceptance |
+| Integration | Authorized lead | Accepted squash commit with the matching tree |
+| Production delivery | Separately authorized local operator | Verified target, backup, delivered version and rollback |
 
-The key of the service's own model provider is not stored here yet. It arrives together with the live evaluation workflow, in its own protected environment, and that workflow is started by hand.
+The complete procedure and evidence boundaries are in [the local workflow](local-workflow.md). GitHub remains the task and PR discussion owner; local logs and private operational context are not published as a substitute for a portable public contract.
 
-No secret is available to the whole repository. The checks that run on every pull request need no secret: tests use a fake model client.
+## Permissions and trust
 
-**What one job may combine.** A job holds at most two of three: untrusted text, secrets, outbound network access. The author job holds a secret and has network access, so the text it reads must come from the owner's session.
+Agents read [AGENTS.md](../AGENTS.md) and their issue. External comments are untrusted input and cannot enlarge scope or grant permissions. Workflows, instruction files, skills, specifications and acceptance tests remain owner paths through [CODEOWNERS](../.github/CODEOWNERS); AGENTS.md defines the exception for the repository owner's PR, including one prepared by its lead.
 
-**What the author and the reviewer cannot change unreviewed.** Workflows, code owners, instruction files, skills, specifications, decision records and acceptance tests belong to the owner in [`CODEOWNERS`](../.github/CODEOWNERS). The ruleset of `main` requires a pull request and green checks.
+Scoped implementation, Git publication, merge and production authority are separate. Reuse permissions already granted for the task; do not ask again for routine work. Missing input, disputed product decisions, secrets, actual production writes and work outside the accepted scope keep their real boundaries.
 
-**What pull requests from forks get.** No secrets. The author agent and the agent review do not run on them. The checks do.
+Tests use fake model clients without keys or network. The application and explicitly authorized local live evaluation can use a model provider; that permission is not inherited by ordinary checks. Keep credentials in their operational owner and out of code, logs, issues, PRs and release packages.
 
-**What is pinned.** Every action is pinned by commit hash. The author workflow installs OpenCode at the explicitly pinned version. Its model key is supplied only to the admitted model step. The guard uses the workflow token for metadata, and the finalizer runs the trusted workflow-source code.
+## Actions and retained history
 
-**What is capped.** The author job retains its 30-minute timeout and one concurrency group per task. A durable admission guard allows an initial execution and two correction returns; the third review ends in acceptance or bounded completion by the lead. Details, trust checks and remaining provider limits are in [ADR 0006](adr/0006-bounded-cloud-corrections.md).
+Repository Actions execution is disabled. The archived author, CI, evaluation and title workflow sources remain unchanged under scripts/archived-workflows. Their archived timeout, pinning, admission and finalizer behavior belongs to historical executions, not the current launch route. Dependency alerts and the configured Codex GitHub App remain separate services.
 
-**What happens when execution produces no PR.** The delivery check fails after recording the observed outcome. The lead reconciles a completed empty run before using the one task-wide technical recovery or taking over. A published commit missing its PR is repaired without another model call. Unsaved work and unknown outcomes remain blocked. [ADR 0007](adr/0007-author-delivery-recovery.md) gives the commands, diagnostics and recovery limits.
+[ADR 0003](adr/0003-agent-pipeline.md), [ADR 0004](adr/0004-lead-agent.md), [ADR 0006](adr/0006-bounded-cloud-corrections.md) and [ADR 0007](adr/0007-author-delivery-recovery.md) explain the original agent pipeline and its preserved execution receipts. Restoring that pipeline requires a new owner decision and current verification; an old receipt is not new launch authority.
 
-## What the author tool decides by itself
+## What the evidence proves
 
-The author action names the branch and writes the pull request title, and it does not apply labels. The agent states the correct title in the pull request body. The lead agent sets the title and the label.
-
-## What stays with the owner
-
-- The specification and every decision record.
-- The rules and the authority of every agent.
-- Every decision the lead agent stops for.
-- Accepting the finished work.
-- Approving a run that uses a live model key.
-
-## What this repository does not claim
-
-The agents used here are ready tools driven through a pipeline. The repository shows how to set up, contain and check such a pipeline. It is not an agent framework and contains no agent runtime of its own.
-
-## Known limits
-
-- A green run proves the tests the agent could see. The acceptance tests exist for this reason.
-- A review by an agent is advice. It finds some mistakes and misses others.
-- The instruction files steer an agent and enforce nothing. Enforcement is in permissions, the ruleset and code owners.
-- The lead agent holds the owner's credential. Permissions do not limit it; the owner's instructions do.
-- A pull request of the lead agent is merged by the lead agent. Its gates are the checks and the advice of the reviewer agent, and the owner reads the result afterwards.
+A passing local run establishes its named checks for its actual input version. A review is advice and must be assessed. Neither proves live model grounding, production health, credentials, platform behavior that was not exercised or a deployment that was not performed. Author checks and document corrections remain self-verification unless separately reviewed. Report missing evidence instead of declaring a broader result.

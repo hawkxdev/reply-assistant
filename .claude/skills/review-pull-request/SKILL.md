@@ -19,6 +19,8 @@ The reviewer checks the work of another agent. It does not fix the code and does
 6. Check the domain rules in `AGENTS.md`.
 7. Write the review by **Code Review Rules** in `AGENTS.md`.
 
+Read local verification receipts for the exact submitted version under [local-workflow.md](../../../docs/local-workflow.md). No Actions status is required or fabricated. A provider-managed Codex review runs outside repository workflows; verify the actual actor, completion signal and reviewed commit. For documentation-only corrections, assess the changed text and proven unchanged inputs without requiring another full run or inventing a fresh cloud review.
+
 ## Verdict
 
 - Every criterion covered and no blocking finding: approve in words.
