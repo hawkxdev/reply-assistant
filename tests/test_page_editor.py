@@ -1,6 +1,7 @@
 """Editor workspace page tests."""
 
 import json
+import re
 from importlib.resources import files
 from typing import Any
 
@@ -156,6 +157,55 @@ def test_expand_hides_the_customer_form_and_keeps_its_value() -> None:
     assert restored['toggle-editor']['attributes']['aria-expanded'] == 'false'
 
 
+@pytest.mark.parametrize(
+    ('draft', 'restored_rows'),
+    [('', '3'), ('Ready to ship today.', '3'), ('Line one\nLine two\nLine three', '6')],
+    ids=['empty', 'one_line', 'three_lines'],
+)
+def test_expand_enlarges_an_empty_or_short_editor_and_collapse_restores_it(
+    draft: str, restored_rows: str
+) -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': draft},
+            {'kind': 'click', 'id': 'toggle-editor'},
+            {'kind': 'click', 'id': 'toggle-editor'},
+        ],
+        responses=[],
+        watch=('chat-input', 'workspace'),
+    )
+
+    enlarged = result['trace'][1]['watch']
+    assert enlarged['workspace']['className'] == 'workspace editor-expanded'
+    assert int(enlarged['chat-input']['attributes']['rows']) >= 14
+    assert enlarged['chat-input']['value'] == draft
+    restored = result['trace'][2]['watch']
+    assert restored['workspace']['className'] == 'workspace'
+    assert restored['chat-input']['attributes']['rows'] == restored_rows
+    assert restored['chat-input']['value'] == draft
+
+
+def test_language_switch_keeps_the_enlarged_expanded_editor() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'chat-input', 'value': DRAFT},
+            {'kind': 'select', 'id': 'chat-input', 'start': 5, 'end': 9},
+            {'kind': 'click', 'id': 'toggle-editor'},
+            {'kind': 'change', 'id': 'language-select', 'value': 'ru'},
+        ],
+        responses=[],
+        watch=('chat-input', 'workspace', 'toggle-editor'),
+    )
+
+    switched = result['trace'][-1]['watch']
+    assert switched['workspace']['className'] == 'workspace editor-expanded'
+    assert switched['toggle-editor']['attributes']['aria-expanded'] == 'true'
+    assert int(switched['chat-input']['attributes']['rows']) >= 14
+    assert switched['chat-input']['value'] == DRAFT
+    assert switched['chat-input']['selectionStart'] == 5
+    assert switched['chat-input']['selectionEnd'] == 9
+
+
 def test_focus_mode_and_escape_keep_the_draft_and_selection() -> None:
     result = run_editor_page(
         steps=[
@@ -296,6 +346,16 @@ def test_page_styles_responsive_modes_and_accessible_controls() -> None:
         'overflow-wrap: anywhere',
     ):
         assert needle in source
+
+
+def test_page_expands_the_editor_box_itself_not_only_its_cap() -> None:
+    rule = re.search(
+        r'#workspace\.editor-expanded #chat-input \{([^}]*)\}', page_source()
+    )
+
+    assert rule is not None
+    assert 'min-height: 44vh' in rule.group(1)
+    assert 'max-height: 56vh' in rule.group(1)
 
 
 @pytest.mark.parametrize(
