@@ -122,7 +122,7 @@ def test_plain_and_shift_enter_keep_inserting_new_lines() -> None:
     blocked = [entry['defaultPrevented'] for entry in result['trace'][-2:]]
     assert blocked == [False, False]
     assert result['requests'] == []
-    assert len(result['messages']) == 2
+    assert result['messages'] == []
 
 
 def test_expand_hides_the_customer_form_and_keeps_its_value() -> None:
@@ -557,8 +557,8 @@ def test_user_scroll_in_expanded_mode_replaces_the_saved_anchor() -> None:
 @pytest.mark.parametrize(
     ('language', 'notice', 'plain'),
     [
-        ('en', 'Usage (Provider fallback)', 'Usage'),
-        ('ru', 'Использование (Переключение провайдера)', 'Использование'),
+        ('en', 'Technical details (Provider fallback)', 'Technical details'),
+        ('ru', 'Технические детали (Переключение провайдера)', 'Технические детали'),
     ],
     ids=['en', 'ru'],
 )

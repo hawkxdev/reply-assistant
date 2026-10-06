@@ -73,6 +73,12 @@ curl http://127.0.0.1:8000/api/suggest \
   -d '{"message":"How much is Zeolite Powder?"}'
 ```
 
+## Manager workspace
+
+The warm teal screen keeps a compact customer strip above the conversation/editor and assistant. Start with a customer question or choose an example to fill the input, then request a real model response. Examples do not submit automatically and contain no predefined answers. Insert the returned draft, edit it, and add it to the local demonstration conversation; no message is sent to an actual customer. Expand and Focus preserve the draft and selection, and Escape returns to the normal editor. Checks and technical usage can be disclosed separately, and a provider fallback stays visible in the usage summary even when collapsed.
+
+The page embeds the Cyrillic-capable Onest font, licensed under the bundled [SIL Open Font License](src/reply_assistant/static/onest-OFL.txt), and loads no third-party frontend resource.
+
 ## Interface language
 
 The selector in the page header switches the interface between English and Russian at any time. Headings, controls, placeholders, statuses, checks and usage labels change immediately; unsent texts, the draft with its selection and scroll position, the conversation, the editor mode and the answer with its hint stay as they are, and switching repeats no request. The choice is kept in the browser storage of the address and reused at the next opening; with no valid stored choice the page takes the language of the knowledge base, and unavailable storage changes nothing. The selector translates only the interface: catalogue facts, existing messages and model content remain in their own language, and the language of replies stays the contract of the knowledge base.
