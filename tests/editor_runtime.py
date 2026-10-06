@@ -211,7 +211,10 @@ vm.runInContext(input.script, context, {timeout: 1000});
 function snapshot() {
   const watch = {};
   for (const id of input.watch) {
-    const node = elements.get(id);
+    const node = id.startsWith('i18n:')
+      ? Array.from(elements.values()).find((element) =>
+        element.attributes['data-i18n'] === id.slice('i18n:'.length))
+      : elements.get(id);
     if (!node) {
       watch[id] = null;
       continue;

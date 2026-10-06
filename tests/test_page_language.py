@@ -85,6 +85,27 @@ def test_picker_stays_available_in_every_workspace_mode(button: str) -> None:
 # === Switching ===
 
 
+@pytest.mark.parametrize('target', ['pageTitle', 'appTitle'])
+def test_russian_titles_follow_stored_preference_and_language_switches(
+    target: str,
+) -> None:
+    watched = f'i18n:{target}'
+    result = run_editor_page(
+        steps=[
+            {'kind': 'wait'},
+            {'kind': 'change', 'id': 'language-select', 'value': 'en'},
+            {'kind': 'change', 'id': 'language-select', 'value': 'ru'},
+        ],
+        responses=[],
+        storage={'interface-language': 'ru'},
+        watch=(watched,),
+    )
+
+    assert result['trace'][0]['watch'][watched]['text'] == 'Помощник в переписке'
+    assert result['trace'][1]['watch'][watched]['text'] == 'Reply Assistant'
+    assert result['trace'][2]['watch'][watched]['text'] == 'Помощник в переписке'
+
+
 def test_switch_rewords_page_copy_and_document_language() -> None:
     result = run_editor_page(
         steps=[
