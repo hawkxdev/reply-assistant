@@ -206,7 +206,7 @@ body {
   max-height: 42vh;
   resize: vertical;
 }
-#workspace.editor-expanded #chat-input { max-height: 56vh; }
+#workspace.editor-expanded #chat-input { min-height: 44vh; max-height: 56vh; }
 #workspace.editor-focus #chat-input { min-height: 34vh; max-height: 60vh; }
 
 button {
@@ -747,8 +747,9 @@ function fitCustomer() {
 }
 
 function fitEditor() {
+  const floor = expanded ? 14 : 3;
   const cap = focused ? 26 : expanded ? 14 : 8;
-  fitArea(chatInput, 3, cap);
+  fitArea(chatInput, floor, cap);
 }
 
 function setEditorModes() {
