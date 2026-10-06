@@ -15,11 +15,11 @@ NETWORK_RU = 'Ошибка: не удалось связаться \u0441 асс
 ACCESS_RU = 'Доступ запрещён: проверьте ссылку на демо и API-токен.'
 CHECK_PRODUCT_RU = 'Товар существует'
 USAGE_INPUT_RU = 'Входные токены'
-FALLBACK_NOTICE_RU = 'Использование (Переключение провайдера)'
+FALLBACK_NOTICE_RU = 'Технические детали (Переключение провайдера)'
 MANAGER_PLACEHOLDER_RU = 'Напишите ответ клиенту'
 CUSTOMER_PLACEHOLDER_RU = 'Новое сообщение от клиента'
 EXPAND_TITLE_RU = 'Развернуть редактор ответа'
-RECEIVE_RU = 'Принять'
+RECEIVE_RU = 'Получить ответ'
 YOU_RU = 'Вы'
 CONTACT_RU = 'Анна Петрова'
 MATCH_FOUND_RU = 'найдено'
@@ -157,7 +157,7 @@ def test_switch_rewords_authors_of_future_messages() -> None:
         responses=[{'body': suggestion('Fine.')}],
     )
 
-    assert [message['author'] for message in result['messages'][2:]] == [
+    assert [message['author'] for message in result['messages']] == [
         YOU_RU,
         CONTACT_RU,
     ]
@@ -229,6 +229,7 @@ def test_switch_rewords_checks_usage_and_the_fallback_notice() -> None:
     first['usage']['fallbacks'] = [{'primary': 'primary', 'secondary': 'secondary'}]
     result = run_editor_page(
         steps=[
+            {'kind': 'disclose', 'id': 'usage-details', 'open': True},
             {'kind': 'set', 'id': 'customer-input', 'value': 'First'},
             {'kind': 'click', 'id': 'add-customer'},
             {'kind': 'wait'},
@@ -239,10 +240,10 @@ def test_switch_rewords_checks_usage_and_the_fallback_notice() -> None:
     )
 
     assert (
-        result['trace'][2]['watch']['usage-summary']['text']
-        == 'Usage (Provider fallback)'
+        result['trace'][3]['watch']['usage-summary']['text']
+        == 'Technical details (Provider fallback)'
     )
-    switched = result['trace'][3]['watch']
+    switched = result['trace'][4]['watch']
     assert switched['usage-summary']['text'] == FALLBACK_NOTICE_RU
     assert 'open' in switched['usage-details']['attributes']
     assert switched['kb-match']['text'] == MATCH_FOUND_RU
@@ -255,6 +256,7 @@ def test_switch_rewords_checks_usage_and_the_fallback_notice() -> None:
 def test_switch_preserves_inputs_mode_selection_and_transcript() -> None:
     result = run_editor_page(
         steps=[
+            {'kind': 'disclose', 'id': 'usage-details', 'open': True},
             {'kind': 'set', 'id': 'customer-input', 'value': 'Question'},
             {'kind': 'click', 'id': 'add-customer'},
             {'kind': 'wait'},
@@ -289,12 +291,8 @@ def test_switch_preserves_inputs_mode_selection_and_transcript() -> None:
     assert result['reply'] == 'Kept draft reply.'
     assert [message['author'] for message in result['messages']] == [
         'Anna Petrova',
-        'You',
-        'Anna Petrova',
     ]
     assert [message['text'] for message in result['messages']] == [
-        'Hello! Do you have the zeolite powder in stock?',
-        'Hello! Yes, it is in the warehouse and ready to ship.',
         'Question',
     ]
 

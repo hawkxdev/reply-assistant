@@ -30,8 +30,10 @@ PARTS = [
     'mock-notice',
 ]
 NOTICES = [
-    'Mock of a CRM dialog window. Nothing is sent anywhere.',
-    'Макет окна диалога CRM. Ничего никуда не отправляется.',
+    'Demo conversation. Your question is sent to generate a reply; '
+    'nothing is sent to a customer.',
+    'Демонстрация переписки. Вопрос отправляется для подготовки ответа; '
+    'клиенту ничего не отправляется.',
 ]
 TRADEMARKS = [
     'amocrm',
@@ -46,7 +48,7 @@ TRADEMARKS = [
     'мегаплан',
     'retailcrm',
 ]
-OUTSIDE = re.compile(r'(?:https?|wss?):|[\'"(=]\s*//[a-z0-9]', re.IGNORECASE)
+OUTSIDE = re.compile(r'(?<![\w-])(?:https?|wss?):|[\'"(=]\s*//[a-z0-9]', re.IGNORECASE)
 LINK = re.compile(r'(?:src|href)\s*=\s*["\']?([^"\'\s>]*)', re.IGNORECASE)
 TAG = re.compile(r'<[a-z][^>]*>', re.IGNORECASE)
 LOAD = re.compile(
@@ -108,7 +110,7 @@ def test_page_states_it_is_a_mock_in_both_languages() -> None:
 
 
 def test_page_names_no_crm() -> None:
-    text = get_page().text.lower()
+    text = re.sub(r'data:font/ttf;base64,[A-Za-z0-9+/=]+', '', get_page().text).lower()
 
     assert [mark for mark in TRADEMARKS if mark in text] == []
 

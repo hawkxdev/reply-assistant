@@ -96,11 +96,11 @@ R21. Errors are returned as JSON with a code and a message. Provider responses a
 
 ## Web page
 
-R22. The page has three parts: deal and contact fields on the left, the chat in the centre, the assistant panel on the right.
+R22. The page has a compact deal/contact strip above two working areas: the conversation and reply editor on the left, and the assistant on the right. On narrow screens these areas stack without horizontal overflow.
 
 R23. The manager types or pastes the customer message into the chat. The assistant panel shows the reply, the upsell hint, the result of each check, and the token usage.
 
-R24. A button puts the reply into the chat input. Nothing is sent anywhere by the page.
+R24. A button puts the reply into the chat input. Customer questions are sent to the suggestion endpoint; replies added to the demonstration transcript are not sent to an actual customer. Example buttons fill only the question input and never generate a predefined reply.
 
 R25. The page states that it is a mock of a dialog window. It carries no trademark of any CRM.
 
