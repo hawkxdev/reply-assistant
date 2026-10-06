@@ -119,3 +119,31 @@ def test_landmark_names_follow_interface_language(
         russian,
         english,
     ]
+
+
+def test_example_prepares_the_next_question_during_a_model_request() -> None:
+    result = run_editor_page(
+        steps=[
+            {'kind': 'set', 'id': 'customer-input', 'value': 'Current question'},
+            {'kind': 'click', 'id': 'add-customer'},
+            {'kind': 'click', 'id': 'question-upsell'},
+            {'kind': 'click', 'id': 'add-customer'},
+            {'kind': 'wait'},
+        ],
+        responses=[{'hang': True, 'body': suggestion('Current model reply')}],
+        watch=('customer-input', 'add-customer'),
+    )
+
+    filled = result['trace'][2]['watch']
+    assert filled['customer-input']['value'] == (
+        'What else would go well with my order?'
+    )
+    assert filled['add-customer']['disabled'] is True
+    assert result['trace'][3]['refused'] is True
+    assert [request['body'] for request in result['requests']] == [
+        '{"message":"Current question"}',
+    ]
+    assert result['trace'][-1]['watch']['customer-input']['value'] == (
+        'What else would go well with my order?'
+    )
+    assert result['reply'] == 'Current model reply'
