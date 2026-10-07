@@ -19,7 +19,7 @@ uv run pytest --cov
 uv run python scripts/check_conventions.py
 ```
 
-All six must pass before a pull request is opened. Report the real output. A check that was not run is reported as not run.
+All six must pass before a product pull request is opened. A specifically owner-authorized organizational retirement uses its stated structural, import and preservation checks; the five retired infrastructure modules in ADR 0008 retain their exact source in Git history. This exception does not waive product verification or coverage for product changes. Report the actual checks; an omitted suite is not passing.
 
 ## How to work on an issue
 
@@ -31,26 +31,20 @@ All six must pass before a pull request is opened. Report the real output. A che
 6. The pull request body states what changed, how it was verified, and ends with `Closes #<number>`.
 7. A finding outside the issue goes into the pull request body under **Out of scope**. Do not fix it.
 
-## Cloud correction cycle
+## Execution and knowledge
 
-The existing author workflow admits one initial execution and two correction returns. The lead confirms findings for the current commit. Supplements and repeated deliveries on the same commit do not create another return. After the third review the lead accepts a correct version or completes the verified remainder; no third executor return is permitted.
+Work locally under the assigned task. Repository Actions execution is disabled; do not dispatch or restore excluded executors, checks, builds or deployment. Cloud reviews and processing of old findings are stopped even where an existing reviewer connection is retained. A historical receipt or skill never resumes an old task.
 
-A trusted reservation is required before the model step. State is retained in the task discussion and verified against actual workflow runs. Closed tasks, stale reviews, duplicate events, uncertain results and unsaved work never authorize another run. An arbitrary comment or marker grants no authority.
-
-Before lead changes, verify that the cloud run ended and all work is preserved at the matching remote commit. Request and verify explicit transfer from a working executor. An already ended worker can be transferred from its verified checkpoint without a new model call. Lead changes receive the same checks and are reported as self-verification, not independent review. Transfer does not mean acceptance; an unresolved remainder gets a concrete blocker and recommendation.
-
-The executable procedure and provider limits are in [ADR 0006](docs/adr/0006-bounded-cloud-corrections.md). Merge authority, protected paths and deployment permissions remain as defined elsewhere in this file.
-
-An empty completed execution is a failed delivery, not completed implementation. The lead reconciles its immutable checkpoint before choosing recovery or takeover. [ADR 0007](docs/adr/0007-author-delivery-recovery.md) permits one technical recovery per task, separately from the two correction returns. Published work missing a PR is repaired without another model execution; unknown or unsaved work stays blocked. Preserve the branch prepared by OpenCode and finish the issue contract rather than ending with a plan.
+Project navigation belongs to [.claude/skills/project-brain/SKILL.md](.claude/skills/project-brain/SKILL.md); recipient-accessible details belong to [docs/knowledge/README.md](docs/knowledge/README.md). Shared methodology and canonical helpers are not published here. The retired author mechanism and preserved historical project contract are described in [ADR 0008](docs/adr/0008-local-project-knowledge.md). Earlier cloud ADRs remain historical sources.
 
 ## Boundaries
 
 These paths belong to the owner. Do not create, change or delete anything in them:
 
 - `.github/`
-- `AGENTS.md`, `CLAUDE.md`, `.claude/`
+- `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.agents/`
 - `tests/acceptance/`
-- `specs/`, `docs/adr/`
+- `specs/`, `docs/adr/`, `docs/knowledge/`
 - `LICENSE`, `SECURITY.md`
 
 If an issue cannot be completed without touching one of them, stop and say so in a comment on the issue.
@@ -109,7 +103,7 @@ No secret value appears in code, tests, fixtures, logs, commit messages, issues 
 Review the pull request against its issue and this file.
 
 - A finding names the file and line, the consequence, and the rule or criterion it rests on.
-- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted test, a test that cannot fail on a defect no other test catches, a missing named defect for a new test, a secret, a domain rule violation, a missing test for new behaviour.
+- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted product test or infrastructure test retired without an explicit contract and preserved source, a test that cannot fail on a defect no other test catches, a missing named defect for a new test, a secret, a domain rule violation, a missing test for new behaviour.
 - Do not block on taste. A preference that no rule supports is a suggestion.
 - Say plainly when the pull request is good. Do not invent findings.
 
