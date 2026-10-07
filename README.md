@@ -4,7 +4,7 @@
 
 A local prototype for a sales or support manager. It takes a customer message and a short YAML knowledge base, then returns a draft reply and an upsell hint. The web page places the conversation beside the suggestion, checks and token usage.
 
-The repository also demonstrates development through agents on GitHub: a lead prepares contracts and acceptance tests, OpenCode implements them, Codex reviews the pull requests, and the lead verifies and merges the result. The owner decides what is built and accepts the finished work.
+Implementation and checks run in the selected local coding harness. GitHub stores the public source and task contracts. The owner decides what is built and accepts the finished work. The [working process](docs/how-this-repo-is-built.md) and [project knowledge](docs/knowledge/README.md) describe current roles and boundaries; historical cloud workflows do not authorize execution.
 
 ## Run locally
 
