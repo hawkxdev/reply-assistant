@@ -25,7 +25,9 @@ def git(root: Path, *args: str) -> str:
 
 
 @pytest.fixture
-def local_gate(tmp_path: Path) -> tuple[Path, Path, str, dict[str, str]]:
+def local_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[Path, Path, str, dict[str, str]]:
     """Prepare isolated gate inputs."""
     root = tmp_path / 'repo'
     root.mkdir()
@@ -67,7 +69,12 @@ def local_gate(tmp_path: Path) -> tuple[Path, Path, str, dict[str, str]]:
         'echo "Dependency comparison unavailable." >&2\nexit 19\nfi\n'
     )
     gh.chmod(0o700)
-    env = dict(os.environ)
+    monkeypatch.setenv('LOCAL_PARENT_CANARY', 'fixture-marker')
+    env = {
+        key: os.environ[key]
+        for key in ('PATH', 'HOME', 'LANG', 'LC_ALL', 'TMPDIR', 'SYSTEMROOT')
+        if key in os.environ
+    }
     env.update(PATH=f'{tools}:{env["PATH"]}', LOCAL_UV_LOG=str(tmp_path / 'uv.log'))
     return root, tmp_path / 'result', base, env
 
@@ -265,3 +272,11 @@ def test_local_checks_reject_inputs_changed_during_execution(
     assert (output / 'commit.txt').read_text().strip() == base
     assert (output / 'exit-code.txt').read_text() == '1\n'
     assert 'Checked inputs changed during verification' in result.stderr
+
+
+def test_local_checks_exclude_unrelated_parent_environment(
+    local_gate: tuple[Path, Path, str, dict[str, str]],
+) -> None:
+    _, _, _, env = local_gate
+
+    assert 'LOCAL_PARENT_CANARY' not in env
