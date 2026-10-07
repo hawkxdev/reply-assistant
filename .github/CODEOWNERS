@@ -9,7 +9,6 @@
 /specs/              @hawkxdev
 /docs/adr/           @hawkxdev
 /docs/how-this-repo-is-built.md @hawkxdev
-/scripts/author_guard.py @hawkxdev
-/scripts/review_handoff.py @hawkxdev
+/docs/knowledge/     @hawkxdev
 /LICENSE             @hawkxdev
 /SECURITY.md         @hawkxdev
