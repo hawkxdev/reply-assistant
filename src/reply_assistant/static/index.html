@@ -9,53 +9,92 @@
   --bg: #f3f5f7;
   --card: #ffffff;
   --line: #e4e8ec;
+  --field-line: #7c8a9b;
   --ink: #24313f;
-  --muted: #7b8794;
+  --muted: #5d6b7c;
   --accent: #2563eb;
+  --accent-ink: #1d4ed8;
   --accent-soft: #e3edff;
+  --success: #24624b;
+  --success-soft: #eef8f2;
+  --warning: #815414;
+  --warning-soft: #fff4df;
+  --surface: #f7f9fc;
+  --radius: 16px;
+  --space: 16px;
+  --deal-width: 240px;
+  --assistant-width: 400px;
+  --editor-min: 112px;
+  --editor-max: 208px;
+  --editor-expanded: clamp(208px, 30vh, 384px);
+  --workspace-min: 760px;
+  --workspace-max: 1800px;
+  --font-meta: 12px;
+  --font-caption: 13px;
+  --font-heading: 17px;
+  --control-min: 44px;
+  --shadow: 0 12px 32px #24313f14;
 }
 * { box-sizing: border-box; }
-html { height: 100%; }
+html { min-height: 100%; }
 body {
-  height: 100vh;
+  height: 100svh;
   margin: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
+  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 }
-[hidden] { display: none; }
-
+[hidden] { display: none !important; }
+button, input, textarea, summary { font: inherit; }
+button, summary { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, summary:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 #top {
+  width: 100%;
+  max-width: var(--workspace-max);
+  align-self: center;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 18px 0;
+  gap: var(--space);
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
 }
-#top h1 { margin: 0; font-size: 16px; }
-#mock-notice {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  text-align: right;
-  line-height: 1.4;
+#top h1 { margin: 0; font-size: 19px; letter-spacing: -0.03em; }
+#mock-notice { position: relative; color: var(--muted); font-size: var(--font-meta); }
+#mock-notice summary { cursor: pointer; min-height: 32px; align-content: center; }
+#mock-notice .notice-body {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: min(360px, 85vw);
+  padding: var(--space);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  z-index: 3;
 }
-#mock-notice span { display: block; }
-
+.notice-body p { margin: 0 0 8px; }
+.notice-body p:last-child { margin: 0; }
 main {
+  width: 100%;
+  max-width: var(--workspace-max);
+  align-self: center;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 360px;
-  gap: 14px;
-  padding: 12px 18px 16px;
+  grid-template-columns: var(--deal-width) minmax(0, 1fr) var(--assistant-width);
+  grid-template-areas: 'deal chat assistant';
+  gap: var(--space);
+  padding: 20px 24px 24px;
 }
-
 .column {
   min-width: 0;
   min-height: 0;
@@ -63,255 +102,220 @@ main {
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: var(--radius);
+  padding: 20px;
 }
-.column h2 {
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-#deal .deal-name { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
-.field {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 0;
-  border-top: 1px solid #f0f3f5;
-}
+.column h2 { margin: 0; font-size: var(--font-heading); letter-spacing: -0.02em; }
+#deal { grid-area: deal; align-self: start; display: block; }
+#deal summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; min-height: var(--control-min); }
+#deal summary::after { content: '+'; color: var(--muted); font-size: 20px; }
+#deal[open] summary::after { content: '\2212'; }
+#deal .deal-name { margin: 12px 0; font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+#deal .deal-name, #chat-header .name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.field { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: var(--font-caption); }
 .field .label { color: var(--muted); }
-.field .value { font-weight: 600; text-align: right; }
-
-#chat-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 0 2px 10px;
-  border-bottom: 1px solid var(--line);
-}
-#chat-header .name { font-size: 15px; font-weight: 600; }
-#chat-header .role { color: var(--muted); font-size: 12px; }
-
-#messages {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px 2px;
-}
-.message { max-width: 80%; display: flex; flex-direction: column; }
+.field .value { font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#chat { grid-area: chat; padding-bottom: 16px; }
+#chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+#chat-header .name { font-size: var(--font-heading); font-weight: 650; overflow-wrap: anywhere; }
+#chat-header .role { color: var(--muted); font-size: var(--font-meta); }
+#chat-header .contact { min-width: 0; }
+.pill { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 20px; background: var(--accent-soft); color: var(--accent-ink); font-size: var(--font-meta); font-weight: 600; white-space: nowrap; }
+#messages { flex: 1; min-height: 64px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 20px 0; }
+.message { max-width: min(85%, 640px); display: flex; flex-direction: column; }
 .message.incoming { align-self: flex-start; align-items: flex-start; }
 .message.outgoing { align-self: flex-end; align-items: flex-end; }
-.message .author { font-size: 11px; color: var(--muted); margin: 0 4px 3px; }
-.message .bubble {
-  padding: 8px 12px;
-  border-radius: 12px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.message.incoming .bubble {
-  background: #f1f4f8;
-  border: 1px solid var(--line);
-  border-bottom-left-radius: 4px;
-}
-.message.outgoing .bubble {
-  background: var(--accent-soft);
-  border: 1px solid #cfdffb;
-  border-bottom-right-radius: 4px;
-}
-
-.writer { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
-.writer .caption {
+.message .author { font-size: var(--font-meta); color: var(--muted); margin: 0 4px 5px; }
+.message .bubble { padding: 11px 14px; border-radius: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message.incoming .bubble { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.message.outgoing .bubble { background: var(--accent-soft); border-bottom-right-radius: 4px; }
+.writer { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; min-width: 0; }
+.writer .caption { display: block; font-size: var(--font-caption); font-weight: 600; margin-bottom: 8px; }
+.writer .row { display: flex; gap: 8px; align-items: flex-end; }
+.writer textarea {
   display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 5px;
-}
-.writer .row { display: flex; gap: 8px; align-items: stretch; }
-.writer input, .writer textarea {
-  flex: 1;
   min-width: 0;
-  border: 1px solid #d5dce2;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font: inherit;
+  width: 100%;
+  border: 1px solid var(--field-line);
+  border-radius: 10px;
+  padding: 12px 14px;
   color: inherit;
-  background: #fbfcfd;
-  resize: none;
+  background: var(--card);
+  resize: vertical;
+  line-height: 1.55;
 }
-.writer input:focus, .writer textarea:focus {
-  outline: 2px solid var(--accent-soft);
-  border-color: var(--accent);
-}
-
+.writer textarea::placeholder { color: var(--muted); opacity: 1; }
+#customer-input { flex: 1; min-height: 48px; max-height: 100px; font-size: var(--font-caption); }
+#editor { display: flex; flex-direction: column; min-height: 0; }
+#chat-input { flex: 1 1 auto; min-height: var(--editor-min); max-height: var(--editor-max); }
+#editor[data-expanded='true'] #chat-input { height: var(--editor-expanded); max-height: 45svh; }
+.editor-header, .editor-actions { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 8px; }
+.editor-header { margin-bottom: 8px; flex-wrap: wrap; }
+.editor-header .caption { margin: 0; }
+.editor-tools { display: flex; gap: 4px; }
+.editor-actions { margin-top: 10px; }
+.editor-help { font-size: var(--font-meta); color: var(--muted); margin: 0; }
 button {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
+  min-height: var(--control-min);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 9px 14px;
   background: var(--accent);
-  color: #ffffff;
-  font: inherit;
+  color: var(--card);
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
 }
-button:hover { background: #1c50c8; }
-button:active { transform: translateY(1px); }
-button.ghost {
-  background: var(--card);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-}
-button.ghost:hover { background: var(--accent-soft); }
-
-#assistant-state { margin: 4px 0 12px; color: var(--muted); }
-#assistant-state.loading { animation: pulse 1.4s ease-in-out infinite; }
-#assistant-state.error { color: var(--ink); font-weight: 600; }
-@keyframes pulse { 50% { opacity: 0.45; } }
-
-#assistant-result { overflow-y: auto; min-height: 0; }
-#assistant-result section { border-top: 1px solid var(--line); padding: 10px 0 12px; }
-#assistant-result section:first-child { border-top: none; padding-top: 2px; }
-#assistant-result h3 {
-  margin: 0 0 8px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-#reply {
-  margin: 0 0 10px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  background: #f7f9fc;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-#hint { margin: 0 0 8px; }
-#hint .product-id {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 7px;
-  border-radius: 6px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  font-size: 12px;
-}
-.kv { display: flex; justify-content: space-between; gap: 10px; margin: 0; }
+button:hover { filter: brightness(0.94); }
+button:disabled { cursor: wait; opacity: 0.65; }
+button.ghost { background: var(--card); color: var(--accent); border-color: var(--accent); }
+button.quiet { background: transparent; color: var(--muted); padding: 6px 9px; font-size: var(--font-meta); }
+#assistant { grid-area: assistant; }
+.assistant-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+#assistant-state { margin: 0; padding: 24px 16px; border: 1px dashed var(--field-line); border-radius: 12px; color: var(--muted); }
+#assistant-state.error { color: var(--ink); background: var(--warning-soft); border-style: solid; }
+#assistant-state.loading { animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.6; } }
+#assistant-result { overflow-y: auto; min-height: 0; padding-right: 4px; }
+#assistant-result section { border-top: 1px solid var(--line); padding: 16px 0; }
+#assistant-result section:first-child { border: 0; padding-top: 0; }
+#assistant-result h3 { margin: 0 0 10px; font-size: var(--font-caption); font-weight: 650; }
+#reply { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; line-height: 1.65; }
+#insert-reply { width: 100%; }
+#hint { margin: 0 0 12px; overflow-wrap: anywhere; }
+.kv { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0; font-size: var(--font-caption); }
 .kv .label { color: var(--muted); }
-.kv .value { font-weight: 600; }
-ul.plain { list-style: none; margin: 0; padding: 0; }
-#checks li {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px 10px;
-  padding: 4px 0;
-}
-#checks .status { font-weight: 600; color: var(--accent); }
-#checks .note {
-  flex-basis: 100%;
-  color: var(--muted);
-  font-size: 12px;
-  font-style: italic;
-}
-#usage li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.kv .value { font-weight: 650; }
+#kb-match { color: var(--warning); background: var(--warning-soft); padding: 2px 8px; border-radius: 6px; }
+#kb-match[data-match='found'] { color: var(--success); background: var(--success-soft); }
+.result-details { border-top: 1px solid var(--line); font-size: var(--font-caption); }
+.result-details summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 600; }
+#checks-summary { display: inline-block; margin-left: 8px; color: var(--success); font-size: var(--font-meta); font-weight: 500; }
+ul.plain { list-style: none; margin: 0; padding: 0 0 12px; }
+#checks li, #usage li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; padding: 5px 0; }
+#checks .status { font-weight: 600; color: var(--success); }
+#checks .note { flex-basis: 100%; color: var(--muted); font-size: var(--font-meta); }
 #usage .label { color: var(--muted); }
-#usage .value { font-weight: 600; }
+#usage .value { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.checks-help { font-size: var(--font-meta); color: var(--muted); margin: 0 0 12px; }
+main[data-focus='true'] { grid-template-columns: minmax(0, 1fr) var(--assistant-width); grid-template-areas: 'chat assistant'; }
+main[data-focus='true'] #editor { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 0; }
+main[data-focus='true'] #editor #chat-input { flex: 1; min-height: var(--editor-min); max-height: none; height: auto; resize: none; }
+@media (max-width: 1240px) {
+  main { grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) minmax(320px, 0.8fr); grid-template-areas: 'deal deal' 'chat assistant'; gap: 12px; padding: 16px; }
+  #deal { padding: 8px 16px; }
+  #deal summary { justify-content: flex-start; gap: 12px; }
+  #deal .deal-name { margin: 6px 0; }
+  .deal-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .field { border: 0; padding: 6px 0; flex-direction: column; gap: 2px; }
+  .field .value { text-align: left; }
+  main[data-focus='true'] { grid-template: minmax(0, 1fr) / minmax(0, 1fr) minmax(320px, 0.8fr); grid-template-areas: 'chat assistant'; }
+}
+@media (min-width: 761px) and (max-height: 760px) {
+  body { height: auto; overflow: auto; }
+  main { height: var(--workspace-min); flex: none; }
+}
+@media (max-width: 760px) {
+  body { height: auto; min-height: 100svh; overflow: auto; }
+  #top { padding: 12px 16px; }
+  #top h1 { font-size: var(--font-heading); }
+  #mock-notice summary { min-height: var(--control-min); }
+  main, main[data-focus='true'] { display: flex; flex-direction: column; padding: 12px; }
+  .column { padding: 16px; }
+  .deal-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+  #deal { width: 100%; }
+  #chat { height: auto; min-height: 660px; }
+  #messages { flex: 1 0 auto; height: 180px; max-height: 320px; min-height: 80px; }
+  main[data-focus='true'] #chat { height: max(660px, 80svh); }
+  .writer .row { align-items: stretch; flex-direction: column; }
+  #customer-input { flex: none; }
+  #add-customer { align-self: flex-end; }
+  #editor[data-expanded='true'] #chat-input { max-height: 32svh; }
+  .editor-actions { align-items: flex-end; }
+  .editor-help { max-width: 45%; }
+  #add-manager { font-size: var(--font-caption); }
+  #assistant-result { overflow: visible; padding-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #assistant-state.loading { animation: none; }
+}
 </style>
 </head>
 <body>
 
+
 <header id="top">
   <h1 data-i18n="appTitle">Reply Assistant</h1>
-  <p id="mock-notice">
-    <span>Mock of a CRM dialog window. Nothing is sent anywhere.</span>
-    <span>Макет окна диалога CRM. Ничего никуда не отправляется.</span>
-  </p>
+  <details id="mock-notice">
+    <summary data-i18n="demoNotice">Demo workspace</summary>
+    <div class="notice-body">
+      <p>Mock of a CRM dialog window. Nothing is sent anywhere.</p>
+      <p>Макет окна диалога CRM. Ничего никуда не отправляется.</p>
+      <p data-i18n="demoExplanation">Customer questions are processed by the model. Replies are only added to this demo, never sent to a CRM.</p>
+    </div>
+  </details>
 </header>
-
-<main>
-  <section id="deal" class="column">
-    <h2 data-i18n="dealHeading">Deal</h2>
-    <p class="deal-name" data-i18n="dealName">Zeolite for a daily course</p>
-    <div class="field">
-      <span class="label" data-i18n="stageLabel">Stage</span>
-      <span class="value" data-i18n="stageValue">Negotiation</span>
+<main id="workspace" data-focus="false">
+  <details id="deal" class="column" open>
+    <summary><strong data-i18n="dealHeading">Deal</strong><span class="pill" data-i18n="stageValue">Negotiation</span></summary>
+    <p class="deal-name" id="deal-name" data-i18n="dealName">Zeolite for a daily course</p>
+    <div class="deal-fields">
+      <div class="field"><span class="label" data-i18n="stageLabel">Stage</span><span class="value" data-i18n="stageValue">Negotiation</span></div>
+      <div class="field"><span class="label" data-i18n="budgetLabel">Budget</span><span class="value" data-i18n="budgetValue">24.00 USD</span></div>
+      <div class="field"><span class="label" data-i18n="contactLabel">Contact</span><span class="value" data-i18n="contactValue">Anna Petrova</span></div>
+      <div class="field"><span class="label" data-i18n="phoneLabel">Phone</span><span class="value" title="+000 00 000-00-00">+000 00 000-00-00</span></div>
     </div>
-    <div class="field">
-      <span class="label" data-i18n="budgetLabel">Budget</span>
-      <span class="value" data-i18n="budgetValue">24.00 USD</span>
-    </div>
-    <div class="field">
-      <span class="label" data-i18n="contactLabel">Contact</span>
-      <span class="value" data-i18n="contactValue">Anna Petrova</span>
-    </div>
-    <div class="field">
-      <span class="label" data-i18n="phoneLabel">Phone</span>
-      <span class="value">+000 00 000-00-00</span>
-    </div>
-  </section>
-
-  <section id="chat" class="column">
+  </details>
+  <section id="chat" class="column" aria-labelledby="chat-name">
     <header id="chat-header">
-      <span class="name" data-i18n="contactValue">Anna Petrova</span>
-      <span class="role" data-i18n="chatRole">Customer</span>
+      <div class="contact"><div class="name" id="chat-name" data-i18n="contactValue">Anna Petrova</div><span class="role" data-i18n="chatRole">Customer conversation</span></div>
+      <span class="pill" data-i18n="demoBadge">Demo chat</span>
     </header>
-    <div id="messages" aria-live="polite"></div>
-    <div class="writer">
-      <label class="caption" for="customer-input" data-i18n="customerCaption">The customer writes</label>
+    <div id="messages" role="log" aria-live="polite"></div>
+    <div class="writer" id="customer-writer">
+      <label class="caption" for="customer-input" data-i18n="customerCaption">Try a customer message</label>
       <div class="row">
-        <input id="customer-input" autocomplete="off"
-               placeholder="New message from the customer"
-               data-i18n-placeholder="customerPlaceholder">
-        <button id="add-customer" type="button" data-i18n="customerButton">Receive</button>
+        <textarea id="customer-input" rows="2" maxlength="2000" autocomplete="off" placeholder="Paste a customer question" data-i18n-placeholder="customerPlaceholder"></textarea>
+        <button id="add-customer" type="button" class="ghost" data-i18n="customerButton">Get draft</button>
       </div>
     </div>
-    <div class="writer">
-      <label class="caption" for="chat-input" data-i18n="managerCaption">Reply to the customer</label>
-      <div class="row">
-        <textarea id="chat-input" rows="2"
-                  placeholder="Write a reply to the customer"
-                  data-i18n-placeholder="managerPlaceholder"></textarea>
-        <button id="add-manager" type="button" data-i18n="managerButton">Add</button>
+    <div class="writer" id="editor" data-expanded="false">
+      <div class="editor-header">
+        <label class="caption" for="chat-input" data-i18n="managerCaption">Your reply</label>
+        <div class="editor-tools">
+          <button id="expand-editor" type="button" class="quiet" aria-controls="chat-input" aria-expanded="false" data-i18n="expandEditor">Expand</button>
+          <button id="focus-editor" type="button" class="quiet" aria-controls="workspace" aria-pressed="false" data-i18n="focusEditor">Focus mode</button>
+        </div>
+      </div>
+      <textarea id="chat-input" rows="4" placeholder="Review and edit the reply here" data-i18n-placeholder="managerPlaceholder" aria-describedby="editor-help"></textarea>
+      <div class="editor-actions">
+        <p class="editor-help" id="editor-help" data-i18n="editorHelp">New line: Enter · Add: Ctrl / ⌘ + Enter</p>
+        <button id="add-manager" type="button" data-i18n="managerButton">Add to demo chat</button>
       </div>
     </div>
   </section>
-
-  <section id="assistant" class="column">
-    <h2 data-i18n="assistantHeading">Assistant</h2>
-    <p id="assistant-state" data-i18n="waiting">Waiting for a customer message.</p>
+  <section id="assistant" class="column" aria-labelledby="assistant-heading" aria-busy="false">
+    <header class="assistant-header"><h2 id="assistant-heading" data-i18n="assistantHeading">Assistant</h2><span class="pill" data-i18n="draftBadge">Draft</span></header>
+    <p id="assistant-state" role="status" aria-live="polite" data-i18n="waiting">Paste a customer message to get a reply and an upsell idea.</p>
     <div id="assistant-result" hidden>
       <section>
         <h3 data-i18n="replyHeading">Suggested reply</h3>
         <p id="reply"></p>
-        <button id="insert-reply" type="button" class="ghost" data-i18n="insertReply">Insert into the chat</button>
+        <button id="insert-reply" type="button" class="ghost" data-i18n="insertReply">Use in editor</button>
       </section>
       <section>
-        <h3 data-i18n="hintHeading">Upsell hint</h3>
+        <h3 data-i18n="hintHeading">Upsell idea</h3>
         <p id="hint"></p>
-        <p class="kv">
-          <span class="label" data-i18n="kbMatchLabel">Knowledge base match</span>
-          <span class="value" id="kb-match"></span>
-        </p>
+        <p class="kv"><span class="label" data-i18n="kbMatchLabel">Knowledge base match</span><span class="value" id="kb-match"></span></p>
       </section>
-      <section>
-        <h3 data-i18n="checksHeading">Checks</h3>
+      <details class="result-details" id="checks-details">
+        <summary><span data-i18n="checksHeading">Validation checks</span><span id="checks-summary"></span></summary>
         <ul id="checks" class="plain"></ul>
-      </section>
-      <section>
-        <h3 data-i18n="usageHeading">Usage</h3>
+        <p class="checks-help" data-i18n="checksHelp">These checks validate configured rules, not the accuracy of every product fact.</p>
+      </details>
+      <details class="result-details" id="usage-details">
+        <summary id="usage-summary" data-i18n="usageHeading">Model usage</summary>
         <ul id="usage" class="plain"></ul>
-      </section>
+      </details>
     </div>
   </section>
 </main>
@@ -332,25 +336,37 @@ const I18N = {
     contactLabel: 'Contact',
     contactValue: 'Anna Petrova',
     phoneLabel: 'Phone',
-    chatRole: 'Customer',
-    customerCaption: 'The customer writes',
-    customerPlaceholder: 'New message from the customer',
-    customerButton: 'Receive',
-    managerCaption: 'Reply to the customer',
-    managerPlaceholder: 'Write a reply to the customer',
-    managerButton: 'Add',
+    chatRole: 'Customer conversation',
+    customerCaption: 'Try a customer message',
+    customerPlaceholder: 'Paste a customer question',
+    customerButton: 'Get draft',
+    managerCaption: 'Your reply',
+    managerPlaceholder: 'Review and edit the reply here',
+    managerButton: 'Add to demo chat',
+    demoNotice: 'Demo workspace',
+    demoBadge: 'Demo chat',
+    demoExplanation: 'Customer questions are processed by the model. Replies are only added to this demo, never sent to a CRM.',
+    draftBadge: 'Draft',
+    expandEditor: 'Expand',
+    collapseEditor: 'Collapse',
+    focusEditor: 'Focus mode',
+    exitFocus: 'Back to conversation',
+    editorHelp: 'New line: Enter · Add: Ctrl / ⌘ + Enter',
+    checksHelp: 'These checks validate configured rules, not the accuracy of every product fact.',
+    checksPassed: 'Passed',
+    checksRetried: 'Passed after retry',
     you: 'You',
     assistantHeading: 'Assistant',
-    waiting: 'Waiting for a customer message.',
+    waiting: 'Paste a customer message to get a reply and an upsell idea.',
     loading: 'The assistant is thinking…',
     errorWord: 'Error',
     accessDenied: 'Access denied: check the demo link and the API token.',
     networkError: 'Error: could not reach the assistant.',
     replyHeading: 'Suggested reply',
-    insertReply: 'Insert into the chat',
-    hintHeading: 'Upsell hint',
+    insertReply: 'Use in editor',
+    hintHeading: 'Upsell idea',
     kbMatchLabel: 'Knowledge base match',
-    checksHeading: 'Checks',
+    checksHeading: 'Validation checks',
     checkShape: 'Shape',
     checkProduct: 'Product exists',
     checkClaim: 'No forbidden claim',
@@ -359,7 +375,7 @@ const I18N = {
     rejectedEarlier: 'rejected an earlier answer',
     yes: 'yes',
     no: 'no',
-    usageHeading: 'Usage',
+    usageHeading: 'Model usage',
     inputTokens: 'Input tokens',
     outputTokens: 'Output tokens',
     provider: 'Provider',
@@ -383,25 +399,37 @@ const I18N = {
     contactLabel: 'Контакт',
     contactValue: 'Анна Петрова',
     phoneLabel: 'Телефон',
-    chatRole: 'Клиент',
-    customerCaption: 'Пишет клиент',
-    customerPlaceholder: 'Новое сообщение от клиента',
-    customerButton: 'Принять',
+    chatRole: 'Диалог с клиентом',
+    customerCaption: 'Проверить сообщение клиента',
+    customerPlaceholder: 'Вставьте вопрос клиента',
+    customerButton: 'Получить ответ',
     managerCaption: 'Ответ клиенту',
-    managerPlaceholder: 'Напишите ответ клиенту',
-    managerButton: 'Добавить',
+    managerPlaceholder: 'Проверьте и отредактируйте ответ здесь',
+    managerButton: 'Добавить в демочат',
+    demoNotice: 'Демонстрация',
+    demoBadge: 'Демочат',
+    demoExplanation: 'Вопросы клиента обрабатывает модель. Ответ добавляется только в демонстрационный чат и не отправляется в CRM.',
+    draftBadge: 'Черновик',
+    expandEditor: 'Развернуть',
+    collapseEditor: 'Свернуть',
+    focusEditor: 'Режим фокуса',
+    exitFocus: 'Вернуться к диалогу',
+    editorHelp: 'Новая строка: Enter · Добавить: Ctrl / ⌘ + Enter',
+    checksHelp: 'Проверяется соблюдение заданных правил, а не достоверность каждого факта о товаре.',
+    checksPassed: 'Пройдены',
+    checksRetried: 'Пройдены после повтора',
     you: 'Вы',
     assistantHeading: 'Ассистент',
-    waiting: 'Ждём сообщение от клиента.',
+    waiting: 'Вставьте сообщение клиента, чтобы получить ответ и идею для допродажи.',
     loading: 'Ассистент думает…',
     errorWord: 'Ошибка',
     accessDenied: 'Доступ запрещён: проверьте ссылку на демо и API-токен.',
     networkError: 'Ошибка: не удалось связаться с ассистентом.',
     replyHeading: 'Черновик ответа',
-    insertReply: 'Вставить в чат',
+    insertReply: 'Вставить в редактор',
     hintHeading: 'Подсказка для допродажи',
     kbMatchLabel: 'Совпадение с базой знаний',
-    checksHeading: 'Проверки',
+    checksHeading: 'Проверки правил',
     checkShape: 'Форма',
     checkProduct: 'Товар существует',
     checkClaim: 'Нет запрещённых обещаний',
@@ -410,7 +438,7 @@ const I18N = {
     rejectedEarlier: 'отклонила более ранний ответ',
     yes: 'да',
     no: 'нет',
-    usageHeading: 'Использование',
+    usageHeading: 'Расход модели',
     inputTokens: 'Входные токены',
     outputTokens: 'Выходные токены',
     provider: 'Провайдер',
@@ -431,7 +459,12 @@ const L = I18N[lang];
 
 for (const node of document.querySelectorAll('[data-i18n]')) {
   const key = node.getAttribute('data-i18n');
-  if (own.call(L, key)) node.textContent = L[key];
+  if (own.call(L, key)) {
+    node.textContent = L[key];
+    if (node.getAttribute('class') === 'value' || node.id === 'chat-name' || node.id === 'deal-name') {
+      node.setAttribute('title', L[key]);
+    }
+  }
 }
 for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
   const key = node.getAttribute('data-i18n-placeholder');
@@ -448,7 +481,50 @@ const hint = document.getElementById('hint');
 const kbMatch = document.getElementById('kb-match');
 const checksList = document.getElementById('checks');
 const usageList = document.getElementById('usage');
+const workspace = document.getElementById('workspace');
+const editor = document.getElementById('editor');
+const expandEditor = document.getElementById('expand-editor');
+const focusEditor = document.getElementById('focus-editor');
+const customerButton = document.getElementById('add-customer');
 let lastReply = '';
+let expanded = false;
+let focused = false;
+
+/** Fit draft content. */
+function fitDraft() {
+  if (expanded || focused) {
+    chatInput.style.height = '';
+    return;
+  }
+  chatInput.style.height = 'auto';
+  chatInput.style.height = chatInput.scrollHeight + 'px';
+}
+
+/** Preserve editing position. */
+function keepSelection(action) {
+  const start = chatInput.selectionStart;
+  const end = chatInput.selectionEnd;
+  const scroll = chatInput.scrollTop;
+  action();
+  fitDraft();
+  chatInput.focus();
+  chatInput.setSelectionRange(start, end);
+  chatInput.scrollTop = scroll;
+}
+
+/** Toggle focused workspace. */
+function toggleFocus() {
+  keepSelection(() => {
+    focused = !focused;
+    workspace.setAttribute('data-focus', String(focused));
+    document.getElementById('deal').hidden = focused;
+    messages.hidden = focused;
+    document.getElementById('customer-writer').hidden = focused || expanded;
+    expandEditor.hidden = focused;
+    focusEditor.setAttribute('aria-pressed', String(focused));
+    focusEditor.textContent = focused ? L.exitFocus : L.focusEditor;
+  });
+}
 
 function fitsHeaderValue(value) {
   return /^[\t\x20-\x7E\x80-\xFF]+$/.test(value) && !/^[\t ]|[\t ]$/.test(value);
@@ -501,6 +577,8 @@ function setState(text, mode) {
 }
 
 function showChecks(report) {
+  document.getElementById('checks-summary').textContent = report.rejected.length
+    ? L.checksRetried : L.checksPassed;
   const names = [
     ['shape', 'checkShape'],
     ['product_exists', 'checkProduct'],
@@ -523,6 +601,8 @@ function showChecks(report) {
 }
 
 function showUsage(report) {
+  document.getElementById('usage-summary').textContent = report.fallbacks && report.fallbacks.length
+    ? L.usageHeading + ' · ' + L.providerFallback : L.usageHeading;
   const rows = [
     [L.inputTokens, String(report.input_tokens)],
     [L.outputTokens, String(report.output_tokens)],
@@ -547,14 +627,12 @@ function showSuggestion(suggestion) {
   lastReply = suggestion.customer_reply;
   reply.textContent = suggestion.customer_reply;
   hint.replaceChildren();
-  if (suggestion.upsell_product_id) {
-    hint.append(el('span', 'product-id', suggestion.upsell_product_id), ' ');
-  }
   hint.append(suggestion.upsell_hint);
   const words = { found: L.matchFound, partial: L.matchPartial, none: L.matchNone };
   kbMatch.textContent = own.call(words, suggestion.kb_match)
     ? words[suggestion.kb_match]
     : suggestion.kb_match;
+  kbMatch.setAttribute('data-match', suggestion.kb_match);
   showChecks(suggestion.checks);
   showUsage(suggestion.usage);
   state.hidden = true;
@@ -563,6 +641,8 @@ function showSuggestion(suggestion) {
 }
 
 async function askAssistant(text) {
+  customerButton.disabled = true;
+  document.getElementById('assistant').setAttribute('aria-busy', 'true');
   setState(L.loading, 'loading');
   const headers = { 'Content-Type': 'application/json' };
   if (linkToken) headers['X-API-Token'] = linkToken;
@@ -584,10 +664,14 @@ async function askAssistant(text) {
     showSuggestion(payload);
   } catch (error) {
     setState(L.networkError, 'error');
+  } finally {
+    customerButton.disabled = false;
+    document.getElementById('assistant').setAttribute('aria-busy', 'false');
   }
 }
 
 function receiveCustomerMessage() {
+  if (customerButton.disabled) return;
   const text = customerInput.value.trim();
   if (!text) return;
   customerInput.value = '';
@@ -603,6 +687,7 @@ function addManagerMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
   chatInput.value = '';
+  fitDraft();
   addMessage(L.you, text, 'outgoing');
 }
 
@@ -610,16 +695,33 @@ document.getElementById('add-customer').addEventListener('click', receiveCustome
 document.getElementById('add-manager').addEventListener('click', addManagerMessage);
 document.getElementById('insert-reply').addEventListener('click', () => {
   chatInput.value = lastReply;
+  fitDraft();
   chatInput.focus();
+  chatInput.setSelectionRange(0, 0);
+  chatInput.scrollTop = 0;
 });
+expandEditor.addEventListener('click', () => {
+  keepSelection(() => {
+    expanded = !expanded;
+    editor.setAttribute('data-expanded', String(expanded));
+    document.getElementById('customer-writer').hidden = expanded;
+    expandEditor.setAttribute('aria-expanded', String(expanded));
+    expandEditor.textContent = expanded ? L.collapseEditor : L.expandEditor;
+  });
+});
+focusEditor.addEventListener('click', toggleFocus);
+workspace.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && focused) toggleFocus();
+});
+chatInput.addEventListener('input', fitDraft);
 customerInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
+  if (event.key === 'Enter' && !event.shiftKey && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     receiveCustomerMessage();
   }
 });
 chatInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === 'Enter' && !event.shiftKey && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     addManagerMessage();
   }
