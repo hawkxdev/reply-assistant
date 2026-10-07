@@ -7,6 +7,7 @@ This shelf contains recipient-accessible Reply Assistant knowledge. Role rules a
 | Project entry and source selection | project-brain | A task starts or the contract is unclear |
 | Service, evaluator and page implementation details | [implementation.md](implementation.md) | Before an assigned change |
 | Project failure boundaries and evidence limits | [review.md](review.md) | Before an assigned version assessment |
+| Local verification and release preparation | [local-workflow.md](../local-workflow.md) | Before local acceptance or a separately authorized release |
 | Current collaboration route | [how-this-repo-is-built.md](../how-this-repo-is-built.md) | Execution or delivery authority matters |
 | Product requirements and architecture | [specifications](../../specs/001-reply-and-upsell/spec.md), [decision records](../adr/0008-local-project-knowledge.md) | The relevant feature or historical decision is needed |
 

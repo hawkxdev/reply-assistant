@@ -170,3 +170,5 @@ uv run python scripts/check_conventions.py
 ## Лицензия
 
 [MIT](LICENSE)
+
+Полный локальный прогон из чистой закоммиченной копии: `bash scripts/check-local.sh --base <base-commit> --title <PR-title>`. [Проверки и подготовка поставки](docs/local-workflow.md).

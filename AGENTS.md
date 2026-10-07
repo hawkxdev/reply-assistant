@@ -21,6 +21,8 @@ uv run python scripts/check_conventions.py
 
 All six must pass before a product pull request is opened. A specifically owner-authorized organizational retirement uses its stated structural, import and preservation checks; the five retired infrastructure modules in ADR 0008 retain their exact source in Git history. This exception does not waive product verification or coverage for product changes. Report the actual checks; an omitted suite is not passing.
 
+For the complete local entry, see [docs/local-workflow.md](docs/local-workflow.md). Run `bash scripts/check-local.sh --base <base-commit> --title <PR-title>` from a clean committed checkout. It includes all six commands and records the exact inputs and failures.
+
 ## How to work on an issue
 
 1. The issue is the contract. Implement its acceptance criteria and nothing beyond them.
@@ -44,6 +46,8 @@ These paths belong to the owner. Do not create, change or delete anything in the
 - `.github/`
 - `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.agents/`
 - `tests/acceptance/`
+- `scripts/check-local.sh`, `scripts/archived-workflows/`
+- `tests/test_local_checks.py`, `docs/local-workflow.md`
 - `specs/`, `docs/adr/`, `docs/knowledge/`
 - `LICENSE`, `SECURITY.md`
 

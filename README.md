@@ -182,3 +182,5 @@ uv run python scripts/check_conventions.py
 ## License
 
 [MIT](LICENSE)
+
+The complete local verification entry is `bash scripts/check-local.sh --base <base-commit> --title <PR-title>` from a clean committed checkout. See [local verification and release preparation](docs/local-workflow.md).
