@@ -11,5 +11,9 @@
 /docs/how-this-repo-is-built.md @hawkxdev
 /scripts/author_guard.py @hawkxdev
 /scripts/review_handoff.py @hawkxdev
+/scripts/check-local.sh @hawkxdev
+/scripts/archived-workflows/ @hawkxdev
+/docs/local-workflow.md @hawkxdev
+/tests/test_local_checks.py @hawkxdev
 /LICENSE             @hawkxdev
 /SECURITY.md         @hawkxdev

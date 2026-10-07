@@ -51,11 +51,21 @@ def local_gate(tmp_path: Path) -> tuple[Path, Path, str, dict[str, str]]:
         'printf "%s\\n" "$*" >> "$LOCAL_UV_LOG"\n'
         'if [ "$*" = "run ruff check ." ] '
         '&& [ "${LOCAL_FAIL_RUFF:-0}" = "1" ]; then exit 23; fi\n'
+        'if [ "$*" = "run python scripts/check_conventions.py" ]; then\n'
+        'case "${LOCAL_MUTATION:-}" in\n'
+        'dirty) printf "\\n" >> pyproject.toml ;;\n'
+        'head) git -c commit.gpgsign=false commit -q --allow-empty '
+        '-m "chore: fixture drift" ;;\n'
+        'esac\nfi\n'
         'exit 0\n'
     )
     uv.chmod(0o700)
     gh = tools / 'gh'
-    gh.write_text('#!/bin/sh\ncat "$LOCAL_REVIEW_INPUT"\n')
+    gh.write_text(
+        '#!/bin/sh\ncat "$LOCAL_REVIEW_INPUT"\n'
+        'if [ "${LOCAL_REVIEW_FAIL:-0}" = "1" ]; then\n'
+        'echo "Dependency comparison unavailable." >&2\nexit 19\nfi\n'
+    )
     gh.chmod(0o700)
     env = dict(os.environ)
     env.update(PATH=f'{tools}:{env["PATH"]}', LOCAL_UV_LOG=str(tmp_path / 'uv.log'))
@@ -186,10 +196,13 @@ def test_local_checks_reject_unavailable_dependency_reviews(
     local_gate: tuple[Path, Path, str, dict[str, str]],
 ) -> None:
     change_dependencies(local_gate, '[]')
+    _, output, _, env = local_gate
+    env['LOCAL_REVIEW_FAIL'] = '1'
     result = run_gate(local_gate)
 
-    assert result.returncode != 0
-    assert 'Changed manifests require an available dependency review' in result.stderr
+    assert result.returncode == 19
+    assert 'Dependency comparison unavailable' in result.stderr
+    assert (output / 'exit-code.txt').read_text() == '19\n'
 
 
 def test_local_checks_reject_unknown_vulnerability_data(
@@ -226,3 +239,29 @@ def test_local_checks_preserve_the_existing_development_scope(
     result = run_gate(local_gate)
 
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_local_checks_accept_a_successful_empty_dependency_diff(
+    local_gate: tuple[Path, Path, str, dict[str, str]],
+) -> None:
+    change_dependencies(local_gate, '[]')
+    result = run_gate(local_gate)
+    _, output, _, _ = local_gate
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (output / 'exit-code.txt').read_text() == '0\n'
+    assert json.loads((output / 'dependency-review.json').read_text()) == []
+
+
+@pytest.mark.parametrize('mutation', ['head', 'dirty'])
+def test_local_checks_reject_inputs_changed_during_execution(
+    local_gate: tuple[Path, Path, str, dict[str, str]], mutation: str
+) -> None:
+    _, output, base, env = local_gate
+    env['LOCAL_MUTATION'] = mutation
+    result = run_gate(local_gate)
+
+    assert result.returncode == 1
+    assert (output / 'commit.txt').read_text().strip() == base
+    assert (output / 'exit-code.txt').read_text() == '1\n'
+    assert 'Checked inputs changed during verification' in result.stderr

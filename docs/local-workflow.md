@@ -12,7 +12,7 @@ bash scripts/check-local.sh --base <base-commit> --title 'chore: describe the ch
 
 The default base is origin/main and the default title is the current commit subject. An explicit title must match the PR title. The script performs the six commands in AGENTS.md with UV_LOCKED=1, rejects deleted test files and records the checked commit, resolved base, title, per-command logs and return codes. A failed command stops the run with its actual nonzero status. A dirty tree or a version change during verification is rejected. Use --output-dir with a fresh private directory to retain the receipts; the default creates a separate temporary directory.
 
-When pyproject.toml or uv.lock changes, the entry also reads GitHub's dependency comparison for the exact base and head using the existing authenticated gh CLI. The archived action's default policy is preserved: added runtime vulnerabilities are rejected at any severity; development and unknown scopes are excluded, and an absent scope means runtime. Missing or malformed review data is a failure, never a clean result. No runner or model is launched. Both commits must be published for this metadata query: run the six offline commands before publishing the task branch, then complete the local entry before opening its PR. An unavailable dependency comparison is an explicit acceptance blocker. Unchanged dependency manifests need no remote comparison.
+When pyproject.toml or uv.lock changes, the entry also reads GitHub's dependency comparison for the exact base and head using the existing authenticated gh CLI. The archived action's default policy is preserved: added runtime vulnerabilities are rejected at any severity; development and unknown scopes are excluded, and an absent scope means runtime. A successful empty array means no dependency changes and is accepted. A failed request or malformed review data is a failure, never a clean result. No runner or model is launched. Both commits must be published for this metadata query: run the six offline commands before publishing the task branch, then complete the local entry before opening its PR. An unavailable dependency comparison is an explicit acceptance blocker. Unchanged dependency manifests need no remote comparison.
 
 Tests use fake model clients and no network or provider key. Live evaluation remains a separate local command from the README, requiring its own paid-call authorization; it is never part of this entry.
 
@@ -23,6 +23,8 @@ Code, tests, dependencies and verification scripts are inputs to the full run. A
 Keep one PR per issue and the agent-authored label. Verify the configured reviewer's identity and reviewed commit, including a no-findings reaction on the PR body when no review text is posted. Assess findings against the issue and fix confirmed defects locally. Author tests are self-verification, not independent review. Reuse a pending review instead of requesting duplicates.
 
 The main ruleset retains PR, ownership, resolved-thread, linear-history, deletion and force-push protections. Only requirements for the disabled Actions checks are removed. Never imitate them with custom passing statuses. Merge only an accepted version under actual owner authority and verify the resulting tree. Production deployment and release remain separate operations.
+
+The local entry, its archived workflow sources, tests and workflow contract remain owner paths in AGENTS.md and CODEOWNERS. A non-owner contribution cannot weaken the replacement gate through an unprotected script path.
 
 ## Local release preparation
 

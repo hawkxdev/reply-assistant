@@ -62,6 +62,8 @@ These paths belong to the owner. Do not create, change or delete anything in the
 - `.github/`
 - `AGENTS.md`, `CLAUDE.md`, `.claude/`
 - `tests/acceptance/`
+- `scripts/check-local.sh`, `scripts/archived-workflows/`
+- `tests/test_local_checks.py`, `docs/local-workflow.md`
 - `specs/`, `docs/adr/`
 - `LICENSE`, `SECURITY.md`
 

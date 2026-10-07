@@ -107,8 +107,8 @@ import sys
 from pathlib import Path
 
 items = json.loads(Path(sys.argv[1]).read_text())
-if not isinstance(items, list) or not items:
-    raise SystemExit('Changed manifests require an available dependency review.')
+if not isinstance(items, list):
+    raise SystemExit('A dependency comparison array is required.')
 if any(
     not isinstance(item, dict)
     or item.get('change_type') not in ('added', 'removed')
