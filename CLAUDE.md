@@ -2,4 +2,4 @@
 
 # Claude Code
 
-Skills for this repository live in `.claude/skills/`. Use `implement-issue` when working on an issue and `review-pull-request` when reviewing.
+Project skills live in `.claude/skills/`; `.agents/skills` is a relative discovery adapter. Read `project-brain` for project navigation, `implement-issue` for assigned implementation gates and `review-pull-request` for an assigned assessment. A role invocation does not restore stopped cloud work or start another task.

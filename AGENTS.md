@@ -19,9 +19,9 @@ uv run pytest --cov
 uv run python scripts/check_conventions.py
 ```
 
-All six must pass before a pull request is opened. Report the real output. A check that was not run is reported as not run.
+All six must pass before a product pull request is opened. A specifically owner-authorized organizational retirement uses its stated structural, import and preservation checks; the five retired infrastructure modules in ADR 0008 retain their exact source in Git history. This exception does not waive product verification or coverage for product changes. Report the actual checks; an omitted suite is not passing.
 
-The complete local entry is `bash scripts/check-local.sh --base <base-commit> --title '<PR title>'`. It also checks title format, deleted tests and changed dependencies. Use a clean committed tree and retain its exact commit and exit receipts. Dependency changes need a published branch for the read-only GitHub dependency comparison; this query does not start Actions. See [the local workflow](docs/local-workflow.md).
+For the complete local entry, see [docs/local-workflow.md](docs/local-workflow.md). Run `bash scripts/check-local.sh --base <base-commit> --title <PR-title>` from a clean committed checkout. It includes all six commands and records the exact inputs and failures.
 
 ## How to work on an issue
 
@@ -33,38 +33,22 @@ The complete local entry is `bash scripts/check-local.sh --base <base-commit> --
 6. The pull request body states what changed, how it was verified, and ends with `Closes #<number>`.
 7. A finding outside the issue goes into the pull request body under **Out of scope**. Do not fix it.
 
-## Local execution and review
+## Execution and knowledge
 
-Implementation, checks, build preparation and separately authorized deployment run from the selected local harness. Repository Actions execution is disabled, including manual and generated jobs. Do not launch OpenCode through GitHub or restore a workflow to obtain green checks. Do not install a local CI service or another executor as an inferred replacement.
+Work locally under the assigned task. Repository Actions execution is disabled; do not dispatch or restore excluded executors, checks, builds or deployment. Cloud reviews and processing of old findings are stopped even where an existing reviewer connection is retained. A historical receipt or skill never resumes an old task.
 
-The configured Codex GitHub reviewer remains a provider-managed service outside Actions. The lead assesses findings against the issue and exact submitted commit, corrects confirmed defects locally and retains other branch protections. Author checks are self-verification. Model calls, production changes and merge use only their actual owner authorization. Private access material never enters public comments or release archives.
-
-Code, test, dependency or checking-script changes require fresh affected verification. For documentation-only corrections, reuse a saved full run only after proving that every other tracked input and file mode is unchanged; record both commits and the separate document check. Do not claim the earlier run executed on a newer commit.
-
-## Historical cloud correction cycle
-
-The archived workflow sources in `scripts/archived-workflows/` and the following rules preserve prior execution receipts and recovery behavior. They do not authorize a new cloud run. Restoring that route requires a new owner decision and verification of its current permissions and dependencies.
-
-The existing author workflow admits one initial execution and two correction returns. The lead confirms findings for the current commit. Supplements and repeated deliveries on the same commit do not create another return. After the third review the lead accepts a correct version or completes the verified remainder; no third executor return is permitted.
-
-A trusted reservation is required before the model step. State is retained in the task discussion and verified against actual workflow runs. Closed tasks, stale reviews, duplicate events, uncertain results and unsaved work never authorize another run. An arbitrary comment or marker grants no authority.
-
-Before lead changes, verify that the cloud run ended and all work is preserved at the matching remote commit. Request and verify explicit transfer from a working executor. An already ended worker can be transferred from its verified checkpoint without a new model call. Lead changes receive the same checks and are reported as self-verification, not independent review. Transfer does not mean acceptance; an unresolved remainder gets a concrete blocker and recommendation.
-
-The executable procedure and provider limits are in [ADR 0006](docs/adr/0006-bounded-cloud-corrections.md). Merge authority, protected paths and deployment permissions remain as defined elsewhere in this file.
-
-An empty completed execution is a failed delivery, not completed implementation. The lead reconciles its immutable checkpoint before choosing recovery or takeover. [ADR 0007](docs/adr/0007-author-delivery-recovery.md) permits one technical recovery per task, separately from the two correction returns. Published work missing a PR is repaired without another model execution; unknown or unsaved work stays blocked. Preserve the branch prepared by OpenCode and finish the issue contract rather than ending with a plan.
+Project navigation belongs to [.claude/skills/project-brain/SKILL.md](.claude/skills/project-brain/SKILL.md); recipient-accessible details belong to [docs/knowledge/README.md](docs/knowledge/README.md). Shared methodology and canonical helpers are not published here. The retired author mechanism and preserved historical project contract are described in [ADR 0008](docs/adr/0008-local-project-knowledge.md). Earlier cloud ADRs remain historical sources.
 
 ## Boundaries
 
 These paths belong to the owner. Do not create, change or delete anything in them:
 
 - `.github/`
-- `AGENTS.md`, `CLAUDE.md`, `.claude/`
+- `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.agents/`
 - `tests/acceptance/`
 - `scripts/check-local.sh`, `scripts/archived-workflows/`
 - `tests/test_local_checks.py`, `docs/local-workflow.md`
-- `specs/`, `docs/adr/`
+- `specs/`, `docs/adr/`, `docs/knowledge/`
 - `LICENSE`, `SECURITY.md`
 
 If an issue cannot be completed without touching one of them, stop and say so in a comment on the issue.
@@ -123,7 +107,7 @@ No secret value appears in code, tests, fixtures, logs, commit messages, issues 
 Review the pull request against its issue and this file.
 
 - A finding names the file and line, the consequence, and the rule or criterion it rests on.
-- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted test, a test that cannot fail on a defect no other test catches, a missing named defect for a new test, a secret, a domain rule violation, a missing test for new behaviour.
+- Block on: an unmet acceptance criterion, a changed path from **Boundaries** in a pull request that the repository owner did not author, a weakened or deleted product test or infrastructure test retired without an explicit contract and preserved source, a test that cannot fail on a defect no other test catches, a missing named defect for a new test, a secret, a domain rule violation, a missing test for new behaviour.
 - Do not block on taste. A preference that no rule supports is a suggestion.
 - Say plainly when the pull request is good. Do not invent findings.
 

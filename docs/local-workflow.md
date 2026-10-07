@@ -1,6 +1,6 @@
 # Local development and delivery
 
-Implementation and verification run in the selected local coding harness. GitHub stores issues, branches, PRs and assessed review. Repository Actions execution is disabled, including manual and generated workflows. The configured provider-managed Codex reviewer remains outside Actions. A local CI server or self-hosted runner is not part of this workflow.
+Implementation and verification run in the selected local coding harness. GitHub stores issues, branches, PRs and assessed review. Repository Actions execution is disabled, including manual and generated workflows. The existing provider-managed reviewer connection is retained outside Actions; automatic reviews are disabled, and manual review requires a separate owner assignment. A local CI server or self-hosted runner is not part of this workflow.
 
 ## Verification
 
@@ -20,7 +20,7 @@ Code, tests, dependencies and verification scripts are inputs to the full run. A
 
 ## Review and integration
 
-Keep one PR per issue and the agent-authored label. Verify the configured reviewer's identity and reviewed commit, including a no-findings reaction on the PR body when no review text is posted. Assess findings against the issue and fix confirmed defects locally. Author tests are self-verification, not independent review. Reuse a pending review instead of requesting duplicates.
+Keep one PR per issue and the agent-authored label. Local checks are author self-verification, not independent review. Existing reviewer access does not require or authorize a new cloud review. When a review is explicitly assigned, assess its exact commit and confirmed findings; otherwise preserve the current review stop. Do not reopen old finding processing merely to publish this local route.
 
 The main ruleset retains PR, ownership, resolved-thread, linear-history, deletion and force-push protections. Only requirements for the disabled Actions checks are removed. Never imitate them with custom passing statuses. Merge only an accepted version under actual owner authority and verify the resulting tree. Production deployment and release remain separate operations.
 
@@ -38,6 +38,6 @@ Verify the complete member inventory, file modes and hashes against that commit.
 
 ## Archived sources and restoration
 
-The four former workflow files remain unchanged under scripts/archived-workflows with a .disabled suffix. The historical admission and recovery helpers and their tests remain available for old receipt reconciliation. No active repository workflow calls them.
+The four former workflow files remain unchanged under scripts/archived-workflows with a .disabled suffix. The retired author helpers and infrastructure tests remain recoverable at their historical Git revision; ADR 0008 keeps shared policy outside this outgoing tree. The author archive is historical source, not an executable route in the current checkout.
 
-Restoration requires a new owner decision: restore the reviewed files to .github/workflows, inspect current dependencies and secrets without disclosure, re-enable repository Actions permissions and reconcile branch-check requirements. The archive, a manual dispatch command or an old approval does not authorize restoration. Dependency alerts and unrelated security protections are preserved; their native analysis is distinct from repository Actions jobs.
+Restoration requires a new owner decision and a current executable contract. The author workflow cannot be restored merely by copying its YAML: its helpers are intentionally retired. Inspect dependencies and secrets without disclosure, then restore only separately authorized routes and reconcile branch-check requirements. The archive, a manual dispatch command or an old approval does not authorize restoration. Dependency alerts and unrelated security protections are preserved; their native analysis is distinct from repository Actions jobs.

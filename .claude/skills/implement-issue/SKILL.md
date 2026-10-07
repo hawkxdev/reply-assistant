@@ -1,45 +1,44 @@
 ---
 name: implement-issue
 description: >
-  Implements one GitHub issue of this repository as one pull request. Use when asked to work on,
-  implement or fix an issue, or when started by a comment on an issue.
+  WHEN: реализуй/реализовывай issue Reply Assistant, исправь/исправляй продукт по принятой задаче, implement an assigned Reply Assistant issue. WHEN NOT: recover the project without a task (project-brain), assess another version (review-pull-request).
+allowed-tools: [Read, Grep, Bash, Edit, Write]
 ---
 
-# Implement issue
+# Reply Assistant implementation gates
 
-The issue is the contract. `AGENTS.md` holds the rules; this skill holds the order of work.
+## Degrees of Freedom: LOW
 
-## Steps
+## Accountability
 
-1. Read the issue: goal, acceptance criteria, files in scope, files out of scope. Read the specification sections and supporting contracts the issue links to.
-2. Stop and comment on the issue when a criterion cannot be verified or the work needs a protected path without the repository owner exception in **Boundaries**. Preserve explicit owner authority for an owner-prepared PR.
-3. Work in a branch created from `main`. When the tool does not name it, use `feat/issue-<number>` or `fix/issue-<number>`.
-4. The acceptance tests of the issue already cover its criteria. Write a new test only for behaviour they do not cover, and let it fail for the right reason before the code exists. A test that fails only together with an acceptance test is a duplicate: do not add it.
-5. Write the smallest code that makes the test pass.
-6. Run every command from **Commands** in `AGENTS.md`. Fix what fails. Do not change a test to make it pass.
-7. For each new test break the code it guards, run the tests, confirm that this test fails, and restore the code. Note the defect for the pull request body.
-8. Open the pull request. The title follows Conventional Commits; when the tool writes the title itself, put the correct title on the first line of the body. The body has four parts: **What changed**, **How verified** with the real output of the commands and, for each new test, the defect that makes it fail, **Out of scope** with findings that were not fixed, and `Closes #<number>`.
-9. Add the label `agent-authored` when the tool allows it.
+Implement the assigned issue within its source version and permitted paths. This role owns project-specific implementation decisions and reports evidence to the lead; it does not accept its own work independently or grant publication, merge, provider calls or deployment.
 
-Implementation and checks run in the selected local harness. Use `scripts/check-local.sh` on the exact committed version and keep its result receipts. Read-only dependency comparison uses GitHub metadata, not Actions execution. Preserve configured provider-managed Codex review, assess each finding, and correct locally. Follow the owner-selected acceptance and merge authority without asking for routine steps again. The local workflow is defined in [local-workflow.md](../../../docs/local-workflow.md).
+Read the issue, [AGENTS.md](../../../AGENTS.md) and [the knowledge shelf](references/kb-index.md). The issue supplies scope; the specification supplies product requirements. Use [project-brain](../project-brain/SKILL.md) if those owners are unclear. A bare invocation without an assignment recovers that context and asks which issue is intended; a historical handoff is not an assignment.
 
-## Stop conditions
+## Project gates
 
-- The same check fails three times after three different fixes: stop and describe the failure in the pull request or on the issue.
-- The change grows beyond the files named in the issue: stop and ask.
+[Implementation knowledge](../../../docs/knowledge/implementation.md) maps the service, evaluator and page to their requirements and tests. Read the applicable section before editing. AGENTS.md owns protected paths, domain validation, the six local commands, test uniqueness and disclosure; do not recreate their general workflow here.
 
-## Never
+Acceptance tests may already cover an issue. New tests must identify a distinct observable defect and preserve the exact-match and no-network contracts. Product names, forms and prices come from the loaded catalogue; the offline evaluator does not loosen generation checks. A blocked protected-path change or unavailable required observation goes to the lead with its affected criterion. Continue only independent in-scope work.
 
-- Commit to `main`.
-- Edit a path from **Boundaries** without its stated owner exception or the narrowly permitted `xfail` removal.
-- Add a dependency the issue does not name.
-- Report a check as passed without running it.
+If the same required check fails after three distinct fixes, return the observed failure to the lead. Work that grows beyond the issue stops at its scope boundary.
 
+## Result and upkeep
 
-## Historical cloud correction and transfer
+Return the exact version, changed paths, criterion evidence and limitations to the lead through the task's assigned channel. A command not run is not passing, and a preserved branch is not accepted delivery. An explicit inspection-only or test restriction remains binding. Maintain product details at the specification or implementation knowledge; changes to the gate itself belong here and in its shelf backlink.
 
-This section describes preserved cloud executions only. It does not select the archived author workflow or authorize new runner or model activity.
+## Harness enhancements
 
-A correction starts only after the author workflow admits the owner's current-head request. Preserve the branch selected by the tool. The first and second reviews may return confirmed findings to the author; the third belongs to the lead for acceptance or bounded completion. Supplements on one commit share the same return.
+Use the current local harness and existing project commands. No cloud launch, reviewer request or observer is part of this role. Missing tools produce a named limitation, not a replacement execution route.
 
-The workflow records the actual published commit and remaining work. A successful job without preserved work is not delivery. For a takeover request finish or checkpoint the current operation, stop writing, and identify the saved commit and cloud run. Do not restart yourself or create another PR to reset the limit. Follow [ADR 0006](../../../docs/adr/0006-bounded-cloud-corrections.md); an unavailable checkpoint requires reconciliation.
+## Rationalization Table
+
+| Excuse | Project consequence |
+|---|---|
+| Evaluator checks already passed | They do not replace response validation or exact catalogue facts. |
+| An acceptance test exists, so another is needed | Add only a test for a distinct defect not caught by that acceptance test. |
+
+## Red Flags
+
+- A catalogue fact is generated instead of loaded verbatim.
+- A stopped task or protected-path change is resumed without its authority.

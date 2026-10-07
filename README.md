@@ -4,7 +4,7 @@
 
 A local prototype for a sales or support manager. It takes a customer message and a short YAML knowledge base, then returns a draft reply and an upsell hint. The web page places the conversation beside the suggestion, checks and token usage.
 
-The repository also demonstrates locally executed development with issues and PRs on GitHub. The selected local coding harness implements each contract and runs its checks; the configured Codex integration reviews PRs outside GitHub Actions. The lead assesses findings and integrates only an accepted version under owner authority.
+Implementation and checks run in the selected local coding harness. GitHub stores the public source and task contracts. The owner decides what is built and accepts the finished work. The [working process](docs/how-this-repo-is-built.md) and [project knowledge](docs/knowledge/README.md) describe current roles and boundaries; historical cloud workflows do not authorize execution.
 
 ## Run locally
 
@@ -132,7 +132,7 @@ REPLY_ASSISTANT_KB_PATH=kb/example-en.yaml \
 
 The command writes `live-results/results.json` with the full report and `live-results/summary.md` with the verdict of each case. It prints only `Live evaluation passed.` or `Live evaluation failed.` and returns exit code 0 on a passed report, 1 otherwise. `REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS` caps the answer length of every provider call; leave it empty to send no cap. Each case allows the existing one retry, so a run makes at most six primary attempts, or up to twelve provider calls when a fallback provider is configured.
 
-Passing checks do not prove that the remaining prose is grounded in the catalogue, so the summary states that manual fact review is required. Live evaluation is a separately authorized local operation and is excluded from ordinary offline verification. Its former GitHub workflow is archived and cannot be used while repository Actions execution is disabled.
+Passing checks do not prove that the remaining prose is grounded in the catalogue, so the summary states that manual fact review is required. The owner approved the `Live evaluation` GitHub workflow: it starts only by hand on main, runs the same command in the protected `provider-check` environment with a 600 token cap and the public knowledge base, and uploads both report files.
 
 ## What the checks prove
 
@@ -154,7 +154,7 @@ flowchart LR
     M --> P[Acceptance<br/>owner]
 ```
 
-The author works in the selected local harness; no cloud author or repository Actions job is launched. Agent pull requests carry `agent-authored`. See [the local workflow](docs/local-workflow.md), [roles and boundaries](docs/how-this-repo-is-built.md), [agent instructions](AGENTS.md), [the specification](specs/001-reply-and-upsell/spec.md) and [architecture decisions](docs/adr).
+The author runs through OpenCode with `zai-coding-plan/glm-5.3`. Agent pull requests carry `agent-authored`. See [the pipeline and its boundaries](docs/how-this-repo-is-built.md), [agent instructions](AGENTS.md), [the specification](specs/001-reply-and-upsell/spec.md) and [architecture decisions](docs/adr).
 
 | Contract | Acceptance tests | Implementation and review |
 |---|---|---|
@@ -164,7 +164,7 @@ The author works in the selected local harness; no cloud author or repository Ac
 
 ## Checks
 
-Tests use fake model clients and need no network or provider key. On a clean committed checkout, `bash scripts/check-local.sh --base <base-commit> --title '<PR title>'` runs all six commands below, validates the title and test-deletion guard, and reviews changed dependencies through a read-only metadata query. Keep its exact-version receipts. The underlying commands remain available:
+Tests use fake model clients and need no network or provider key. Before a pull request, run all six commands:
 
 ```bash
 uv sync --locked
@@ -182,3 +182,5 @@ uv run python scripts/check_conventions.py
 ## License
 
 [MIT](LICENSE)
+
+The complete local verification entry is `bash scripts/check-local.sh --base <base-commit> --title <PR-title>` from a clean committed checkout. See [local verification and release preparation](docs/local-workflow.md).

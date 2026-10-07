@@ -1,37 +1,42 @@
 ---
 name: review-pull-request
 description: >
-  Reviews a pull request of this repository against its issue and AGENTS.md. Use when asked to
-  review a pull request or when started by a review request.
+  WHEN: проверь/проверяй PR Reply Assistant по его issue, evaluate an assigned Reply Assistant pull request. WHEN NOT: implement corrections (implement-issue), recover context without a review assignment (project-brain).
+allowed-tools: [Read, Grep, Bash]
 ---
 
-# Review pull request
+# Reply Assistant review gates
 
-The reviewer checks the work of another agent. It does not fix the code and does not extend the contract.
+## Degrees of Freedom: LOW
 
-## Steps
+## Accountability
 
-1. Read the pull request body and the issue it closes. No linked issue means no contract: say so and review against `AGENTS.md` only.
-2. Read the diff. List the changed files and compare them with the files in scope of the issue.
-3. For each acceptance criterion find the code that implements it and the test that would fail without it. A criterion with no such test is a finding.
-4. Check **Boundaries** in `AGENTS.md`. In a pull request that the repository owner did not author, a changed owner path is a blocking finding, apart from a removed `xfail` marker of the acceptance test of this issue and an import that the removal left unused.
-5. Check the tests: nothing deleted, skipped or loosened; no network; no secret in fixtures. For each new test find the defect named in the body and check that no other test already fails on it. Apply the rest of **Tests** in `AGENTS.md`.
-6. Check the domain rules in `AGENTS.md`.
-7. Write the review by **Code Review Rules** in `AGENTS.md`.
+Assess an assigned version against its issue and project rules. This role owns the advice and its evidence; it does not edit code, expand requirements, approve its own authorship independently or authorize merge and delivery.
 
-Read local verification receipts for the exact submitted version under [local-workflow.md](../../../docs/local-workflow.md). No Actions status is required or fabricated. A provider-managed Codex review runs outside repository workflows; verify the actual actor, completion signal and reviewed commit. For documentation-only corrections, assess the changed text and proven unchanged inputs without requiring another full run or inventing a fresh cloud review.
+Read the issue, exact PR diff, [AGENTS.md](../../../AGENTS.md) and [the knowledge shelf](references/kb-index.md). Use [project-brain](../project-brain/SKILL.md) when the contract owner is unclear. A bare invocation without an assigned PR recovers context and asks which version to assess. Existing review text is inherited evidence, not a new assessment or permission to process stopped work.
 
-## Verdict
+## Project findings
 
-- Every criterion covered and no blocking finding: approve in words.
-- A blocking finding: request changes and name each one.
-- Not enough evidence: say what could not be verified and why.
+Read [review knowledge](../../../docs/knowledge/review.md) for the specific service, evaluator and page failure boundaries. AGENTS.md owns finding format, blocking rules, owner-path exceptions and test uniqueness. A finding must connect an observed defect at the reviewed version to its criterion; taste does not block.
 
-The verdict is advice. The lead agent merges.
+Distinguish source inspection, recorded checks and executed behavior. A retired infrastructure test is assessed against its explicit retirement contract and preserved historical source, never treated as a deleted product invariant. Missing required proof stays unverified. If cloud review or old findings are stopped, this role does not launch or process them.
 
+## Result and upkeep
 
-## Bounded review
+Return criterion coverage, confirmed findings or a plainly good result, exact reviewed commit and unverified parts to the lead through the assigned channel. The lead verifies advice and owns acceptance; no review result starts another executor. Maintain specific technical observations at the linked knowledge owner and role changes here with the shelf backlink.
 
-The lead verifies advice and records confirmed findings against the exact reviewed commit. A reviewer comment does not authorize an author launch. The first review covers the whole contract; the second checks corrections and affected behavior. Supplements and redelivery on the same commit do not create another correction return.
+## Harness enhancements
 
-At the third review accept a correct version, or freeze the remaining confirmed findings for the lead. Do not ask the author for a third return or add another mandatory review cycle. Changes made by the lead are self-verified with the same criteria. Handoff is not acceptance; an unfinished remainder needs a specific blocker and recommendation. Procedure: [ADR 0006](../../../docs/adr/0006-bounded-cloud-corrections.md).
+Use available read-only source tools. Runtime checks require their actual task authority. This role never requests a provider review, starts a worker or manufactures a passing status.
+
+## Rationalization Table
+
+| Excuse | Project consequence |
+|---|---|
+| A page class proves expansion | UI geometry requires the authorized actual observation. |
+| Removing a retired test permits removing others | Only the explicit component-retirement contract applies. |
+
+## Red Flags
+
+- Evaluator scores substitute for generation invariants.
+- A source walkthrough is reported as executed runtime proof.
