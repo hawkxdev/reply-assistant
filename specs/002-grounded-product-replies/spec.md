@@ -1,6 +1,6 @@
 # Specification 002: grounded product replies
 
-**Status:** the public product contract of feature 002. The corpus of 60 examples is agreed by design and is not yet prepared; no human labelling exists yet. This document by itself starts neither implementation nor any new paid run.
+**Status:** the public product contract of feature 002. Implementation and corpus state, together with the limits of historical acceptance evidence, belong to [tasks.md](tasks.md). This document by itself starts neither implementation nor any new paid run.
 **Result of the stage:** a labelled set of examples and a reproducible report on distorted facts, invented statements and errors of the automatic evaluation itself.
 
 ## 1. Purpose and user
@@ -86,7 +86,7 @@ Q18. The report and the run clearly distinguish a completed evaluation from full
 
 ## 7. Examples of reference content
 
-The table below illustrates the agreed behaviour. These are candidates for future human labelling, not a statement that a finished corpus is already accepted or that automatic rules are already written.
+The table below illustrates the agreed behaviour. These fragments are contract examples, not a substitute for labelled full corpus records or independent acceptance evidence.
 
 | Pair | Answer fragment | Content assessment and ground |
 |---|---|---|
@@ -120,13 +120,13 @@ The full answer in the context of the question enters the corpus, not only this 
 
 Every new test names a distinguishable defect that it detects; assertions are not weakened to reach a green result. The rules are tuned and checked on different examples. Before implementation starts, the concrete inputs, expected verdicts, supported transformations and open parameters are fixed. All quality commands of the project remain mandatory for a pull request.
 
-## 9. Open parameters before implementation
+## 9. Corpus contract and acceptance evidence
 
 | Parameter | What must be determined | What must not be done silently |
 |---|---|---|
-| Corpus composition | Distribute the agreed 60 examples over classes and the 40/20 parts while keeping the 30/30 language balance | Split close variants of one example between parts or present the set as statistical proof |
+| Corpus composition | Verify the agreed class coverage, 40/20 parts and 30/30 language balance for the candidate | Split close variants of one example between parts or present the set as statistical proof |
 
-The set size, the split, the error thresholds, the manual review bound and the absence of new paid runs are agreed. Before implementation the distribution of examples over classes, the corpus and report format, the supported transformations and the way the independent part is verified remain to be prepared. These details are fixed in the technical plan; examples prepared by an agent do not count as human references without confirmation by the owner.
+The set size, the split, the error thresholds, the manual review bound and the absence of new paid runs are agreed. The [technical plan](plan.md), [rules](rules.md) and [corpus format](corpus-format.md) own the concrete contract; [tasks.md](tasks.md) owns implementation and evidence state. Examples prepared by an agent do not count as human references without confirmation by the owner. A stored report with `evaluator_gate=pass` does not by itself establish the tested code revision, authentic human confirmation or historical holdout isolation.
 
 The structural corpus loader, task E04 of [tasks.md](tasks.md), depends only on the published format contract of [corpus-format.md](corpus-format.md) and its format examples, and may start before the corpus preparation of E03 is complete. The parser and verdict work, tasks E06 to E09, starts only after the gate of E05: human confirmed development labels and an accepted E04.
 
@@ -136,7 +136,7 @@ The YAML format, the API /api/suggest, the internal answer of the generator, the
 
 002 defines a new rule for evaluating natural form. The previous result of task T11 remains a correct result of the previous literal contract; the historical run and its artifacts are not rewritten. If the same saved answer is assessed by the new rules, that is a separate report with the rule version and a link to the original answer. With this publication the public requirements and acceptance rules are stated accordingly, without silently changing past checks.
 
-The result delivered with this revision: the agreed technical plan of the evaluator, the corpus and report format and the concrete published inputs of the contract. The further development pipeline applies; this document by itself does not start implementation.
+The contract consists of the agreed technical plan, corpus and report format, assessment rules and published development inputs. Implementation and acceptance evidence are tracked in [tasks.md](tasks.md). The current local process applies; neither this contract nor an older delivery record authorizes new paid calls, cloud execution or release.
 
 ## Grounds
 

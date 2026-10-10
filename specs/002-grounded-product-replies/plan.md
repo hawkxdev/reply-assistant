@@ -1,6 +1,6 @@
 # Technical plan 002: offline answer quality evaluation
 
-**Status:** implementation plan. The rule contract and document format are prepared; the 60-case corpus, human reference labels and evaluator implementation are pending. Task state belongs to [tasks.md](tasks.md).
+**Status:** architecture and verification contract for the implemented offline evaluator. Implementation, corpus and historical acceptance evidence are tracked only in [tasks.md](tasks.md).
 **Contract:** [specification](spec.md), Q1-Q18 and A1-A12; [finite assessment rules](rules.md); [corpus format](corpus-format.md).
 
 ## 1. Result and boundaries
@@ -82,7 +82,7 @@ For each language/category and overall, show total cases, evaluated cases, the t
 
 False-confirmation rate is `count(W with factual_verdict=confirmed)/len(W)`. False-rejection rate is `count(C with factual_verdict=error)/len(C)`. Manual review can belong to C/W but enters neither error numerator. A zero denominator is null. Also show `manual_review/len(E)` and `len(E)/total`. Example: two human-correct references, one `evaluated/error`, one `evaluator_error/null`, give false rejections 1/1, two references and one failure, not 1/2. The acceptance manual-review bound always uses all twenty.
 
-The planned CLI has two explicit modes:
+The CLI has two explicit modes:
 
 | Mode | Exit 0 | Exit 1 | Exit 2 |
 |---|---|---|---|
@@ -93,7 +93,7 @@ Always show both `answer_set_status` and `evaluator_gate`. In acceptance, synthe
 
 Write both reports outside the event loop into a new caller-selected run directory, publishing the pair only after both are prepared successfully. Reject existing destinations, input-file collisions and aliases before writing. Do not overwrite source records or historical T11 artifacts. A failed second write cannot leave the first file advertised as a successful final report. Sanitise failure output; malformed records do not become traceback dumps or success counts of zero.
 
-## 5. Planned modules
+## 5. Modules
 
 | Path | Responsibility |
 |---|---|
@@ -105,9 +105,9 @@ Write both reports outside the event loop into a new caller-selected run directo
 | `scripts/evaluate_quality.py` | Explicit offline mode and exit behaviour |
 | `tests/test_quality_*.py` | Distinguishing unit/integration tests |
 | `tests/acceptance/test_quality_*.py` | Owner-authored acceptance contracts |
-| `evals/quality/v1/` | Public schema, source annotations, examples and future development data |
+| `evals/quality/v1/` | Public schema, source annotations, format examples and forty development cases |
 
-These are planned code paths, not an implementation claim. `knowledge_base.py`, `suggestion.py` and `checks.py` retain their existing behaviour. `evaluation.py` and `evaluate_live.py` remain the historical live evaluator. Owner instruction/specification/acceptance paths change through separate owner PRs; implementation issues cannot rewrite them.
+These paths exist in the repository; [tasks.md](tasks.md) links the submitted implementation and distinguishes it from acceptance. `knowledge_base.py`, `suggestion.py` and `checks.py` retain their existing behaviour. `evaluation.py` and `evaluate_live.py` remain the historical live evaluator. Owner instruction/specification/acceptance paths change through separate owner PRs; implementation issues cannot rewrite them.
 
 ## 6. Delivery stages
 

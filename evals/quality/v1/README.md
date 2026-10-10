@@ -1,6 +1,6 @@
 # Quality evaluation inputs
 
-These artifacts define the first offline quality-evaluation format. They contain two fictional public sources, agent-prepared annotations for nine products, one pending format example, and forty development cases whose labels the repository owner confirmed as the human reference; the twenty holdout cases rest in custodian-controlled storage outside this repository. No working evaluator exists yet.
+These artifacts define the first offline quality-evaluation format. They contain two fictional public sources, agent-prepared annotations for nine products, one pending format example, and forty development cases whose labels record the repository owner's human confirmation; the twenty holdout cases are not published here. The implemented evaluator and offline command are tracked in [task status](../../../specs/002-grounded-product-replies/tasks.md).
 
 Read the [specification](../../../specs/002-grounded-product-replies/spec.md), [plan](../../../specs/002-grounded-product-replies/plan.md), [rules](../../../specs/002-grounded-product-replies/rules.md) and [semantic format](../../../specs/002-grounded-product-replies/corpus-format.md). `schema.json` owns structural types; the format owns decoding and package invariants. Source YAML remains in `kb/example-en.yaml` and `kb/example-ru.yaml`.
 
@@ -21,4 +21,13 @@ The invalid-binding example can satisfy the structural schema and still be inval
 
 Facts remain `agent_prepared` with no human confirmation reference. The valid example has `pending`, a proposed correct verdict and null actual verdict/reviewer confirmation. Hashes bind original bytes; editing Sources, Facts, Questions or rules requires consistent downstream bindings. Format examples are disclosed development material, never blind holdout.
 
-E04 starts with strict document models/loading, then package verification and assessment-input isolation. Full package loading and the evaluator are planned implementations; no offline evaluator command is advertised as available here. Human-confirmed development data is a separate E05 gate before parsing/evaluation work, and independent twenty-case readiness is verified later.
+E04 provides strict document models/loading, package verification and assessment-input isolation. The evaluator keeps human labels outside factual assessment and uses them afterward for metrics. Human confirmation and independent holdout isolation remain procedural evidence requirements: the CLI assumes case independence and cannot authenticate a confirmation reference or reconstruct access history.
+
+From the repository root, replay the published development corpus into a new directory outside this input directory:
+
+```bash
+uv run python scripts/evaluate_quality.py replay \
+  --package evals/quality/v1/development.json --out quality-results
+```
+
+The command writes `report.json` and `report.md`. Content findings or manual review return 1; an incomplete run or invalid input returns 2. Synthetic incorrect answers are expected in this corpus, so exit 1 does not mean the command failed to execute. Development replay is not independent acceptance. Do not treat a repeated run on disclosed or tuned-on cases as a new blind measurement.
