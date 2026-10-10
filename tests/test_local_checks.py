@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+# === Fixture preparation ===
+
 
 def executable(name: str) -> str:
     """Resolve the fixture executable."""
@@ -24,12 +26,8 @@ def git(root: Path, *args: str) -> str:
     ).strip()
 
 
-@pytest.fixture
-def local_gate(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, Path, str, dict[str, str]]:
-    """Prepare isolated gate inputs."""
-    root = tmp_path / 'repo'
+def prepare_repository(root: Path) -> None:
+    """Prepare the repository template."""
     root.mkdir()
     (root / 'scripts').mkdir()
     (root / 'tests').mkdir()
@@ -43,8 +41,24 @@ def local_gate(
     git(root, 'config', 'user.email', 'fixture@example.invalid')
     git(root, 'add', '.')
     git(root, '-c', 'commit.gpgsign=false', 'commit', '-qm', 'chore: fixture base')
-    base = git(root, 'rev-parse', 'HEAD')
     git(root, 'remote', 'add', 'origin', 'https://github.com/fixture/repo.git')
+
+
+@pytest.fixture(scope='session')
+def local_gate_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Prepare the shared template."""
+    root = tmp_path_factory.mktemp('local-gate-template') / 'repo'
+    prepare_repository(root)
+    return root
+
+
+def prepare_local_gate(
+    template: Path, tmp_path: Path
+) -> tuple[Path, Path, str, dict[str, str]]:
+    """Prepare isolated gate inputs."""
+    root = tmp_path / 'repo'
+    shutil.copytree(template, root)
+    base = git(root, 'rev-parse', 'HEAD')
     tools = tmp_path / 'tools'
     tools.mkdir()
     uv = tools / 'uv'
@@ -69,7 +83,6 @@ def local_gate(
         'echo "Dependency comparison unavailable." >&2\nexit 19\nfi\n'
     )
     gh.chmod(0o700)
-    monkeypatch.setenv('LOCAL_PARENT_CANARY', 'fixture-marker')
     env = {
         key: os.environ[key]
         for key in ('PATH', 'HOME', 'LANG', 'LC_ALL', 'TMPDIR', 'SYSTEMROOT')
@@ -77,6 +90,28 @@ def local_gate(
     }
     env.update(PATH=f'{tools}:{env["PATH"]}', LOCAL_UV_LOG=str(tmp_path / 'uv.log'))
     return root, tmp_path / 'result', base, env
+
+
+@pytest.fixture
+def local_gate(
+    local_gate_template: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[Path, Path, str, dict[str, str]]:
+    """Prepare isolated gate inputs."""
+    monkeypatch.setenv('LOCAL_PARENT_CANARY', 'fixture-marker')
+    return prepare_local_gate(local_gate_template, tmp_path)
+
+
+def gate_pair(
+    template: Path, tmp_path: Path
+) -> tuple[
+    tuple[Path, Path, str, dict[str, str]], tuple[Path, Path, str, dict[str, str]]
+]:
+    """Prepare two independent gates."""
+    first = tmp_path / 'first'
+    second = tmp_path / 'second'
+    first.mkdir()
+    second.mkdir()
+    return prepare_local_gate(template, first), prepare_local_gate(template, second)
 
 
 def run_gate(
@@ -102,6 +137,9 @@ def run_gate(
         text=True,
         check=False,
     )
+
+
+# === Gate behavior ===
 
 
 def test_local_checks_record_every_required_command(
@@ -280,3 +318,97 @@ def test_local_checks_exclude_unrelated_parent_environment(
     _, _, _, env = local_gate
 
     assert 'LOCAL_PARENT_CANARY' not in env
+
+
+# === Fixture isolation ===
+
+
+def test_local_gate_repository_changes_stay_in_own_copy(
+    local_gate_template: Path, tmp_path: Path
+) -> None:
+    first, second = gate_pair(local_gate_template, tmp_path)
+    template_head = git(local_gate_template, 'rev-parse', 'HEAD')
+    root, _, base, _ = first
+    (root / 'tests' / 'existing.py').write_text('existing = False\n')
+    git(root, 'add', '.')
+    git(root, '-c', 'commit.gpgsign=false', 'commit', '-qm', 'chore: fixture change')
+    git(root, 'branch', 'fixture-probe')
+    git(root, 'config', 'user.name', 'Changed')
+    git(root, 'remote', 'set-url', 'origin', 'https://github.com/fixture/changed.git')
+
+    assert git(root, 'rev-parse', 'HEAD') != base
+    assert git(root, 'config', 'user.name') == 'Changed'
+    for survivor, expected_head in (
+        (second[0], second[2]),
+        (local_gate_template, template_head),
+    ):
+        assert (survivor / 'tests' / 'existing.py').read_text() == 'existing = True\n'
+        assert git(survivor, 'rev-parse', 'HEAD') == expected_head
+        assert git(survivor, 'status', '--porcelain') == ''
+        assert 'fixture-probe' not in git(survivor, 'branch', '--list')
+        assert git(survivor, 'config', 'user.name') == 'Fixture'
+        assert git(survivor, 'remote', 'get-url', 'origin') == (
+            'https://github.com/fixture/repo.git'
+        )
+    result = run_gate(second)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_local_gate_command_stubs_are_independent(
+    local_gate_template: Path, tmp_path: Path
+) -> None:
+    first, second = gate_pair(local_gate_template, tmp_path)
+    tools = Path(first[3]['PATH'].split(os.pathsep)[0])
+    (tools / 'uv').write_text('#!/bin/sh\nexit 41\n')
+    (tools / 'gh').write_text('#!/bin/sh\nexit 42\n')
+    failed = run_gate(first)
+    change_dependencies(second, '[]')
+    result = run_gate(second)
+
+    assert failed.returncode == 41
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_local_gate_environments_are_independent(
+    local_gate_template: Path, tmp_path: Path
+) -> None:
+    first, second = gate_pair(local_gate_template, tmp_path)
+    first[3]['LOCAL_FAIL_RUFF'] = '1'
+    failed = run_gate(first)
+    result = run_gate(second)
+
+    assert failed.returncode == 23
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_local_gate_artifacts_are_independent(
+    local_gate_template: Path, tmp_path: Path
+) -> None:
+    first, second = gate_pair(local_gate_template, tmp_path)
+    original = run_gate(first)
+    change_dependencies(second, '[]')
+    changed_head = git(second[0], 'rev-parse', 'HEAD')
+    result = run_gate(second)
+
+    assert original.returncode == 0, original.stdout + original.stderr
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (first[1] / 'commit.txt').read_text().strip() == first[2]
+    assert (second[1] / 'commit.txt').read_text().strip() == changed_head
+    assert (first[1] / 'exit-code.txt').read_text() == '0\n'
+    assert (second[1] / 'exit-code.txt').read_text() == '0\n'
+    assert Path(first[3]['LOCAL_UV_LOG']).read_text().splitlines() == [
+        'sync --locked',
+        'run ruff check .',
+        'run ruff format --check .',
+        'run mypy .',
+        'run pytest --cov',
+        'run python scripts/check_conventions.py',
+    ]
+    assert Path(second[3]['LOCAL_UV_LOG']).read_text().splitlines() == [
+        'sync --locked',
+        'run ruff check .',
+        'run ruff format --check .',
+        'run mypy .',
+        'run pytest --cov',
+        'run python scripts/check_conventions.py',
+    ]
