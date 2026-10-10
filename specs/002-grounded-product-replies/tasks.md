@@ -1,11 +1,11 @@
 # Tasks 002: offline quality evaluation
 
-**Status:** product contract prepared. Rules and format are prepared; implementation, corpus candidates and human labels remain pending. Task and issue links record accepted results rather than predictions.
+**Status:** offline evaluator implementation is merged. The public corpus contains forty development cases with recorded owner-confirmed labels; twenty further cases and a historical run remain unpublished. Available evidence does not establish historical independent acceptance for an exact tested code revision. The evidence limits below remain open.
 **Sources:** [specification](spec.md), [plan](plan.md), [rules](rules.md), [format](corpus-format.md).
 
 ## 1. Execution and ownership
 
-This file owns E01-E16 and their dependencies. Q1-Q18 remain requirement IDs; E does not continue prototype T1-T11. An implementation issue is one bounded contract and one PR. The implementation author remains OpenCode / GLM-5.3 and the reviewer Codex. The lead writes acceptance tests before dispatch; humans confirm reference labels. An agent's draft label never becomes human confirmation through technical approval.
+This file owns E01-E16 and their dependencies. Q1-Q18 remain requirement IDs; E does not continue prototype T1-T11. An implementation issue is one bounded contract and one PR. Authors implement and verify locally under [the current working process](../../docs/how-this-repo-is-built.md); repository Actions execution and cloud reviews are stopped. The lead owns acceptance tests; humans confirm reference labels. An agent's draft label never becomes human confirmation through technical approval.
 
 The public contract and acceptance tests are owner-authored deliveries under AGENTS.md Boundaries. An implementation author changes only the paths named in its issue, plus the existing acceptance xfail exception. No new dependencies, paid product-model calls or independent product blocks follow automatically from this list. Every PR runs all six Commands and names the distinct defect behind each new test.
 
@@ -15,22 +15,28 @@ The holdout custodian does not implement or tune rules. Before freezing, the aut
 
 | ID | Stage | Result | Depends on | State |
 |---|---|---|---|---|
-| E01 | 1 | Finite parsing contract | Approved technical plan | Contract prepared |
-| E02 | 1 | Document format and source annotations | E01 | Format prepared; annotations agent-prepared |
-| E03 | 1 | Forty development and twenty held-out candidates | E01, E02 | Pending; human labels absent |
-| E04 | 1 | Schemas and verified package loading | E02, published contract | Pending; two implementation units |
-| E05 | 1 | Approved input gate for the evaluator | E01-E04 | Not passed |
-| E06 | 2 | Verified typed fact index | E05 | Pending |
-| E07 | 2 | Number, price and form parsing | E06 | Pending |
-| E08 | 2 | Other constructions and full text coverage | E07 | Pending |
-| E09 | 2 | Obligations and aggregate verdict | E08 | Pending |
-| E10 | 3 | Metrics and independent result axes | E09 | Pending |
-| E11 | 3 | Consistent JSON/Markdown | E10 | Pending |
-| E12 | 3 | Offline CLI and safe report writes | E11 | Pending |
-| E13 | 3 | Integrated compatibility verification | E12 | Pending |
-| E14 | 4 | Frozen acceptance candidate | E03, E13 | Pending |
-| E15 | 4 | One independent twenty-case run | E14 | Pending |
-| E16 | 4 | Evidence and delivery decision | E15 | Pending |
+| E01 | 1 | Finite parsing contract | Approved technical plan | Accepted contract in [#56](https://github.com/hawkxdev/reply-assistant/pull/56) |
+| E02 | 1 | Document format and source annotations | E01 | Published in #56; source annotations remain agent-prepared |
+| E03 | 1 | Forty development and twenty held-out candidates | E01, E02 | Development published in [#65](https://github.com/hawkxdev/reply-assistant/pull/65); twenty further cases retained outside public source |
+| E04 | 1 | Schemas and verified package loading | E02, published contract | Both units merged: [#59](https://github.com/hawkxdev/reply-assistant/pull/59), [#63](https://github.com/hawkxdev/reply-assistant/pull/63) |
+| E05 | 1 | Approved input gate for the evaluator | E01-E04 | Forty development labels record owner confirmation; E04 is merged, gate evidence is historical |
+| E06 | 2 | Verified typed fact index | E05 | Merged in [#72](https://github.com/hawkxdev/reply-assistant/pull/72) |
+| E07 | 2 | Number, price and form parsing | E06 | Merged in [#75](https://github.com/hawkxdev/reply-assistant/pull/75) |
+| E08 | 2 | Other constructions and full text coverage | E07 | Merged in [#78](https://github.com/hawkxdev/reply-assistant/pull/78) |
+| E09 | 2 | Obligations and aggregate verdict | E08 | Merged in [#80](https://github.com/hawkxdev/reply-assistant/pull/80) |
+| E10 | 3 | Metrics and independent result axes | E09 | Merged in [#83](https://github.com/hawkxdev/reply-assistant/pull/83) |
+| E11 | 3 | Consistent JSON/Markdown | E10 | Merged in [#86](https://github.com/hawkxdev/reply-assistant/pull/86) |
+| E12 | 3 | Offline CLI and safe report writes | E11 | Merged in [#89](https://github.com/hawkxdev/reply-assistant/pull/89); source-path fix in [#92](https://github.com/hawkxdev/reply-assistant/pull/92) |
+| E13 | 3 | Integrated compatibility verification | E12 | Historical integration checks recorded; each new candidate requires current verification |
+| E14 | 4 | Frozen acceptance candidate | E03, E13 | Input hashes retained; tested-code pin, original holdout confirmation and isolation evidence require reconciliation |
+| E15 | 4 | One independent twenty-case run | E14 | Historical twenty-case report retained; not a fresh independent acceptance |
+| E16 | 4 | Evidence and delivery decision | E15 | Implementation delivered; original private evidence retained, its publication and unresolved provenance have separate gates |
+
+### Acceptance evidence limits
+
+The retained historical report contains a passing evaluator gate, but three provenance requirements are not established by the currently inspected records: the exact tested code revision, the original human confirmation of holdout labels, and the custodian/access evidence for blind isolation. Label fields and a calculated passing gate do not authenticate these facts. Keep the original artifacts; do not fill the missing code pin from the current HEAD, silently confirm labels, publish the held-out cases or repeat their evaluation as a new independent measurement.
+
+Reconcile the original records before claiming independent acceptance for an exact version. If they cannot be recovered, preserve the historical report with these limits and agree a new acceptance route separately. The 0/0/4 thresholds, corpus contract, generation and paid-call authority retain their existing owners.
 
 E03 and E04 can proceed in parallel. The first E04 unit uses format examples, not a requirement to finish all sixty. E04 is accepted only after both document loading and complete package validation/projection are verified. E05 remains a separate human/reference gate before E06-E09.
 

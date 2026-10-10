@@ -132,7 +132,18 @@ REPLY_ASSISTANT_KB_PATH=kb/example-en.yaml \
 
 The command writes `live-results/results.json` with the full report and `live-results/summary.md` with the verdict of each case. It prints only `Live evaluation passed.` or `Live evaluation failed.` and returns exit code 0 on a passed report, 1 otherwise. `REPLY_ASSISTANT_PROVIDER_MAX_OUTPUT_TOKENS` caps the answer length of every provider call; leave it empty to send no cap. Each case allows the existing one retry, so a run makes at most six primary attempts, or up to twelve provider calls when a fallback provider is configured.
 
-Passing checks do not prove that the remaining prose is grounded in the catalogue, so the summary states that manual fact review is required. The owner approved the `Live evaluation` GitHub workflow: it starts only by hand on main, runs the same command in the protected `provider-check` environment with a 600 token cap and the public knowledge base, and uploads both report files.
+Passing checks do not prove that the remaining prose is grounded in the catalogue, so the summary states that manual fact review is required. Live evaluation runs locally only under a separate authorization for paid provider calls. Repository Actions execution is disabled; archived workflow files and historical approvals do not authorize another run. See [local verification and delivery](docs/local-workflow.md).
+
+## Offline quality evaluation
+
+The separate [feature 002 evaluator](specs/002-grounded-product-replies/spec.md) assesses recorded answers under versioned rules without calling a model or changing generation. Its [task status](specs/002-grounded-product-replies/tasks.md) distinguishes merged implementation from acceptance evidence. Run the published forty-case development corpus locally:
+
+```bash
+uv run python scripts/evaluate_quality.py replay \
+  --package evals/quality/v1/development.json --out quality-results
+```
+
+Use a new output directory outside the input directory. The command writes `report.json` and `report.md`; replay returns 0 when every answer is confirmed, 1 for content findings or manual review, and 2 for an incomplete run or invalid input. Synthetic errors are expected evaluation material, so a completed replay need not return 0. Development replay is not independent acceptance and does not measure the error rate of the product model.
 
 ## What the checks prove
 
@@ -148,13 +159,13 @@ The shared token is a simple access check, not accounts or per-client credential
 flowchart LR
     S[Specification<br/>owner] --> I[Issue and acceptance test<br/>lead agent]
     I --> A[Branch and pull request<br/>author agent]
-    A --> C[Checks<br/>lint, types, tests]
-    C --> R[Review<br/>Codex]
+    A --> C[Local checks<br/>lint, types, tests]
+    C --> R[Assigned review<br/>when authorized]
     R --> M[Merge<br/>lead agent]
     M --> P[Acceptance<br/>owner]
 ```
 
-The author runs through OpenCode with `zai-coding-plan/glm-5.3`. Agent pull requests carry `agent-authored`. See [the pipeline and its boundaries](docs/how-this-repo-is-built.md), [agent instructions](AGENTS.md), [the specification](specs/001-reply-and-upsell/spec.md) and [architecture decisions](docs/adr).
+The assigned author implements and verifies locally in the selected coding harness. Agent pull requests carry `agent-authored`; author checks are self-verification. Repository Actions execution and cloud reviews are stopped, and an existing reviewer connection does not authorize a review. Merge and deployment use their own authority. See [the working process](docs/how-this-repo-is-built.md), [agent instructions](AGENTS.md), [the specification](specs/001-reply-and-upsell/spec.md) and [architecture decisions](docs/adr).
 
 | Contract | Acceptance tests | Implementation and review |
 |---|---|---|
