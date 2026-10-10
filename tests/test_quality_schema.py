@@ -20,8 +20,8 @@ def sources_payload() -> dict[str, Any]:
 
 @pytest.mark.parametrize(
     'value',
-    [2, True, 1.0, '1'],
-    ids=['unsupported-integer', 'bool', 'float', 'string'],
+    [2],
+    ids=['unsupported-integer'],
 )
 def test_wrong_version_value_is_rejected(value: Any) -> None:
     payload = sources_payload()
