@@ -196,6 +196,48 @@ class AssessmentQuestion(_StrictModel):
     allowed_kb_matches: list[KbMatch] = Field(min_length=1)
 
 
+class RequiredRecommendation(_StrictModel):
+    """Require one manager recommendation."""
+
+    field: Literal['upsell_hint']
+    product_id: str = Field(min_length=1)
+
+
+class RequiredUnknownInformation(_StrictModel):
+    """Require explicit information uncertainty."""
+
+    field: ClaimField
+    product_id: str | None = Field(min_length=1)
+    property: str = Field(min_length=1, pattern=r'\S')
+
+
+class QuestionV2(Question):
+    """Describe extended question obligations."""
+
+    required_recommendations: list[RequiredRecommendation] = Field(max_length=1)
+    required_unknown_information: list[RequiredUnknownInformation]
+
+
+class QuestionsV2(_StrictModel):
+    """Collect extended question contracts."""
+
+    document_kind: Literal['quality_questions_v2']
+    schema_version: int = Field(ge=2, le=2)
+    sources_sha256: str = Field(pattern=SHA256_PATTERN)
+    questions: list[QuestionV2] = Field(min_length=1)
+
+
+class AssessmentQuestionV2(AssessmentQuestion):
+    """Project extended question obligations."""
+
+    required_recommendations: list[RequiredRecommendation] = Field(max_length=1)
+    required_unknown_information: list[RequiredUnknownInformation]
+
+
+QuestionRecord = Question | QuestionV2
+QuestionDocument = Questions | QuestionsV2
+
+
 class Answer(_StrictModel):
     """Keep the recorded answer."""
 
@@ -280,7 +322,7 @@ class Corpus(_StrictModel):
 # === Document union ===
 
 QualityDocument = Annotated[
-    Sources | Facts | Questions | Corpus,
+    Sources | Facts | Questions | QuestionsV2 | Corpus,
     Field(discriminator='document_kind'),
 ]
 
@@ -297,16 +339,26 @@ DOCUMENT_MODELS: tuple[type[BaseModel], ...] = (
     Origin,
     ProductFacts,
     Question,
+    QuestionV2,
     Questions,
+    QuestionsV2,
     RequiredAction,
     RequiredClaim,
+    RequiredRecommendation,
+    RequiredUnknownInformation,
     Source,
     Sources,
     Support,
 )
 
 KNOWN_FIELD_NAMES = frozenset(
-    {'quality_sources', 'quality_facts', 'quality_questions', 'quality_corpus'}
+    {
+        'quality_sources',
+        'quality_facts',
+        'quality_questions',
+        'quality_questions_v2',
+        'quality_corpus',
+    }
 ) | frozenset(field for model in DOCUMENT_MODELS for field in model.model_fields)
 
 _DOCUMENT_ADAPTER: TypeAdapter['QualityDocument'] = TypeAdapter(QualityDocument)

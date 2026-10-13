@@ -1,0 +1,329 @@
+{
+  "$defs": {
+    "QuestionV2": {
+      "additionalProperties": false,
+      "description": "Describe extended question obligations.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "en",
+            "ru"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "place": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Place"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "enum": [
+                "delivery",
+                "stock",
+                "treatment_result"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Topic"
+        },
+        "required_claims": {
+          "items": {
+            "$ref": "#/$defs/RequiredClaim"
+          },
+          "title": "Required Claims",
+          "type": "array"
+        },
+        "required_actions": {
+          "items": {
+            "$ref": "#/$defs/RequiredAction"
+          },
+          "title": "Required Actions",
+          "type": "array"
+        },
+        "allowed_kb_matches": {
+          "items": {
+            "enum": [
+              "found",
+              "partial",
+              "none"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Kb Matches",
+          "type": "array"
+        },
+        "basis": {
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        },
+        "required_recommendations": {
+          "items": {
+            "$ref": "#/$defs/RequiredRecommendation"
+          },
+          "maxItems": 1,
+          "title": "Required Recommendations",
+          "type": "array"
+        },
+        "required_unknown_information": {
+          "items": {
+            "$ref": "#/$defs/RequiredUnknownInformation"
+          },
+          "title": "Required Unknown Information",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "source_id",
+        "message",
+        "language",
+        "place",
+        "topic",
+        "required_claims",
+        "required_actions",
+        "allowed_kb_matches",
+        "basis",
+        "required_recommendations",
+        "required_unknown_information"
+      ],
+      "title": "QuestionV2",
+      "type": "object"
+    },
+    "RequiredAction": {
+      "additionalProperties": false,
+      "description": "Describe a required action.",
+      "properties": {
+        "field": {
+          "enum": [
+            "customer_reply",
+            "upsell_hint"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "handoff",
+            "doctor"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "kind"
+      ],
+      "title": "RequiredAction",
+      "type": "object"
+    },
+    "RequiredClaim": {
+      "additionalProperties": false,
+      "description": "Describe one question obligation.",
+      "properties": {
+        "field": {
+          "enum": [
+            "customer_reply",
+            "upsell_hint"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "product_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Product Id"
+        },
+        "target_product_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Product Id"
+        },
+        "predicate": {
+          "enum": [
+            "name",
+            "form",
+            "description",
+            "price",
+            "material",
+            "form_kind",
+            "container",
+            "package_quantity",
+            "portion_mass",
+            "form_quantity",
+            "batch_capacity",
+            "section_count",
+            "filter_size",
+            "goes_with",
+            "object_mass",
+            "delivery",
+            "stock",
+            "treatment_result"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "stance": {
+          "enum": [
+            "affirmed",
+            "unknown"
+          ],
+          "title": "Stance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "product_id",
+        "target_product_id",
+        "predicate",
+        "stance"
+      ],
+      "title": "RequiredClaim",
+      "type": "object"
+    },
+    "RequiredRecommendation": {
+      "additionalProperties": false,
+      "description": "Require one manager recommendation.",
+      "properties": {
+        "field": {
+          "const": "upsell_hint",
+          "title": "Field",
+          "type": "string"
+        },
+        "product_id": {
+          "minLength": 1,
+          "title": "Product Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "product_id"
+      ],
+      "title": "RequiredRecommendation",
+      "type": "object"
+    },
+    "RequiredUnknownInformation": {
+      "additionalProperties": false,
+      "description": "Require explicit information uncertainty.",
+      "properties": {
+        "field": {
+          "enum": [
+            "customer_reply",
+            "upsell_hint"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "product_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Product Id"
+        },
+        "property": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "product_id",
+        "property"
+      ],
+      "title": "RequiredUnknownInformation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Collect extended question contracts.",
+  "properties": {
+    "document_kind": {
+      "const": "quality_questions_v2",
+      "title": "Document Kind",
+      "type": "string"
+    },
+    "schema_version": {
+      "maximum": 2,
+      "minimum": 2,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "sources_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Sources Sha256",
+      "type": "string"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/$defs/QuestionV2"
+      },
+      "minItems": 1,
+      "title": "Questions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "document_kind",
+    "schema_version",
+    "sources_sha256",
+    "questions"
+  ],
+  "title": "QuestionsV2",
+  "type": "object"
+}

@@ -12,6 +12,8 @@ The page is `src/reply_assistant/static/index.html`, a static document without a
 
 [Feature 002](../../specs/002-grounded-product-replies/spec.md) and its linked plan, rules and corpus format own evaluation. Recorded replies are assessed under versioned semantic rules. This component does not change provider generation, response validation or the historical T11 exact-match contract. Corpus and rule changes need their own pinned inputs; a result from another version is not current evidence.
 
+The [version 2 extension](../../specs/002-grounded-product-replies/corpus-format-v2.md) owns explicit recommendation/unknown-information obligations and complete report schema 2. Legacy question documents and report API schema 1 remain supported. The CLI preserves every observation field, stage/failure, question and reference context, and original field-attributed claims and unchecked spans; unknown arbitrary properties stay manual review rather than being confirmed through a correct price or handoff.
+
 ## Organizational retirement
 
 [ADR 0008](../adr/0008-local-project-knowledge.md) retires the disabled cloud author mechanism. Its unused adapters and infrastructure tests retain their exact source in Git history, while the shared coordination implementation remains outside the outgoing tree. There is no replacement project loader or private archive. Product and acceptance tests remain in this repository. A structural or import check proves only that part of the retirement; it is not a product test result.

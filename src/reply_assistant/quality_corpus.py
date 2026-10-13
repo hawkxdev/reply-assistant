@@ -19,6 +19,7 @@ from reply_assistant.knowledge_base import _document as validate_catalogue
 from reply_assistant.quality_schema import (
     KNOWN_FIELD_NAMES,
     AssessmentQuestion,
+    AssessmentQuestionV2,
     Case,
     Corpus,
     Evidence,
@@ -29,8 +30,11 @@ from reply_assistant.quality_schema import (
     Origin,
     ProductFacts,
     QualityDocument,
-    Question,
+    QuestionDocument,
+    QuestionRecord,
     Questions,
+    QuestionsV2,
+    QuestionV2,
     Source,
     Sources,
     validate_quality_document,
@@ -111,7 +115,12 @@ def _structure_document(data: Any) -> QualityDocument:
     if not isinstance(data, dict):
         raise QualityInputError('schema')
     version = data.get('schema_version')
-    if isinstance(version, int) and not isinstance(version, bool) and version != 1:
+    expected_version = 2 if data.get('document_kind') == 'quality_questions_v2' else 1
+    if (
+        isinstance(version, int)
+        and not isinstance(version, bool)
+        and version != expected_version
+    ):
         raise QualityInputError('unsupported_version')
     try:
         return validate_quality_document(data)
@@ -169,7 +178,7 @@ class LoadedQualityPackage:
 
     sources: Sources
     facts: Facts
-    questions: Questions
+    questions: QuestionDocument
     corpora: tuple[Corpus, ...]
     sources_sha256: str
     facts_sha256: str
@@ -228,7 +237,9 @@ def _check_annotations_identity(facts: Facts, source_ids: frozenset[str]) -> Non
             fact_ids.add(fact.id)
 
 
-def _check_questions_identity(questions: Questions, source_ids: frozenset[str]) -> None:
+def _check_questions_identity(
+    questions: QuestionDocument, source_ids: frozenset[str]
+) -> None:
     """Check question identity."""
     ids: set[str] = set()
     for index, question in enumerate(questions.questions):
@@ -337,7 +348,7 @@ async def _verify_source(
 
 def _check_product_references(
     facts: Facts,
-    questions: Questions,
+    questions: QuestionDocument,
     product_ids: dict[str, frozenset[str]],
 ) -> None:
     """Check product references."""
@@ -352,6 +363,8 @@ def _check_product_references(
                 )
     for index, question in enumerate(questions.questions):
         known = product_ids[question.source_id]
+        if isinstance(question, QuestionV2):
+            _check_extended_references(question, known, index)
         for claim_index, claim in enumerate(question.required_claims):
             base = f'questions.{index}.required_claims.{claim_index}'
             if claim.predicate == 'goes_with' and (
@@ -369,10 +382,31 @@ def _check_product_references(
                 )
 
 
+def _check_extended_references(
+    question: QuestionV2, known: frozenset[str], index: int
+) -> None:
+    """Verify extended obligation references."""
+    for position, recommendation in enumerate(question.required_recommendations):
+        if recommendation.product_id not in known:
+            raise QualityInputError(
+                'unknown_reference',
+                f'questions.{index}.required_recommendations.{position}.product_id',
+            )
+    seen: set[tuple[str, str | None, str]] = set()
+    for position, obligation in enumerate(question.required_unknown_information):
+        location = f'questions.{index}.required_unknown_information.{position}'
+        if obligation.product_id is not None and obligation.product_id not in known:
+            raise QualityInputError('unknown_reference', f'{location}.product_id')
+        key = (obligation.field, obligation.product_id, obligation.property)
+        if key in seen:
+            raise QualityInputError('duplicate_id', location)
+        seen.add(key)
+
+
 # === Binding checks ===
 
 
-def _question_digest(question: Question) -> str:
+def _question_digest(question: QuestionRecord) -> str:
     """Hash one canonical question."""
     payload = question.model_dump(mode='json')
     encoded = json.dumps(
@@ -387,12 +421,12 @@ def _question_digest(question: Question) -> str:
 
 def _check_bindings(
     facts: Facts,
-    questions: Questions,
+    questions: QuestionDocument,
     corpora: Sequence[Corpus],
     sources_sha256: str,
     facts_sha256: str,
     questions_sha256: str,
-    questions_by_id: dict[str, Question],
+    questions_by_id: dict[str, QuestionRecord],
 ) -> None:
     """Check pinned document bindings."""
     if facts.sources_sha256 != sources_sha256:
@@ -754,7 +788,7 @@ async def load_quality_package(
         raise QualityInputError('schema', 'sources.document_kind')
     if not isinstance(facts_loaded.document, Facts):
         raise QualityInputError('schema', 'facts.document_kind')
-    if not isinstance(questions_loaded.document, Questions):
+    if not isinstance(questions_loaded.document, (Questions, QuestionsV2)):
         raise QualityInputError('schema', 'questions.document_kind')
     sources_document = sources_loaded.document
     facts_document = facts_loaded.document
@@ -770,7 +804,7 @@ async def load_quality_package(
     source_ids = frozenset(source.id for source in sources_document.sources)
     _check_annotations_identity(facts_document, source_ids)
     _check_questions_identity(questions_document, source_ids)
-    questions_by_id = {
+    questions_by_id: dict[str, QuestionRecord] = {
         question.id: question for question in questions_document.questions
     }
     records = _check_cases_identity(corpus_documents, frozenset(questions_by_id))
@@ -851,7 +885,12 @@ async def load_quality_package(
     for corpus in corpus_documents:
         for case in corpus.cases:
             question = questions_by_id[case.question_id]
-            projection = AssessmentQuestion.model_validate(
+            projection_model = (
+                AssessmentQuestionV2
+                if isinstance(question, QuestionV2)
+                else AssessmentQuestion
+            )
+            projection = projection_model.model_validate(
                 question.model_dump(exclude={'id', 'basis'})
             )
             verified.append(

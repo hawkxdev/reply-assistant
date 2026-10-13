@@ -15,8 +15,10 @@ from reply_assistant.quality_facts import (
 from reply_assistant.quality_schema import (
     Answer,
     AssessmentQuestion,
+    AssessmentQuestionV2,
     RequiredAction,
     RequiredClaim,
+    RequiredRecommendation,
 )
 
 # === Assessment models ===
@@ -1525,6 +1527,33 @@ def _resolve_action_obligation(
         unresolved.append(f'unresolved_action: {action.kind}')
 
 
+def _resolve_recommendation(
+    obligation: RequiredRecommendation,
+    fields: dict[str, FieldAssessment],
+    grounds: list[str],
+    unresolved: list[str],
+) -> None:
+    """Resolve one requested recommendation."""
+    assessment = fields[obligation.field]
+    if not assessment.protected:
+        directives = [
+            claim for claim in _field_claims(assessment) if claim.kind == 'directive'
+        ]
+        if any(claim.product_id == obligation.product_id for claim in directives):
+            return
+        if directives:
+            for claim in directives:
+                grounds.append(
+                    f'recommendation_mismatch: expected {obligation.product_id}, '
+                    f'found {claim.product_id}'
+                )
+            return
+        if _fully_parsed(assessment):
+            grounds.append('incompleteness')
+            return
+    unresolved.append(f'unresolved_recommendation: {obligation.product_id}')
+
+
 def assess_answer(
     customer: FieldAssessment,
     hint: FieldAssessment,
@@ -1578,6 +1607,19 @@ def assess_answer(
     # Step 4: resolve the action obligations.
     for action in question.required_actions:
         _resolve_action_obligation(action, fields, texts, language, grounds, unresolved)
+    if isinstance(question, AssessmentQuestionV2):
+        for recommendation in question.required_recommendations:
+            _resolve_recommendation(recommendation, fields, grounds, unresolved)
+        for information in question.required_unknown_information:
+            subject = (
+                f' of {information.product_id}'
+                if information.product_id is not None
+                else ''
+            )
+            unresolved.append(
+                f'unresolved_unknown_information: {information.field}: '
+                f'{information.property}{subject}'
+            )
     # Step 5: preserve every unchecked tail by A03.
     for name, assessment in fields.items():
         if assessment.protected:
