@@ -27,6 +27,8 @@ The semantic grammar remains `factual-assessment-v1`; version 2 identifies the a
 
 The real offline CLI emits `report_kind=quality-evaluation/schema_version=2` for both legacy and extended inputs. Metrics, acceptance readiness, replay/acceptance exit codes and the historical live evaluator's binary `passed` stay unchanged. Existing report API callers default to schema 1 and retain its original payload; schema 2 is explicitly selected by the CLI or by `build_report(..., schema_version=2)`.
 
+Reports require a successfully loaded package. Input read/validation failures and invalid output destinations retain the existing safe stderr diagnostic and exit code 2 without publishing partial reports.
+
 Each version 2 case keeps the original summary fields and adds:
 
 - `context`: full question, question contract version, group/question IDs and question hash, complete Observation, question/answer Origins and complete Label. Observation retains all four Answer fields, exact strings including empty strings, stage, and recorded error code. A recorded failure retains a null answer; an evaluator failure retains the received observation without inventing a factual verdict.
@@ -34,7 +36,7 @@ Each version 2 case keeps the original summary fields and adds:
 - `coverage`: per-field protected status/reason and original unchecked spans with exact slices. When no field assessment exists, coverage is null rather than an empty successful check.
 - `document_sha256`: original byte hashes of Sources, Facts, Questions and each Corpus, in addition to existing catalogue/rules hashes.
 
-JSON and Markdown derive these details from the same report records. Markdown includes the manager hint, recommendation ID, knowledge-base match, stage/failure, obligations, origins, reference and field-attributed claims and coverage. Report schema 2 rejects entries without full context or claim field attribution. No new metadata is passed into factual assessment.
+JSON and Markdown derive these details from the same report records. Markdown includes the group ID, question hash and question contract version, manager hint, recommendation ID, knowledge-base match, stage/failure, obligations, origins, reference and field-attributed claims and coverage. Report schema 2 rejects entries without full context or claim field attribution. No new metadata is passed into factual assessment.
 
 Complete reports carry supplied answer text, provenance and label notes. Inspect actual outgoing content before sharing; report generation alone authorizes no publication. Historical report files and the original pending preparation bytes are never rewritten by this extension.
 

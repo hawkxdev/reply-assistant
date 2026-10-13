@@ -317,6 +317,41 @@ def test_cli_reports_complete_observation_provenance_and_claim_fields(
     assert 'upsell_hint: directive' in markdown
 
 
+@pytest.mark.parametrize(
+    ('extended', 'expected_version', 'expected_hash'),
+    [
+        (
+            False,
+            1,
+            '71c90d118b173df5e002e5e1978022213d0d3258c08bdc4076c11057ce28d3bb',
+        ),
+        (
+            True,
+            2,
+            '16892038fb56cc2f375d46fc1869c41d45d7f167562e22c53012adf98292af79',
+        ),
+    ],
+)
+def test_cli_markdown_keeps_question_binding_context(
+    tmp_path: Path,
+    extended: bool,
+    expected_version: int,
+    expected_hash: str,
+) -> None:
+    package = extended_package(tmp_path / 'package', extended=extended)
+
+    code, report, markdown = replay(package, tmp_path / 'result')
+    context = report['cases'][0]['context']
+
+    assert code == 0
+    assert context['group_id'] == 'example-group-price'
+    assert context['question_sha256'] == expected_hash
+    assert context['question_schema_version'] == expected_version
+    assert 'Group ID: example-group-price' in markdown
+    assert f'Question SHA256: {expected_hash}' in markdown
+    assert f'Question schema version: {expected_version}' in markdown
+
+
 def test_report_preserves_field_and_text_of_unchecked_content(
     tmp_path: Path,
 ) -> None:

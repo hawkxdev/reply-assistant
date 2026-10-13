@@ -639,10 +639,17 @@ def _context_lines(entry: CaseEntry) -> list[str]:
     if entry.context is None:
         raise ValueError('complete case context is unavailable')
     context = entry.context
+    payload = _context_payload(context)
     observation = context.case.observation
     answer = observation.answer
     identifier = _text(answer.upsell_product_id) if answer is not None else 'null'
     lines = [
+        f'Group ID: {payload["group_id"]}',
+        '',
+        f'Question SHA256: {payload["question_sha256"]}',
+        '',
+        f'Question schema version: {payload["question_schema_version"]}',
+        '',
         f'Observation: {observation.outcome}',
         '',
         f'Stage: {_text(observation.stage)}',
