@@ -28,6 +28,10 @@ Read [AGENTS.md](../../../AGENTS.md) and the [knowledge shelf](references/kb-ind
 
 Public tasks must be understandable from recipient-accessible sources. Missing private operational context blocks only the operation that needs it; never copy internal methods into this role. Preserve explicit stops and unrelated work. Correct navigation at this role, product requirements at the feature owner and shared project rules at AGENTS.md. Report a missing source or conflict to the project lead instead of inventing its contents.
 
+## Self-learning
+
+During service, evaluator and page work, the project lead proactively strengthens a suitable project skill or creates small guidance with a concrete next use. Review the actual session delta at closure: improve an owner, create a justified skill, update sufficient documentation or record a reasoned no-change result. No quota or repetition threshold applies. Verify the guidance, maintain navigation and keep project-skill development separate from canonical methods and copy refreshes. Preserve the protected paths and owner authority in AGENTS.md; an executor returns out-of-scope candidates to the lead.
+
 ## Harness enhancements
 
 Use available file and Git inspection tools. Filesystem links prove source availability, not that a fresh agent followed them. Do not start another agent or review as a context-recovery step.
