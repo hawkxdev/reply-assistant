@@ -28,15 +28,15 @@ The holdout custodian does not implement or tune rules. Before freezing, the aut
 | E11 | 3 | Consistent JSON/Markdown | E10 | Merged in [#86](https://github.com/hawkxdev/reply-assistant/pull/86) |
 | E12 | 3 | Offline CLI and safe report writes | E11 | Merged in [#89](https://github.com/hawkxdev/reply-assistant/pull/89); source-path fix in [#92](https://github.com/hawkxdev/reply-assistant/pull/92) |
 | E13 | 3 | Integrated compatibility verification | E12 | Historical integration checks recorded; each new candidate requires current verification |
-| E14 | 4 | Frozen acceptance candidate | E03, E13 | Input hashes retained; tested-code pin, original holdout confirmation and isolation evidence require reconciliation |
-| E15 | 4 | One independent twenty-case run | E14 | Historical twenty-case report retained; not a fresh independent acceptance |
+| E14 | 4 | Frozen acceptance candidate | E03, E13 | Historical Git revision and twenty human confirmations recovered; final corpus pin and separate custodian requirements are not satisfied |
+| E15 | 4 | One independent twenty-case run | E14 | Historical numerical pass retained from a repeated calculation; independent acceptance is not established |
 | E16 | 4 | Evidence and delivery decision | E15 | Implementation delivered; original private evidence retained, its publication and unresolved provenance have separate gates |
 
 ### Acceptance evidence limits
 
-The retained historical report contains a passing evaluator gate, but three provenance requirements are not established by the currently inspected records: the exact tested code revision, the original human confirmation of holdout labels, and the custodian/access evidence for blind isolation. Label fields and a calculated passing gate do not authenticate these facts. Keep the original artifacts; do not fill the missing code pin from the current HEAD, silently confirm labels, publish the held-out cases or repeat their evaluation as a new independent measurement.
+The retained original records establish the historical Git revision and the owner responses confirming all twenty holdout labels. They also show that the freeze manifest pins the corpus before those labels were confirmed, that corpus preparation and evaluator implementation shared an agent context, and that calculation was repeated to retain reports. These records do not satisfy the required frozen candidate and separate custodian contract. Keep the original artifacts and their numerical results; recovered human confirmation does not turn the historical pass into independent acceptance.
 
-Reconcile the original records before claiming independent acceptance for an exact version. If they cannot be recovered, preserve the historical report with these limits and agree a new acceptance route separately. The 0/0/4 thresholds, corpus contract, generation and paid-call authority retain their existing owners.
+Independent acceptance needs a separately agreed new holdout and custodian, human-confirmed labels, and final input/code pins before its first run. The old twenty remain available for explicitly labelled regression, without rewriting their original reports or treating another replay as new independent evidence. The 0/0/4 thresholds, corpus contract, generation and paid-call authority retain their existing owners.
 
 E03 and E04 can proceed in parallel. The first E04 unit uses format examples, not a requirement to finish all sixty. E04 is accepted only after both document loading and complete package validation/projection are verified. E05 remains a separate human/reference gate before E06-E09.
 
