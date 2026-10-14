@@ -76,7 +76,7 @@ Before the first independent run pin source, fact, question, corpus, rules, labe
 
 ## 4. Reports, metrics and CLI
 
-Reports use `report_kind=quality-evaluation` and `schema_version=1`. Preserve the old `EvaluationReport.passed` binary meaning. JSON and Markdown come from one result model, with stable case order, source/rules/evaluator versions, complete question/answer, human status, claim and evidence spans, expected source values, reasons and unchecked fragments. Summaries link to individual cases. Run timestamps and local locations do not enter the reproducible content comparison.
+The CLI reports use `report_kind=quality-evaluation/schema_version=2`; existing report API callers retain schema 1 by default. The [extended contract](corpus-format-v2.md) defines full observations, provenance, obligations and field-attributed spans, with version 2 questions and unchanged version 1 source/fact/corpus bytes. Preserve the old `EvaluationReport.passed` binary meaning. JSON and Markdown come from one result model, with stable case order, source/rules/evaluator versions, complete question/answer, human status, claim and evidence spans, expected source values, reasons and unchecked fragments. Summaries link to individual cases. Run timestamps and local locations do not enter the reproducible content comparison.
 
 For each language/category and overall, show total cases, evaluated cases, the three verdict counts, failures, pending/disputed/unresolved references, false confirmations and false rejections with absolute denominators. Let E contain `evaluated` cases; C contain cases in E with `confirmed/correct` human labels; W contain cases in E with `confirmed/incorrect` labels. Other labels and execution failures do not enter C/W and are counted separately.
 

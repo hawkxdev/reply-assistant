@@ -5,6 +5,10 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from pydantic import BaseModel
+
+from reply_assistant.quality_schema import Case, ClaimField, QuestionRecord, QuestionV2
+
 # === Contract types ===
 
 ExecutionStatus = Literal[
@@ -235,6 +239,34 @@ class ReportMeta:
     rules_id: str
     rules_sha256: str
     sources: Sequence[tuple[str, str]]
+    document_sha256: Sequence[tuple[str, str]] = ()
+
+
+@dataclass(frozen=True)
+class CaseContext:
+    """Complete source case context."""
+
+    question: QuestionRecord
+    case: Case
+
+
+@dataclass(frozen=True)
+class UncheckedSpan:
+    """Original unchecked text span."""
+
+    start: int
+    end: int
+    text: str
+
+
+@dataclass(frozen=True)
+class FieldCoverage:
+    """Coverage of one field."""
+
+    field: ClaimField
+    protected: bool
+    protection_reason: str | None
+    unchecked: tuple[UncheckedSpan, ...]
 
 
 @dataclass(frozen=True)
@@ -247,6 +279,7 @@ class ClaimEntry:
     start: int
     end: int
     ground: str
+    field: ClaimField | None = None
 
 
 @dataclass(frozen=True)
@@ -266,6 +299,8 @@ class CaseEntry:
     unresolved: Sequence[str]
     claims: Sequence[ClaimEntry] = ()
     categories: Sequence[str] = ()
+    context: CaseContext | None = None
+    coverage: Sequence[FieldCoverage] | None = None
 
 
 @dataclass(frozen=True)
@@ -371,9 +406,18 @@ def build_report(
     *,
     answer_set_status: AnswerSetStatus | None = None,
     evaluator_gate: EvaluatorGate | None = None,
+    schema_version: int = SCHEMA_VERSION,
 ) -> QualityReport:
     """Assemble one quality report."""
 
+    if type(schema_version) is not int or schema_version not in (1, 2):
+        raise ValueError('unsupported report schema version')
+    if schema_version == 2:
+        for entry in entries:
+            if entry.context is None:
+                raise ValueError('report schema 2 requires complete case context')
+            if any(claim.field is None for claim in entry.claims):
+                raise ValueError('report schema 2 requires claim field attribution')
     pairs = [
         (
             entry,
@@ -400,7 +444,7 @@ def build_report(
     )
     return QualityReport(
         report_kind=REPORT_KIND,
-        schema_version=SCHEMA_VERSION,
+        schema_version=schema_version,
         meta=meta,
         summary=compute_metrics(outcomes),
         cases=tuple(entries),
@@ -430,10 +474,10 @@ def _pinned_path(path: str, meta: ReportMeta) -> str | None:
     return None
 
 
-def _claim_payload(claim: ClaimEntry) -> dict[str, object]:
+def _claim_payload(claim: ClaimEntry, version: int) -> dict[str, object]:
     """JSON payload of one claim."""
 
-    return {
+    payload: dict[str, object] = {
         'kind': claim.kind,
         'expected': claim.expected,
         'found': claim.found,
@@ -441,12 +485,33 @@ def _claim_payload(claim: ClaimEntry) -> dict[str, object]:
         'end': claim.end,
         'ground': claim.ground,
     }
+    if version == 2:
+        payload['field'] = claim.field
+    return payload
 
 
-def _case_payload(entry: CaseEntry, meta: ReportMeta) -> dict[str, object]:
+def _context_payload(context: CaseContext) -> dict[str, object]:
+    """Serialize complete case context."""
+    case = context.case
+    return {
+        'group_id': case.group_id,
+        'question_id': case.question_id,
+        'question_sha256': case.question_sha256,
+        'question_schema_version': 2 if isinstance(context.question, QuestionV2) else 1,
+        'question': context.question.model_dump(mode='json'),
+        'observation': case.observation.model_dump(mode='json'),
+        'question_origin': case.question_origin.model_dump(mode='json'),
+        'answer_origin': case.answer_origin.model_dump(mode='json'),
+        'label': case.label.model_dump(mode='json'),
+    }
+
+
+def _case_payload(
+    entry: CaseEntry, meta: ReportMeta, version: int
+) -> dict[str, object]:
     """JSON payload of one case."""
 
-    return {
+    payload: dict[str, object] = {
         'case_id': entry.case_id,
         'language': entry.language,
         'categories': list(entry.categories),
@@ -459,8 +524,18 @@ def _case_payload(entry: CaseEntry, meta: ReportMeta) -> dict[str, object]:
         'human_verdict': entry.human_verdict,
         'grounds': list(entry.grounds),
         'unresolved': list(entry.unresolved),
-        'claims': [_claim_payload(claim) for claim in entry.claims],
+        'claims': [_claim_payload(claim, version) for claim in entry.claims],
     }
+    if version == 2:
+        if entry.context is None:
+            raise ValueError('complete case context is unavailable')
+        payload['context'] = _context_payload(entry.context)
+        payload['coverage'] = (
+            [asdict(coverage) for coverage in entry.coverage]
+            if entry.coverage is not None
+            else None
+        )
+    return payload
 
 
 def _group_payload(group: GroupSummary) -> dict[str, object]:
@@ -487,8 +562,13 @@ def render_json(report: QualityReport) -> str:
         'evaluator_gate': report.evaluator_gate,
         'summary': asdict(report.summary),
         'groups': [_group_payload(group) for group in report.groups],
-        'cases': [_case_payload(entry, report.meta) for entry in report.cases],
+        'cases': [
+            _case_payload(entry, report.meta, report.schema_version)
+            for entry in report.cases
+        ],
     }
+    if report.schema_version == 2:
+        payload['document_sha256'] = dict(report.meta.document_sha256)
     return json.dumps(payload, indent=2) + '\n'
 
 
@@ -534,12 +614,13 @@ def _group_lines(title: str, groups: Sequence[GroupSummary]) -> list[str]:
     return lines
 
 
-def _claim_lines(claims: Sequence[ClaimEntry]) -> list[str]:
+def _claim_lines(claims: Sequence[ClaimEntry], version: int) -> list[str]:
     """Markdown block of claims."""
 
     lines = ['Claims:']
     lines.extend(
-        f'- {claim.kind}: span {claim.start}-{claim.end}, '
+        f'- {f"{claim.field}: " if version == 2 else ""}'
+        f'{claim.kind}: span {claim.start}-{claim.end}, '
         f'expected {claim.expected}, found {claim.found}, '
         f'ground {claim.ground}'
         for claim in claims
@@ -548,7 +629,66 @@ def _claim_lines(claims: Sequence[ClaimEntry]) -> list[str]:
     return lines
 
 
-def _case_lines(entry: CaseEntry, meta: ReportMeta) -> list[str]:
+def _model_text(model: BaseModel) -> str:
+    """Serialize one recorded model."""
+    return json.dumps(model.model_dump(mode='json'), ensure_ascii=False)
+
+
+def _context_lines(entry: CaseEntry) -> list[str]:
+    """Render complete observation context."""
+    if entry.context is None:
+        raise ValueError('complete case context is unavailable')
+    context = entry.context
+    payload = _context_payload(context)
+    observation = context.case.observation
+    answer = observation.answer
+    identifier = _text(answer.upsell_product_id) if answer is not None else 'null'
+    lines = [
+        f'Group ID: {payload["group_id"]}',
+        '',
+        f'Question SHA256: {payload["question_sha256"]}',
+        '',
+        f'Question schema version: {payload["question_schema_version"]}',
+        '',
+        f'Observation: {observation.outcome}',
+        '',
+        f'Stage: {_text(observation.stage)}',
+        '',
+        f'Recorded error: {_text(observation.error_code)}',
+        '',
+        f'Upsell hint: {answer.upsell_hint if answer is not None else "null"}',
+        '',
+        f'Upsell product ID: {identifier}',
+        '',
+        f'KB match: {answer.kb_match if answer is not None else "null"}',
+        '',
+        f'Question contract: {_model_text(context.question)}',
+        '',
+        f'Question origin: {_model_text(context.case.question_origin)}',
+        '',
+        f'Answer origin: {_model_text(context.case.answer_origin)}',
+        '',
+        f'Reference: {_model_text(context.case.label)}',
+        '',
+    ]
+    if entry.coverage is None:
+        lines.extend(['Coverage: unavailable', ''])
+    else:
+        lines.append('Coverage:')
+        for coverage in entry.coverage:
+            lines.append(
+                f'- {coverage.field}: protected={coverage.protected}, '
+                f'reason={_text(coverage.protection_reason)}'
+            )
+            for span in coverage.unchecked:
+                lines.append(
+                    f'- {coverage.field}: span {span.start}-{span.end}: {span.text}'
+                )
+        lines.append('')
+    return lines
+
+
+def _case_lines(entry: CaseEntry, meta: ReportMeta, version: int) -> list[str]:
     """Markdown block of one case."""
 
     lines = [
@@ -565,9 +705,11 @@ def _case_lines(entry: CaseEntry, meta: ReportMeta) -> list[str]:
         f'Answer: {entry.answer}',
         '',
     ]
+    if version == 2:
+        lines.extend(_context_lines(entry))
     lines.extend(_reason_lines('Grounds', entry.grounds))
     lines.extend(_reason_lines('Unresolved', entry.unresolved))
-    lines.extend(_claim_lines(entry.claims))
+    lines.extend(_claim_lines(entry.claims, version))
     return lines
 
 
@@ -585,6 +727,11 @@ def render_markdown(report: QualityReport) -> str:
         '- Sources:',
     ]
     lines.extend(f'  - {path} ({digest})' for path, digest in report.meta.sources)
+    if report.schema_version == 2:
+        lines.append('- Document hashes:')
+        lines.extend(
+            f'  - {name} ({digest})' for name, digest in report.meta.document_sha256
+        )
     lines.extend(
         [
             f'- Answer set: {report.answer_set_status}',
@@ -597,5 +744,5 @@ def render_markdown(report: QualityReport) -> str:
     lines.extend(_group_lines('By category', category_groups))
     lines.extend(['', '## Cases', ''])
     for entry in report.cases:
-        lines.extend(_case_lines(entry, report.meta))
+        lines.extend(_case_lines(entry, report.meta, report.schema_version))
     return '\n'.join(lines) + '\n'
