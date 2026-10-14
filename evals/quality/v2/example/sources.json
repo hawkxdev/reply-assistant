@@ -1,0 +1,20 @@
+{
+  "document_kind": "quality_sources",
+  "schema_version": 1,
+  "rules_id": "factual-assessment-v1",
+  "rules_sha256": "15cee88b97c849277e3c9db50f3f5a9efdae2fc53b24f93d529a55db706e8459",
+  "sources": [
+    {
+      "id": "public-en",
+      "path": "kb/example-en.yaml",
+      "sha256": "6ed595c90ef83319fd7ab87f717ab480339c3c8c79382f26112e12028aaa1b48",
+      "language": "en"
+    },
+    {
+      "id": "public-ru",
+      "path": "kb/example-ru.yaml",
+      "sha256": "58f96fc09637389b9794b1081802308149ff5c68f04f909bb759537bd2edb27b",
+      "language": "ru"
+    }
+  ]
+}

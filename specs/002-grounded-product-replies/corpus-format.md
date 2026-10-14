@@ -139,3 +139,7 @@ Order is decoding, structure, uniqueness/references, hashes, Evidence/facts, cro
 Package loading is atomic: an invalid document/case stops assessment of the whole package before its first evaluation and produces invalid_input/exit 2. Unknown case counts are null, never successful zero. Valid recorded provider/service failures remain cases with recorded_failure rather than corrupting the package. An invalid case cannot reduce the acceptance denominator: readiness is not_ready/2. Safe output uses codes and known record/field identifiers, not raw input, arbitrary exception text or full ValidationError dumps.
 
 E04 has two implementation units: document decoding/schema first; full package invariants and projection second. The first unit is not a claim of package validity. E05 separately requires approved rules/format, technically accepted complete E04 and genuine human-confirmed development labels before E06-E09.
+
+## 11. Extended questions and complete reports
+
+The [version 2 extension](corpus-format-v2.md) defines a separate question discriminator with explicit recommendation and unknown-information obligations and the CLI's complete report schema 2. The version 1 document models, canonical hashes, source annotations and historical bytes described above retain their meanings. A legacy `quality_questions` document with integer version 2 remains invalid; callers select the extension explicitly.

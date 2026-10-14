@@ -16,12 +16,15 @@ from reply_assistant.quality_corpus import (
 )
 from reply_assistant.quality_facts import VerifiedFactIndex, build_fact_index
 from reply_assistant.quality_report import (
+    CaseContext,
     CaseEntry,
     CaseOutcome,
     ClaimEntry,
+    FieldCoverage,
     QualityReport,
     Readiness,
     ReportMeta,
+    UncheckedSpan,
     acceptance_gate,
     build_report,
     gate_value,
@@ -36,6 +39,7 @@ from reply_assistant.quality_rules import (
     assess_answer,
     assess_field,
 )
+from reply_assistant.quality_schema import ClaimField, QuestionRecord
 
 # === Command grammar ===
 
@@ -143,18 +147,24 @@ def _assess(package: LoadedQualityPackage) -> tuple[CaseEntry, ...]:
     """Assess every package case."""
     paths = {source.id: source.path for source in package.sources.sources}
     indexes: dict[str, VerifiedFactIndex] = {}
-    return tuple(_assess_case(item, indexes, paths) for item in package.cases)
+    questions = {question.id: question for question in package.questions.questions}
+    return tuple(
+        _assess_case(item, indexes, paths, questions[item.case.question_id])
+        for item in package.cases
+    )
 
 
 def _assess_case(
     verified: VerifiedCase,
     indexes: dict[str, VerifiedFactIndex],
     paths: Mapping[str, str],
+    original_question: QuestionRecord,
 ) -> CaseEntry:
     """Assess one recorded case."""
     case = verified.case
     question = verified.assessment.question
     observation = verified.assessment.observation
+    context = CaseContext(question=original_question, case=case)
     if observation.outcome != 'answer' or observation.answer is None:
         return CaseEntry(
             case_id=case.id,
@@ -170,6 +180,7 @@ def _assess_case(
             unresolved=(),
             claims=(),
             categories=tuple(case.categories),
+            context=context,
         )
     try:
         answer = observation.answer
@@ -199,7 +210,7 @@ def _assess_case(
             language=question.language,
             source_path=paths[question.source_id],
             question=question.message,
-            answer='',
+            answer=observation.answer.customer_reply,
             execution_status='evaluator_error',
             factual_verdict=None,
             human_status=case.label.status,
@@ -208,6 +219,7 @@ def _assess_case(
             unresolved=(),
             claims=(),
             categories=tuple(case.categories),
+            context=context,
         )
     return CaseEntry(
         case_id=case.id,
@@ -221,8 +233,16 @@ def _assess_case(
         human_verdict=case.label.verdict,
         grounds=result.grounds,
         unresolved=result.unresolved,
-        claims=(*_claims(customer), *_claims(hint)),
+        claims=(
+            *_claims(customer, 'customer_reply'),
+            *_claims(hint, 'upsell_hint'),
+        ),
         categories=tuple(case.categories),
+        context=context,
+        coverage=(
+            _coverage(customer, 'customer_reply', answer.customer_reply),
+            _coverage(hint, 'upsell_hint', answer.upsell_hint),
+        ),
     )
 
 
@@ -252,7 +272,7 @@ def _policy(
     )
 
 
-def _claims(assessment: FieldAssessment) -> tuple[ClaimEntry, ...]:
+def _claims(assessment: FieldAssessment, field: ClaimField) -> tuple[ClaimEntry, ...]:
     """Collect one field claims."""
     return tuple(
         ClaimEntry(
@@ -262,8 +282,24 @@ def _claims(assessment: FieldAssessment) -> tuple[ClaimEntry, ...]:
             start=claim.start,
             end=claim.end,
             ground=claim.product_id,
+            field=field,
         )
         for claim in (*assessment.claims, *assessment.service_fragments)
+    )
+
+
+def _coverage(
+    assessment: FieldAssessment, field: ClaimField, text: str
+) -> FieldCoverage:
+    """Keep original field coverage."""
+    return FieldCoverage(
+        field=field,
+        protected=assessment.protected,
+        protection_reason=assessment.protection_reason,
+        unchecked=tuple(
+            UncheckedSpan(start=start, end=end, text=text[start:end])
+            for start, end in assessment.remainders
+        ),
     )
 
 
@@ -296,8 +332,19 @@ def _report(
         rules_id=package.sources.rules_id,
         rules_sha256=package.sources.rules_sha256,
         sources=[(source.path, source.sha256) for source in package.sources.sources],
+        document_sha256=(
+            ('sources', package.sources_sha256),
+            ('facts', package.facts_sha256),
+            ('questions', package.questions_sha256),
+            *(
+                (f'corpus_{index}', digest)
+                for index, digest in enumerate(package.corpora_sha256)
+            ),
+        ),
     )
-    return build_report(meta, entries, evaluator_gate=gate_value(readiness.state))
+    return build_report(
+        meta, entries, evaluator_gate=gate_value(readiness.state), schema_version=2
+    )
 
 
 # === Publication ===

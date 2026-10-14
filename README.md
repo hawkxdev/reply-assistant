@@ -145,6 +145,17 @@ uv run python scripts/evaluate_quality.py replay \
 
 Use a new output directory outside the input directory. The command writes `report.json` and `report.md`; replay returns 0 when every answer is confirmed, 1 for content findings or manual review, and 2 for an incomplete run or invalid input. Synthetic errors are expected evaluation material, so a completed replay need not return 0. Development replay is not independent acceptance and does not measure the error rate of the product model.
 
+The CLI emits report schema 2 with the complete four-field answer, observation stage or recorded failure, question obligations, provenance, reference details and field-attributed claim and unchecked spans. Older report API callers retain schema 1 by default; saved historical reports are unchanged. Reports include supplied provenance and label notes, so inspect the actual content before sharing them.
+
+The [extended question contract](specs/002-grounded-product-replies/corpus-format-v2.md) can require a particular manager recommendation and explicitly record unknown additional information. A different existing product with a consistent hint and ID does not satisfy the requested recommendation. Arbitrary unknown properties remain manual review under the current finite grammar. Run the public format example with:
+
+```bash
+uv run python scripts/evaluate_quality.py replay \
+  --package evals/quality/v2/example/corpus.json --out quality-example-results
+```
+
+This example has pending reference labels and is not independent acceptance material.
+
 ## What the checks prove
 
 Code validates the output shape, checks that the upsell product ID exists, and rejects configured forbidden stems in the reply and hint. It appends the optional disclaimer itself. A rejected answer gets one retry; a second rejection returns an error instead of the rejected text.

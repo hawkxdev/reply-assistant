@@ -129,7 +129,7 @@ Distinguishing defects: failure lowers an error rate, unresolved counts as corre
 
 Requirements: Q1, Q13-Q14, Q17-Q18, A9, A11-A12. Scope: JSON/Markdown renderers.
 
-Use one result model, report_kind=quality-evaluation/schema_version=1, stable order and reproducible content. Include full source/question/answer, evidence/reasons/spans, label state and every summary group with links to cases. Keep answer-set status distinct from evaluator acceptance. Inspect actual outgoing reports for restricted content.
+Use one result model and report_kind=quality-evaluation, with schema version 2 for the CLI and schema version 1 retained by the legacy report API. The [extended contract](corpus-format-v2.md) defines explicit recommendations and unknown-information obligations, complete observations/provenance and original field attribution. Keep stable order and reproducible content. Include full source/question/answer, evidence/reasons/spans, label state and every summary group with links to cases. Keep answer-set status distinct from evaluator acceptance. Inspect actual outgoing reports for restricted content.
 
 Distinguishing defects: Markdown success contradicts JSON, missing reason/group, lost source or rules version.
 
