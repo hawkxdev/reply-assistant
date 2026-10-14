@@ -163,6 +163,41 @@ def test_requested_product_overrides_consistent_wrong_recommendation(
     ]
 
 
+@pytest.mark.parametrize(
+    ('hint', 'identifier', 'expected_grounds'),
+    [
+        (
+            'Offer Zeolite Capsules.',
+            'measuring-spoon',
+            ['directive_mismatch: expected measuring-spoon, found zeolite-capsules-90'],
+        ),
+        (
+            'Offer Measuring Spoon.',
+            'zeolite-capsules-90',
+            [
+                'directive_mismatch: expected zeolite-capsules-90, '
+                'found measuring-spoon',
+                'recommendation_mismatch: expected zeolite-capsules-90, '
+                'found measuring-spoon',
+            ],
+        ),
+    ],
+)
+def test_requested_recommendation_uses_parsed_target_with_inconsistent_id(
+    tmp_path: Path,
+    hint: str,
+    identifier: str,
+    expected_grounds: list[str],
+) -> None:
+    package = extended_package(tmp_path / 'package', hint=hint, identifier=identifier)
+
+    code, report, _ = replay(package, tmp_path / 'result')
+
+    assert code == 1
+    assert report['cases'][0]['factual_verdict'] == 'error'
+    assert report['cases'][0]['grounds'] == expected_grounds
+
+
 def test_missing_directive_fails_despite_requested_product_price(
     tmp_path: Path,
 ) -> None:
@@ -225,6 +260,22 @@ def test_proven_error_keeps_priority_over_unknown_information(
         'unresolved_unknown_information: customer_reply: production date '
         'of zeolite-powder-200'
     ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_version', [2.0, '2', True, None])
+async def test_extended_question_version_requires_actual_integer(
+    tmp_path: Path, invalid_version: object
+) -> None:
+    package = extended_package(tmp_path / 'package')
+    questions = json.loads((package.parent / 'questions.json').read_bytes())
+    questions['schema_version'] = invalid_version
+    rebind_questions(package, questions)
+
+    with pytest.raises(QualityInputError) as error:
+        await load_extended(package)
+
+    assert error.value.code == 'schema'
 
 
 @pytest.mark.asyncio

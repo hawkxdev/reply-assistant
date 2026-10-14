@@ -1539,13 +1539,13 @@ def _resolve_recommendation(
         directives = [
             claim for claim in _field_claims(assessment) if claim.kind == 'directive'
         ]
-        if any(claim.product_id == obligation.product_id for claim in directives):
+        if any(claim.found == obligation.product_id for claim in directives):
             return
         if directives:
             for claim in directives:
                 grounds.append(
                     f'recommendation_mismatch: expected {obligation.product_id}, '
-                    f'found {claim.product_id}'
+                    f'found {claim.found}'
                 )
             return
         if _fully_parsed(assessment):
