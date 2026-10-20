@@ -6,6 +6,16 @@ A local prototype for a sales or support manager. It takes a customer message an
 
 Implementation and checks run in the selected local coding harness. GitHub stores the public source and task contracts. The owner decides what is built and accepts the finished work. The [working process](docs/how-this-repo-is-built.md) and [project knowledge](docs/knowledge/README.md) describe current roles and boundaries; historical cloud workflows do not authorize execution.
 
+## Requirements and contracts
+
+The specifications own the product requirements and read as analysis artifacts:
+
+- [Specification 001](specs/001-reply-and-upsell/spec.md): users and their needs, the knowledge base data model, the typed output contract, machine-enforced business rules (product existence, forbidden claim stems, disclaimer, output shape, one retry) and provider fallback, each mapped to acceptance criteria.
+- [Specification 002](specs/002-grounded-product-replies/spec.md): offline measurement of answer quality under versioned rules, with a labelled corpus, provenance, an error taxonomy (distorted facts, invented statements, false rejections of correct answers) and explicit evidence limits.
+- [Specification 003](specs/003-public-deploy/spec.md): multi-client knowledge-base registry and the optional API token as an integration boundary contract.
+
+Explicit prototype boundaries: the page is a mock, no draft reaches a real customer, and a restart loses an in-flight message (no durable queue or result storage).
+
 ## Run locally
 
 Requires [Python 3.12](https://docs.python.org/3.12/) and [uv](https://docs.astral.sh/uv/). The service uses [FastAPI](https://fastapi.tiangolo.com/) and [Pydantic](https://docs.pydantic.dev/), with plain HTML, CSS and JavaScript for the page. No database or frontend build is needed.
