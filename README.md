@@ -8,7 +8,7 @@ Implementation and checks run in the selected local coding harness. GitHub store
 
 ## Requirements and contracts
 
-The specifications own the product requirements and read as analysis artifacts:
+The specifications define user needs, data and API contracts, business rules and acceptance criteria:
 
 - [Specification 001](specs/001-reply-and-upsell/spec.md): users and their needs, the knowledge base data model, the typed output contract, machine-enforced business rules (product existence, forbidden claim stems, disclaimer, output shape, one retry) and provider fallback, each mapped to acceptance criteria.
 - [Specification 002](specs/002-grounded-product-replies/spec.md): offline measurement of answer quality under versioned rules, with a labelled corpus, provenance, an error taxonomy (distorted facts, invented statements, false rejections of correct answers) and explicit evidence limits.
